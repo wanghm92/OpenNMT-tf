@@ -172,6 +172,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">six</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
@@ -227,7 +228,7 @@
 <span class="sd">  with :obj:`prefix`.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="n">sub_dict</span> <span class="o">=</span> <span class="p">{}</span>
-  <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+  <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dictionary</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">):</span>
       <span class="n">original_key</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">):]</span>
       <span class="n">sub_dict</span><span class="p">[</span><span class="n">original_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
@@ -241,11 +242,11 @@
       <span class="k">yield</span> <span class="n">tensor</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="n">batch_size</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tensors</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">tensors</span><span class="p">):</span>
       <span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span> <span class="ow">or</span> <span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
       <span class="k">yield</span> <span class="p">{</span>
-          <span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tensors</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+          <span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">tensors</span><span class="p">)</span>
       <span class="p">}</span></div>
 
 
@@ -274,7 +275,7 @@
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="n">key_collection</span> <span class="o">=</span> <span class="n">collection_name</span> <span class="o">+</span> <span class="s2">&quot;_keys&quot;</span>
   <span class="n">value_collection</span> <span class="o">=</span> <span class="n">collection_name</span> <span class="o">+</span> <span class="s2">&quot;_values&quot;</span>
-  <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+  <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
     <span class="n">tf</span><span class="o">.</span><span class="n">add_to_collection</span><span class="p">(</span><span class="n">key_collection</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
     <span class="n">tf</span><span class="o">.</span><span class="n">add_to_collection</span><span class="p">(</span><span class="n">value_collection</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
 
