@@ -244,6 +244,7 @@
 
     <span class="k">def</span> <span class="nf">_impl</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">cache</span><span class="p">):</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="n">embedding_fn</span><span class="p">(</span><span class="n">ids</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:])</span>
+      <span class="n">inputs</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_units</span><span class="o">**</span><span class="mf">0.5</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_encoder</span><span class="o">.</span><span class="n">apply_one</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
       <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_self_attention_stack</span><span class="p">(</span>
           <span class="n">inputs</span><span class="p">,</span>
@@ -351,6 +352,7 @@
     <span class="k">if</span> <span class="n">sampling_probability</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Scheduled sampling is not supported with SelfAttentionDecoder&quot;</span><span class="p">)</span>
 
+    <span class="n">inputs</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_units</span><span class="o">**</span><span class="mf">0.5</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_encoder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_encoder</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">sequence_length</span><span class="o">=</span><span class="n">sequence_length</span><span class="p">)</span>
 
