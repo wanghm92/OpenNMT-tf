@@ -303,7 +303,9 @@
             <span class="n">outputs</span><span class="p">,</span>
             <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">labels</span><span class="p">[</span><span class="s2">&quot;tags_id&quot;</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
             <span class="n">length</span><span class="p">)</span>
-      <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="o">-</span><span class="n">log_likelihood</span><span class="p">)</span>
+      <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="o">-</span><span class="n">log_likelihood</span><span class="p">)</span>
+      <span class="n">loss_normalizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">log_likelihood</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">loss_normalizer</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="k">return</span> <span class="n">cross_entropy_sequence_loss</span><span class="p">(</span>
           <span class="n">outputs</span><span class="p">,</span>

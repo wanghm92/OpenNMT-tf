@@ -188,15 +188,39 @@
   <div class="section" id="module-opennmt.models.model">
 <span id="opennmt-models-model-module"></span><h1>opennmt.models.model module<a class="headerlink" href="#module-opennmt.models.model" title="Permalink to this headline">¶</a></h1>
 <p>Base class for models.</p>
+<dl class="function">
+<dt id="opennmt.models.model.filter_irregular_batches">
+<code class="descclassname">opennmt.models.model.</code><code class="descname">filter_irregular_batches</code><span class="sig-paren">(</span><em>multiple</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#filter_irregular_batches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.filter_irregular_batches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation that filters out batches based on their size.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>multiple</strong> – The divisor of the batch size.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="docutils literal"><span class="pre">tf.data.Dataset</span></code> transformation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="class">
 <dt id="opennmt.models.model.Model">
 <em class="property">class </em><code class="descclassname">opennmt.models.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Base class for models.</p>
 <dl class="method">
-<dt id="opennmt.models.model.Model.__call__">
-<code class="descname">__call__</code><span class="sig-paren">(</span><em>features</em>, <em>labels</em>, <em>params</em>, <em>mode</em>, <em>config</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates the model.</p>
+<dt id="opennmt.models.model.Model.model_fn">
+<code class="descname">model_fn</code><span class="sig-paren">(</span><em>num_devices=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.model_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.model_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the model function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_devices</strong> – The number of devices used for training.</td>
+</tr>
+</tbody>
+</table>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><code class="docutils literal"><span class="pre">tf.estimator.Estimator</span></code> ‘s <code class="docutils literal"><span class="pre">model_fn</span></code> argument for more details about
@@ -206,7 +230,7 @@ arguments and the returned value.</p>
 
 <dl class="method">
 <dt id="opennmt.models.model.Model.input_fn">
-<code class="descname">input_fn</code><span class="sig-paren">(</span><em>mode</em>, <em>batch_size</em>, <em>prefetch_buffer_size</em>, <em>num_parallel_process_calls</em>, <em>metadata</em>, <em>features_file</em>, <em>labels_file=None</em>, <em>batch_type='examples'</em>, <em>bucket_width=None</em>, <em>sample_buffer_size=None</em>, <em>maximum_features_length=None</em>, <em>maximum_labels_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.input_fn" title="Permalink to this definition">¶</a></dt>
+<code class="descname">input_fn</code><span class="sig-paren">(</span><em>mode</em>, <em>batch_size</em>, <em>prefetch_buffer_size</em>, <em>num_parallel_process_calls</em>, <em>metadata</em>, <em>features_file</em>, <em>labels_file=None</em>, <em>batch_type='examples'</em>, <em>batch_multiplier=1</em>, <em>bucket_width=None</em>, <em>sample_buffer_size=None</em>, <em>maximum_features_length=None</em>, <em>maximum_labels_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.input_fn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an input function.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -223,6 +247,8 @@ by the user.</li>
 <li><strong>labels_file</strong> – The file containing output labels.</li>
 <li><strong>batch_type</strong> – The training batching stragety to use: can be “examples” or
 “tokens”.</li>
+<li><strong>batch_multiplier</strong> – The batch size multiplier to prepare splitting accross
+replicated graph parts.</li>
 <li><strong>bucket_width</strong> – The width of the length buckets to select batch candidates
 from. <code class="docutils literal"><span class="pre">None</span></code> to not constrain batch formation.</li>
 <li><strong>sample_buffer_size</strong> – The number of elements from which to sample.</li>

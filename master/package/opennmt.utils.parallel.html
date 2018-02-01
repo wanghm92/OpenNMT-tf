@@ -186,8 +186,102 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="opennmt-utils-parallel-module">
-<h1>opennmt.utils.parallel module<a class="headerlink" href="#opennmt-utils-parallel-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-opennmt.utils.parallel">
+<span id="opennmt-utils-parallel-module"></span><h1>opennmt.utils.parallel module<a class="headerlink" href="#module-opennmt.utils.parallel" title="Permalink to this headline">¶</a></h1>
+<p>Utilities to run execution in parallel.</p>
+<dl class="class">
+<dt id="opennmt.utils.parallel.GraphDispatcher">
+<em class="property">class </em><code class="descclassname">opennmt.utils.parallel.</code><code class="descname">GraphDispatcher</code><span class="sig-paren">(</span><em>num_devices</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#GraphDispatcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.GraphDispatcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Helper class to replicate graph parts on multiple devices and dispatch
+sharded batches.</p>
+<dl class="method">
+<dt id="opennmt.utils.parallel.GraphDispatcher.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_devices</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#GraphDispatcher.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.GraphDispatcher.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the dispatcher.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_devices</strong> – The number of devices to dispatch on.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if the number of visible devices is lower than
+<code class="xref py py-obj docutils literal"><span class="pre">num_devices</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="opennmt.utils.parallel.GraphDispatcher.shard">
+<code class="descname">shard</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#GraphDispatcher.shard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.GraphDispatcher.shard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shards a structure of <code class="docutils literal"><span class="pre">tf.Tensor</span></code> for dispatching.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – A <code class="docutils literal"><span class="pre">tf.Tensor</span></code> of dictionary of <code class="docutils literal"><span class="pre">tf.Tensor</span></code>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of the same <code class="docutils literal"><span class="pre">tf.Tensor</span></code> structure.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="opennmt.utils.parallel.GraphDispatcher.repeat">
+<code class="descname">repeat</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#GraphDispatcher.repeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.GraphDispatcher.repeat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures that the object is dispatchable list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – The object to convert.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">data</span></code> if it is valid list or a list where <code class="xref py py-obj docutils literal"><span class="pre">data</span></code> is replicated.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if <code class="xref py py-obj docutils literal"><span class="pre">data</span></code> is a non dispatchable list.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="opennmt.utils.parallel.GraphDispatcher.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>fun</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#GraphDispatcher.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.GraphDispatcher.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dispatches <code class="xref py py-obj docutils literal"><span class="pre">fun</span></code> calls accross devices.</p>
+<ul class="simple">
+<li>Each argument must either not be a list or a list with length the
+number of devices used for dispatching.</li>
+<li>Variables are copied in a daisy chain fashion between devices
+(credits to Tensor2Tensor).</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fun</strong> – A callable.</li>
+<li><strong>*args</strong> – The callable arguments.</li>
+<li><strong>**kwargs</strong> – The callable keyword arguments.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The sharded outputs of <code class="xref py py-obj docutils literal"><span class="pre">fun</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.parallel.split_batch">
+<code class="descclassname">opennmt.utils.parallel.</code><code class="descname">split_batch</code><span class="sig-paren">(</span><em>data</em>, <em>num_shards</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#split_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.split_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split data into shards.</p>
+</dd></dl>
+
 </div>
 
 

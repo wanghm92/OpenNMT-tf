@@ -192,7 +192,7 @@
 <dl class="function">
 <dt id="opennmt.utils.losses.cross_entropy_sequence_loss">
 <code class="descclassname">opennmt.utils.losses.</code><code class="descname">cross_entropy_sequence_loss</code><span class="sig-paren">(</span><em>logits</em>, <em>labels</em>, <em>sequence_length</em>, <em>label_smoothing=0.0</em>, <em>average_in_time=False</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/losses.html#cross_entropy_sequence_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.losses.cross_entropy_sequence_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the reduced cross entropy loss of sequences.</p>
+<dd><p>Computes the cross entropy loss of sequences.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -207,7 +207,7 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple with the loss and the token level loss.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple (cumulated loss, loss normalizer, token-level normalizer).</p>
 </td>
 </tr>
 </tbody>
@@ -217,7 +217,7 @@
 <dl class="function">
 <dt id="opennmt.utils.losses.cross_entropy_loss">
 <code class="descclassname">opennmt.utils.losses.</code><code class="descname">cross_entropy_loss</code><span class="sig-paren">(</span><em>logits</em>, <em>labels</em>, <em>label_smoothing=0.0</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/losses.html#cross_entropy_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.losses.cross_entropy_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the reduced cross entropy loss.</p>
+<dd><p>Computes the cross entropy loss.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -230,7 +230,7 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The loss.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The cumulated loss and the loss normalizer.</p>
 </td>
 </tr>
 </tbody>
