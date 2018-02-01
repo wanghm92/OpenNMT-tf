@@ -305,7 +305,8 @@
                      <span class="n">maximum_iterations</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
                      <span class="n">mode</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">PREDICT</span><span class="p">,</span>
                      <span class="n">memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                     <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                     <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Decodes dynamically from :obj:`start_tokens` with greedy search.</span>
 
 <span class="sd">    Usually used for inference.</span>
@@ -320,6 +321,7 @@
 <span class="sd">      mode: A ``tf.estimator.ModeKeys`` mode.</span>
 <span class="sd">      memory: (optional) Memory values to query.</span>
 <span class="sd">      memory_sequence_length: (optional) Memory values length.</span>
+<span class="sd">      dtype: The data type. Required if :obj:`memory` is ``None``.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">      A tuple ``(predicted_ids, state, sequence_length, log_probs)``.</span>
@@ -338,7 +340,8 @@
                                 <span class="n">maximum_iterations</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
                                 <span class="n">mode</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">PREDICT</span><span class="p">,</span>
                                 <span class="n">memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                                <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Decodes dynamically from :obj:`start_tokens` with beam search.</span>
 
 <span class="sd">    Usually used for inference.</span>
@@ -355,6 +358,7 @@
 <span class="sd">      mode: A ``tf.estimator.ModeKeys`` mode.</span>
 <span class="sd">      memory: (optional) Memory values to query.</span>
 <span class="sd">      memory_sequence_length: (optional) Memory values length.</span>
+<span class="sd">      dtype: The data type. Required if :obj:`memory` is ``None``.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">      A tuple ``(predicted_ids, state, sequence_length, log_probs)``.</span>

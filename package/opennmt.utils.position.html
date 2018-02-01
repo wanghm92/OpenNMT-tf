@@ -272,7 +272,7 @@ If <code class="docutils literal"><span class="pre">None</span></code>, sequence
 
 <dl class="method">
 <dt id="opennmt.utils.position.PositionEncoder.encode">
-<code class="descname">encode</code><span class="sig-paren">(</span><em>positions</em>, <em>depth</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/position.html#PositionEncoder.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.position.PositionEncoder.encode" title="Permalink to this definition">¶</a></dt>
+<code class="descname">encode</code><span class="sig-paren">(</span><em>positions</em>, <em>depth</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/position.html#PositionEncoder.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.position.PositionEncoder.encode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates position encodings.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -281,6 +281,7 @@ If <code class="docutils literal"><span class="pre">None</span></code>, sequence
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>position</strong> – The positions to encode of shape <span class="math">\([B, ...]\)</span>.</li>
 <li><strong>depth</strong> – The encoding depth <span class="math">\(D\)</span>.</li>
+<li><strong>dtype</strong> – The encoding type.</li>
 </ul>
 </td>
 </tr>
@@ -293,7 +294,7 @@ If <code class="docutils literal"><span class="pre">None</span></code>, sequence
 
 <dl class="method">
 <dt id="opennmt.utils.position.PositionEncoder.encode_sequence">
-<code class="descname">encode_sequence</code><span class="sig-paren">(</span><em>sequence_length</em>, <em>depth</em>, <em>maximum_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/position.html#PositionEncoder.encode_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.position.PositionEncoder.encode_sequence" title="Permalink to this definition">¶</a></dt>
+<code class="descname">encode_sequence</code><span class="sig-paren">(</span><em>sequence_length</em>, <em>depth</em>, <em>maximum_length=None</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/position.html#PositionEncoder.encode_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.position.PositionEncoder.encode_sequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates position encodings for sequences.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -304,6 +305,7 @@ If <code class="docutils literal"><span class="pre">None</span></code>, sequence
 <li><strong>depth</strong> – The encoding depth <span class="math">\(D\)</span>.</li>
 <li><strong>maximum_length</strong> – Optional size of the returned time dimension. Otherwise
 it is the maximum of <code class="xref py py-obj docutils literal"><span class="pre">sequence_length</span></code>.</li>
+<li><strong>dtype</strong> – The encoding type.</li>
 </ul>
 </td>
 </tr>
@@ -343,7 +345,7 @@ position encodings.</li>
 
 <dl class="method">
 <dt id="opennmt.utils.position.PositionEmbedder.encode">
-<code class="descname">encode</code><span class="sig-paren">(</span><em>positions</em>, <em>depth</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/position.html#PositionEmbedder.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.position.PositionEmbedder.encode" title="Permalink to this definition">¶</a></dt>
+<code class="descname">encode</code><span class="sig-paren">(</span><em>positions</em>, <em>depth</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/position.html#PositionEmbedder.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.position.PositionEmbedder.encode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

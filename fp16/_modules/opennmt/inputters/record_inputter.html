@@ -181,19 +181,20 @@
 <span class="sd">  Each record contains the following fields:</span>
 
 <span class="sd">   * ``shape``: the shape of the tensor as a ``int64`` list.</span>
-<span class="sd">   * ``values``: the flattened tensor values as a ``float32`` list.</span>
+<span class="sd">   * ``values``: the flattened tensor values as a :obj:`dtype` list.</span>
 
 <span class="sd">  Tensors are expected to be of shape ``[time, depth]``.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="SequenceRecordInputter.__init__"><a class="viewcode-back" href="../../../package/opennmt.inputters.record_inputter.html#opennmt.inputters.record_inputter.SequenceRecordInputter.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_depth_key</span><span class="p">):</span>
+<div class="viewcode-block" id="SequenceRecordInputter.__init__"><a class="viewcode-back" href="../../../package/opennmt.inputters.record_inputter.html#opennmt.inputters.record_inputter.SequenceRecordInputter.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_depth_key</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Initializes the parameters of the record inputter.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">      input_depth_key: The data configuration key of the input depth value</span>
 <span class="sd">        which has to be known statically.</span>
+<span class="sd">      dtype: The values type.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">SequenceRecordInputter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">SequenceRecordInputter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">input_depth_key</span> <span class="o">=</span> <span class="n">input_depth_key</span></div>
 
 <div class="viewcode-block" id="SequenceRecordInputter.initialize"><a class="viewcode-back" href="../../../package/opennmt.inputters.record_inputter.html#opennmt.inputters.record_inputter.SequenceRecordInputter.initialize">[docs]</a>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
@@ -207,7 +208,7 @@
 
   <span class="k">def</span> <span class="nf">_get_serving_input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">receiver_tensors</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;tensor&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_depth</span><span class="p">)),</span>
+        <span class="s2">&quot;tensor&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_depth</span><span class="p">)),</span>
         <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,))</span>
     <span class="p">}</span>
 
@@ -219,7 +220,7 @@
     <span class="k">if</span> <span class="s2">&quot;tensor&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
       <span class="n">features</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">parse_single_example</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;raw&quot;</span><span class="p">],</span> <span class="n">features</span><span class="o">=</span><span class="p">{</span>
           <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">VarLenFeature</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
-          <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">VarLenFeature</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+          <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">VarLenFeature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
       <span class="p">})</span>
 
       <span class="n">values</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>

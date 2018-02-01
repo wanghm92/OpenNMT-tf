@@ -281,7 +281,7 @@ data.</li>
 
 <dl class="class">
 <dt id="opennmt.inputters.text_inputter.TextInputter">
-<em class="property">class </em><code class="descclassname">opennmt.inputters.text_inputter.</code><code class="descname">TextInputter</code><span class="sig-paren">(</span><em>tokenizer=&lt;opennmt.tokenizers.tokenizer.SpaceTokenizer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/text_inputter.html#TextInputter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.text_inputter.TextInputter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.inputters.text_inputter.</code><code class="descname">TextInputter</code><span class="sig-paren">(</span><em>tokenizer=&lt;opennmt.tokenizers.tokenizer.SpaceTokenizer object&gt;</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/text_inputter.html#TextInputter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.text_inputter.TextInputter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter" title="opennmt.inputters.inputter.Inputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.Inputter</span></code></a></p>
 <p>An abstract inputter that processes text.</p>
 <dl class="method">
@@ -308,12 +308,12 @@ data.</li>
 
 <dl class="class">
 <dt id="opennmt.inputters.text_inputter.WordEmbedder">
-<em class="property">class </em><code class="descclassname">opennmt.inputters.text_inputter.</code><code class="descname">WordEmbedder</code><span class="sig-paren">(</span><em>vocabulary_file_key</em>, <em>embedding_size=None</em>, <em>embedding_file_key=None</em>, <em>embedding_file_with_header=True</em>, <em>case_insensitive_embeddings=True</em>, <em>trainable=True</em>, <em>dropout=0.0</em>, <em>tokenizer=&lt;opennmt.tokenizers.tokenizer.SpaceTokenizer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/text_inputter.html#WordEmbedder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.text_inputter.WordEmbedder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.inputters.text_inputter.</code><code class="descname">WordEmbedder</code><span class="sig-paren">(</span><em>vocabulary_file_key</em>, <em>embedding_size=None</em>, <em>embedding_file_key=None</em>, <em>embedding_file_with_header=True</em>, <em>case_insensitive_embeddings=True</em>, <em>trainable=True</em>, <em>dropout=0.0</em>, <em>tokenizer=&lt;opennmt.tokenizers.tokenizer.SpaceTokenizer object&gt;</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/text_inputter.html#WordEmbedder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.text_inputter.WordEmbedder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#opennmt.inputters.text_inputter.TextInputter" title="opennmt.inputters.text_inputter.TextInputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.text_inputter.TextInputter</span></code></a></p>
 <p>Simple word embedder.</p>
 <dl class="method">
 <dt id="opennmt.inputters.text_inputter.WordEmbedder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>vocabulary_file_key</em>, <em>embedding_size=None</em>, <em>embedding_file_key=None</em>, <em>embedding_file_with_header=True</em>, <em>case_insensitive_embeddings=True</em>, <em>trainable=True</em>, <em>dropout=0.0</em>, <em>tokenizer=&lt;opennmt.tokenizers.tokenizer.SpaceTokenizer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/text_inputter.html#WordEmbedder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.text_inputter.WordEmbedder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>vocabulary_file_key</em>, <em>embedding_size=None</em>, <em>embedding_file_key=None</em>, <em>embedding_file_with_header=True</em>, <em>case_insensitive_embeddings=True</em>, <em>trainable=True</em>, <em>dropout=0.0</em>, <em>tokenizer=&lt;opennmt.tokenizers.tokenizer.SpaceTokenizer object&gt;</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/text_inputter.html#WordEmbedder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.text_inputter.WordEmbedder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the parameters of the word embedder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -333,6 +333,7 @@ lowercase data.</li>
 <li><strong>dropout</strong> – The probability to drop units in the embedding.</li>
 <li><strong>tokenizer</strong> – An optional <a class="reference internal" href="opennmt.tokenizers.tokenizer.html#opennmt.tokenizers.tokenizer.Tokenizer" title="opennmt.tokenizers.tokenizer.Tokenizer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.tokenizers.tokenizer.Tokenizer</span></code></a> to
 tokenize the input text.</li>
+<li><strong>dtype</strong> – The embedding type.</li>
 </ul>
 </td>
 </tr>
@@ -368,12 +369,12 @@ function for details about the pretrained embedding format and behavior.</p>
 
 <dl class="class">
 <dt id="opennmt.inputters.text_inputter.CharConvEmbedder">
-<em class="property">class </em><code class="descclassname">opennmt.inputters.text_inputter.</code><code class="descname">CharConvEmbedder</code><span class="sig-paren">(</span><em>vocabulary_file_key</em>, <em>embedding_size</em>, <em>num_outputs</em>, <em>kernel_size=5</em>, <em>stride=3</em>, <em>dropout=0.0</em>, <em>tokenizer=&lt;opennmt.tokenizers.tokenizer.SpaceTokenizer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/text_inputter.html#CharConvEmbedder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.text_inputter.CharConvEmbedder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.inputters.text_inputter.</code><code class="descname">CharConvEmbedder</code><span class="sig-paren">(</span><em>vocabulary_file_key</em>, <em>embedding_size</em>, <em>num_outputs</em>, <em>kernel_size=5</em>, <em>stride=3</em>, <em>dropout=0.0</em>, <em>tokenizer=&lt;opennmt.tokenizers.tokenizer.SpaceTokenizer object&gt;</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/text_inputter.html#CharConvEmbedder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.text_inputter.CharConvEmbedder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#opennmt.inputters.text_inputter.TextInputter" title="opennmt.inputters.text_inputter.TextInputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.text_inputter.TextInputter</span></code></a></p>
 <p>An inputter that applies a convolution on characters embeddings.</p>
 <dl class="method">
 <dt id="opennmt.inputters.text_inputter.CharConvEmbedder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>vocabulary_file_key</em>, <em>embedding_size</em>, <em>num_outputs</em>, <em>kernel_size=5</em>, <em>stride=3</em>, <em>dropout=0.0</em>, <em>tokenizer=&lt;opennmt.tokenizers.tokenizer.SpaceTokenizer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/text_inputter.html#CharConvEmbedder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.text_inputter.CharConvEmbedder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>vocabulary_file_key</em>, <em>embedding_size</em>, <em>num_outputs</em>, <em>kernel_size=5</em>, <em>stride=3</em>, <em>dropout=0.0</em>, <em>tokenizer=&lt;opennmt.tokenizers.tokenizer.SpaceTokenizer object&gt;</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/text_inputter.html#CharConvEmbedder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.text_inputter.CharConvEmbedder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the parameters of the character convolution embedder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -389,6 +390,7 @@ containing one character per line.</li>
 <li><strong>dropout</strong> – The probability to drop units in the embedding.</li>
 <li><strong>tokenizer</strong> – An optional <a class="reference internal" href="opennmt.tokenizers.tokenizer.html#opennmt.tokenizers.tokenizer.Tokenizer" title="opennmt.tokenizers.tokenizer.Tokenizer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.tokenizers.tokenizer.Tokenizer</span></code></a> to
 tokenize the input text.</li>
+<li><strong>dtype</strong> – The embedding type.</li>
 </ul>
 </td>
 </tr>

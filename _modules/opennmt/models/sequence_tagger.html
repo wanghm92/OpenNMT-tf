@@ -202,7 +202,7 @@
 <span class="sd">      crf_decoding: If ``True``, add a CRF layer after the encoder.</span>
 <span class="sd">      name: The name of this model.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">SequenceTagger</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">SequenceTagger</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">inputter</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">encoder</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">inputter</span> <span class="o">=</span> <span class="n">inputter</span>

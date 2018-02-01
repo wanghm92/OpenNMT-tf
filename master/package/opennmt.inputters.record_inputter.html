@@ -191,27 +191,31 @@
 <p>Define inputters reading from TFRecord files.</p>
 <dl class="class">
 <dt id="opennmt.inputters.record_inputter.SequenceRecordInputter">
-<em class="property">class </em><code class="descclassname">opennmt.inputters.record_inputter.</code><code class="descname">SequenceRecordInputter</code><span class="sig-paren">(</span><em>input_depth_key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.inputters.record_inputter.</code><code class="descname">SequenceRecordInputter</code><span class="sig-paren">(</span><em>input_depth_key</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter" title="opennmt.inputters.inputter.Inputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.Inputter</span></code></a></p>
 <p>Inputter that reads variable-length tensors.</p>
 <p>Each record contains the following fields:</p>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal"><span class="pre">shape</span></code>: the shape of the tensor as a <code class="docutils literal"><span class="pre">int64</span></code> list.</li>
-<li><code class="docutils literal"><span class="pre">values</span></code>: the flattened tensor values as a <code class="docutils literal"><span class="pre">float32</span></code> list.</li>
+<li><code class="docutils literal"><span class="pre">values</span></code>: the flattened tensor values as a <code class="xref py py-obj docutils literal"><span class="pre">dtype</span></code> list.</li>
 </ul>
 </div></blockquote>
 <p>Tensors are expected to be of shape <code class="docutils literal"><span class="pre">[time,</span> <span class="pre">depth]</span></code>.</p>
 <dl class="method">
 <dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_depth_key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_depth_key</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the parameters of the record inputter.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_depth_key</strong> – The data configuration key of the input depth value
-which has to be known statically.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input_depth_key</strong> – The data configuration key of the input depth value
+which has to be known statically.</li>
+<li><strong>dtype</strong> – The values type.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>

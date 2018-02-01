@@ -296,7 +296,7 @@ Must be set when <code class="xref py py-obj docutils literal"><span class="pre"
 
 <dl class="method">
 <dt id="opennmt.decoders.decoder.Decoder.dynamic_decode">
-<code class="descname">dynamic_decode</code><span class="sig-paren">(</span><em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>vocab_size</em>, <em>initial_state=None</em>, <em>maximum_iterations=250</em>, <em>mode='infer'</em>, <em>memory=None</em>, <em>memory_sequence_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/decoder.html#Decoder.dynamic_decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.decoder.Decoder.dynamic_decode" title="Permalink to this definition">¶</a></dt>
+<code class="descname">dynamic_decode</code><span class="sig-paren">(</span><em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>vocab_size</em>, <em>initial_state=None</em>, <em>maximum_iterations=250</em>, <em>mode='infer'</em>, <em>memory=None</em>, <em>memory_sequence_length=None</em>, <em>dtype=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/decoder.html#Decoder.dynamic_decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.decoder.Decoder.dynamic_decode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decodes dynamically from <code class="xref py py-obj docutils literal"><span class="pre">start_tokens</span></code> with greedy search.</p>
 <p>Usually used for inference.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -313,6 +313,7 @@ Must be set when <code class="xref py py-obj docutils literal"><span class="pre"
 <li><strong>mode</strong> – A <code class="docutils literal"><span class="pre">tf.estimator.ModeKeys</span></code> mode.</li>
 <li><strong>memory</strong> – (optional) Memory values to query.</li>
 <li><strong>memory_sequence_length</strong> – (optional) Memory values length.</li>
+<li><strong>dtype</strong> – The data type. Required if <code class="xref py py-obj docutils literal"><span class="pre">memory</span></code> is <code class="docutils literal"><span class="pre">None</span></code>.</li>
 </ul>
 </td>
 </tr>
@@ -325,7 +326,7 @@ Must be set when <code class="xref py py-obj docutils literal"><span class="pre"
 
 <dl class="method">
 <dt id="opennmt.decoders.decoder.Decoder.dynamic_decode_and_search">
-<code class="descname">dynamic_decode_and_search</code><span class="sig-paren">(</span><em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>vocab_size</em>, <em>initial_state=None</em>, <em>beam_width=5</em>, <em>length_penalty=0.0</em>, <em>maximum_iterations=250</em>, <em>mode='infer'</em>, <em>memory=None</em>, <em>memory_sequence_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/decoder.html#Decoder.dynamic_decode_and_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.decoder.Decoder.dynamic_decode_and_search" title="Permalink to this definition">¶</a></dt>
+<code class="descname">dynamic_decode_and_search</code><span class="sig-paren">(</span><em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>vocab_size</em>, <em>initial_state=None</em>, <em>beam_width=5</em>, <em>length_penalty=0.0</em>, <em>maximum_iterations=250</em>, <em>mode='infer'</em>, <em>memory=None</em>, <em>memory_sequence_length=None</em>, <em>dtype=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/decoder.html#Decoder.dynamic_decode_and_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.decoder.Decoder.dynamic_decode_and_search" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decodes dynamically from <code class="xref py py-obj docutils literal"><span class="pre">start_tokens</span></code> with beam search.</p>
 <p>Usually used for inference.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -344,6 +345,7 @@ Must be set when <code class="xref py py-obj docutils literal"><span class="pre"
 <li><strong>mode</strong> – A <code class="docutils literal"><span class="pre">tf.estimator.ModeKeys</span></code> mode.</li>
 <li><strong>memory</strong> – (optional) Memory values to query.</li>
 <li><strong>memory_sequence_length</strong> – (optional) Memory values length.</li>
+<li><strong>dtype</strong> – The data type. Required if <code class="xref py py-obj docutils literal"><span class="pre">memory</span></code> is <code class="docutils literal"><span class="pre">None</span></code>.</li>
 </ul>
 </td>
 </tr>

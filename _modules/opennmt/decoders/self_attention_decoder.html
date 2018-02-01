@@ -394,7 +394,8 @@
                      <span class="n">maximum_iterations</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
                      <span class="n">mode</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">PREDICT</span><span class="p">,</span>
                      <span class="n">memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                     <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                     <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">batch_size</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">start_tokens</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">finished</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">([</span><span class="kc">False</span><span class="p">],</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">])</span>
     <span class="n">step</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -469,7 +470,8 @@
                                 <span class="n">maximum_iterations</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
                                 <span class="n">mode</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">PREDICT</span><span class="p">,</span>
                                 <span class="n">memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                                <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_cache</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memory_sequence_length</span><span class="o">=</span><span class="n">memory_sequence_length</span><span class="p">)</span>
     <span class="n">symbols_to_logits_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols_to_logits_fn</span><span class="p">(</span><span class="n">embedding</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
 
