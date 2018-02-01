@@ -246,6 +246,20 @@
     <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">mask</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">mask</span><span class="p">)[</span><span class="mi">2</span><span class="p">]])</span>
   <span class="k">return</span> <span class="n">mask</span></div>
 
+<div class="viewcode-block" id="fused_projection"><a class="viewcode-back" href="../../../package/opennmt.utils.transformer.html#opennmt.utils.transformer.fused_projection">[docs]</a><span class="k">def</span> <span class="nf">fused_projection</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">num_units</span><span class="p">,</span> <span class="n">num_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Projects the same input into multiple output spaces.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    inputs: The inputs to project.</span>
+<span class="sd">    num_units: The number of output units of each space.</span>
+<span class="sd">    num_outputs: The number of output spaces.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    :obj:`num_outputs` ``tf.Tensor`` of depth :obj:`num_units`.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+      <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">num_units</span> <span class="o">*</span> <span class="n">num_outputs</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">num_outputs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="split_heads"><a class="viewcode-back" href="../../../package/opennmt.utils.transformer.html#opennmt.utils.transformer.split_heads">[docs]</a><span class="k">def</span> <span class="nf">split_heads</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Splits a tensor in depth.</span>
 
@@ -273,14 +287,13 @@
   <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
   <span class="k">return</span> <span class="n">inputs</span></div>
 
-<div class="viewcode-block" id="scaled_dot_attention"><a class="viewcode-back" href="../../../package/opennmt.utils.transformer.html#opennmt.utils.transformer.scaled_dot_attention">[docs]</a><span class="k">def</span> <span class="nf">scaled_dot_attention</span><span class="p">(</span><span class="n">queries</span><span class="p">,</span>
-                         <span class="n">keys</span><span class="p">,</span>
-                         <span class="n">values</span><span class="p">,</span>
-                         <span class="n">mode</span><span class="p">,</span>
-                         <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;Computes the scaled dot-product attention as described</span>
-<span class="sd">  in https://arxiv.org/abs/1706.03762.</span>
+<div class="viewcode-block" id="dot_product_attention"><a class="viewcode-back" href="../../../package/opennmt.utils.transformer.html#opennmt.utils.transformer.dot_product_attention">[docs]</a><span class="k">def</span> <span class="nf">dot_product_attention</span><span class="p">(</span><span class="n">queries</span><span class="p">,</span>
+                          <span class="n">keys</span><span class="p">,</span>
+                          <span class="n">values</span><span class="p">,</span>
+                          <span class="n">mode</span><span class="p">,</span>
+                          <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Computes the dot product attention.</span>
 
 <span class="sd">  Args:</span>
 <span class="sd">    queries: The sequence of queries. A tensor of shape :math:`[B, T_1, ...]`.</span>
@@ -294,9 +307,8 @@
 <span class="sd">  Returns:</span>
 <span class="sd">    A tuple ``(context vector, attention vector)``.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="c1"># Scaled dot-product between queries and keys.</span>
+  <span class="c1"># Dot product between queries and keys.</span>
   <span class="n">dot</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">queries</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-  <span class="n">dot</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">dot</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">keys</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dot</span><span class="o">.</span><span class="n">dtype</span><span class="p">)))</span>
 
   <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">dot</span> <span class="o">=</span> <span class="n">dot</span> <span class="o">*</span> <span class="n">mask</span> <span class="o">+</span> <span class="p">((</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">mask</span><span class="p">)</span> <span class="o">*</span> <span class="n">dot</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">min</span><span class="p">)</span>
@@ -329,6 +341,7 @@
 <span class="sd">    num_heads: The number of attention heads.</span>
 <span class="sd">    queries: The sequence of queries. A tensor of shape :math:`[B, T_1, ...]`.</span>
 <span class="sd">    memory: The sequence to attend. A tensor of shape :math:`[B, T_2, ...]`.</span>
+<span class="sd">      If ``None``, computes self-attention.</span>
 <span class="sd">    mode: A ``tf.estimator.ModeKeys`` mode.</span>
 <span class="sd">    num_units: The number of hidden units. If not set, it is set to the input</span>
 <span class="sd">      dimension.</span>
@@ -345,21 +358,34 @@
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Multi head attention requires that num_units is a&quot;</span>
                      <span class="s2">&quot; multiple of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_heads</span><span class="p">))</span>
 
-  <span class="n">queries</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span><span class="n">queries</span><span class="p">,</span> <span class="n">num_units</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-  <span class="n">memory</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">num_units</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-  <span class="n">keys</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="p">[</span><span class="n">num_units</span><span class="p">,</span> <span class="n">num_units</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">memory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">queries</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">fused_projection</span><span class="p">(</span><span class="n">queries</span><span class="p">,</span> <span class="n">num_units</span><span class="p">,</span> <span class="n">num_outputs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
-  <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">keys</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">cache</span><span class="p">[</span><span class="s2">&quot;keys&quot;</span><span class="p">],</span> <span class="n">keys</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">values</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">cache</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">],</span> <span class="n">values</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">cache</span><span class="p">[</span><span class="s2">&quot;keys&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">keys</span>
-    <span class="n">cache</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+    <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">keys</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">cache</span><span class="p">[</span><span class="s2">&quot;self_keys&quot;</span><span class="p">],</span> <span class="n">keys</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+      <span class="n">values</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">cache</span><span class="p">[</span><span class="s2">&quot;self_values&quot;</span><span class="p">],</span> <span class="n">values</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+      <span class="n">cache</span><span class="p">[</span><span class="s2">&quot;self_keys&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">keys</span>
+      <span class="n">cache</span><span class="p">[</span><span class="s2">&quot;self_values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">queries</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span><span class="n">queries</span><span class="p">,</span> <span class="n">num_units</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">keys</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
+          <span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">cache</span><span class="p">[</span><span class="s2">&quot;memory_keys&quot;</span><span class="p">])[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">),</span>
+          <span class="n">true_fn</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">fused_projection</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">num_units</span><span class="p">,</span> <span class="n">num_outputs</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+          <span class="n">false_fn</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="n">cache</span><span class="p">[</span><span class="s2">&quot;memory_keys&quot;</span><span class="p">],</span> <span class="n">cache</span><span class="p">[</span><span class="s2">&quot;memory_values&quot;</span><span class="p">]])</span>
+      <span class="n">cache</span><span class="p">[</span><span class="s2">&quot;memory_keys&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">keys</span>
+      <span class="n">cache</span><span class="p">[</span><span class="s2">&quot;memory_values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">keys</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">fused_projection</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">num_units</span><span class="p">,</span> <span class="n">num_outputs</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
   <span class="n">queries</span> <span class="o">=</span> <span class="n">split_heads</span><span class="p">(</span><span class="n">queries</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">)</span>
   <span class="n">keys</span> <span class="o">=</span> <span class="n">split_heads</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">)</span>
   <span class="n">values</span> <span class="o">=</span> <span class="n">split_heads</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">)</span>
 
-  <span class="n">heads</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">scaled_dot_attention</span><span class="p">(</span>
+  <span class="n">queries</span> <span class="o">*=</span> <span class="p">(</span><span class="n">num_units</span> <span class="o">//</span> <span class="n">num_heads</span><span class="p">)</span><span class="o">**-</span><span class="mf">0.5</span>
+
+  <span class="n">heads</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dot_product_attention</span><span class="p">(</span>
       <span class="n">queries</span><span class="p">,</span>
       <span class="n">keys</span><span class="p">,</span>
       <span class="n">values</span><span class="p">,</span>

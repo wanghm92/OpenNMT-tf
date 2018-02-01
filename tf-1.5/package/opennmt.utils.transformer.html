@@ -260,6 +260,28 @@ it is the maximum of <code class="xref py py-obj docutils literal"><span class="
 </dd></dl>
 
 <dl class="function">
+<dt id="opennmt.utils.transformer.fused_projection">
+<code class="descclassname">opennmt.utils.transformer.</code><code class="descname">fused_projection</code><span class="sig-paren">(</span><em>inputs</em>, <em>num_units</em>, <em>num_outputs=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/transformer.html#fused_projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.transformer.fused_projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Projects the same input into multiple output spaces.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputs</strong> – The inputs to project.</li>
+<li><strong>num_units</strong> – The number of output units of each space.</li>
+<li><strong>num_outputs</strong> – The number of output spaces.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><code class="xref py py-obj docutils literal"><span class="pre">num_outputs</span></code> <code class="docutils literal"><span class="pre">tf.Tensor</span></code> of depth <code class="xref py py-obj docutils literal"><span class="pre">num_units</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="opennmt.utils.transformer.split_heads">
 <code class="descclassname">opennmt.utils.transformer.</code><code class="descname">split_heads</code><span class="sig-paren">(</span><em>inputs</em>, <em>num_heads</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/transformer.html#split_heads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.transformer.split_heads" title="Permalink to this definition">¶</a></dt>
 <dd><p>Splits a tensor in depth.</p>
@@ -297,10 +319,9 @@ it is the maximum of <code class="xref py py-obj docutils literal"><span class="
 </dd></dl>
 
 <dl class="function">
-<dt id="opennmt.utils.transformer.scaled_dot_attention">
-<code class="descclassname">opennmt.utils.transformer.</code><code class="descname">scaled_dot_attention</code><span class="sig-paren">(</span><em>queries</em>, <em>keys</em>, <em>values</em>, <em>mode</em>, <em>mask=None</em>, <em>dropout=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/transformer.html#scaled_dot_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.transformer.scaled_dot_attention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the scaled dot-product attention as described
-in <a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a>.</p>
+<dt id="opennmt.utils.transformer.dot_product_attention">
+<code class="descclassname">opennmt.utils.transformer.</code><code class="descname">dot_product_attention</code><span class="sig-paren">(</span><em>queries</em>, <em>keys</em>, <em>values</em>, <em>mode</em>, <em>mask=None</em>, <em>dropout=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/transformer.html#dot_product_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.transformer.dot_product_attention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the dot product attention.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -335,7 +356,8 @@ in <a class="reference external" href="https://arxiv.org/abs/1706.03762">https:/
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>num_heads</strong> – The number of attention heads.</li>
 <li><strong>queries</strong> – The sequence of queries. A tensor of shape <span class="math">\([B, T_1, ...]\)</span>.</li>
-<li><strong>memory</strong> – The sequence to attend. A tensor of shape <span class="math">\([B, T_2, ...]\)</span>.</li>
+<li><strong>memory</strong> – The sequence to attend. A tensor of shape <span class="math">\([B, T_2, ...]\)</span>.
+If <code class="docutils literal"><span class="pre">None</span></code>, computes self-attention.</li>
 <li><strong>mode</strong> – A <code class="docutils literal"><span class="pre">tf.estimator.ModeKeys</span></code> mode.</li>
 <li><strong>num_units</strong> – The number of hidden units. If not set, it is set to the input
 dimension.</li>
