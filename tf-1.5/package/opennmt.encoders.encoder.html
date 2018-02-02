@@ -219,12 +219,12 @@
 
 <dl class="class">
 <dt id="opennmt.encoders.encoder.SequentialEncoder">
-<em class="property">class </em><code class="descclassname">opennmt.encoders.encoder.</code><code class="descname">SequentialEncoder</code><span class="sig-paren">(</span><em>encoders</em>, <em>states_reducer=&lt;opennmt.utils.reducer.JoinReducer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#SequentialEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.SequentialEncoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.encoders.encoder.</code><code class="descname">SequentialEncoder</code><span class="sig-paren">(</span><em>encoders</em>, <em>states_reducer=&lt;opennmt.layers.reducer.JoinReducer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#SequentialEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.SequentialEncoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#opennmt.encoders.encoder.Encoder" title="opennmt.encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.encoder.Encoder</span></code></a></p>
 <p>An encoder that executes multiple encoders sequentially.</p>
 <dl class="method">
 <dt id="opennmt.encoders.encoder.SequentialEncoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>encoders</em>, <em>states_reducer=&lt;opennmt.utils.reducer.JoinReducer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#SequentialEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.SequentialEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>encoders</em>, <em>states_reducer=&lt;opennmt.layers.reducer.JoinReducer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#SequentialEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.SequentialEncoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the parameters of the encoder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -232,7 +232,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>encoders</strong> – A list of <a class="reference internal" href="#opennmt.encoders.encoder.Encoder" title="opennmt.encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.encoder.Encoder</span></code></a>.</li>
-<li><strong>states_reducer</strong> – A <a class="reference internal" href="opennmt.utils.reducer.html#opennmt.utils.reducer.Reducer" title="opennmt.utils.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.reducer.Reducer</span></code></a> to merge all
+<li><strong>states_reducer</strong> – A <code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.reducer.Reducer</span></code> to merge all
 states.</li>
 </ul>
 </td>
@@ -250,14 +250,14 @@ states.</li>
 
 <dl class="class">
 <dt id="opennmt.encoders.encoder.ParallelEncoder">
-<em class="property">class </em><code class="descclassname">opennmt.encoders.encoder.</code><code class="descname">ParallelEncoder</code><span class="sig-paren">(</span><em>encoders</em>, <em>outputs_reducer=&lt;opennmt.utils.reducer.ConcatReducer object&gt;</em>, <em>states_reducer=&lt;opennmt.utils.reducer.JoinReducer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#ParallelEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.ParallelEncoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.encoders.encoder.</code><code class="descname">ParallelEncoder</code><span class="sig-paren">(</span><em>encoders</em>, <em>outputs_reducer=&lt;opennmt.layers.reducer.ConcatReducer object&gt;</em>, <em>states_reducer=&lt;opennmt.layers.reducer.JoinReducer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#ParallelEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.ParallelEncoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#opennmt.encoders.encoder.Encoder" title="opennmt.encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.encoder.Encoder</span></code></a></p>
 <p>An encoder that encodes inputs with several encoders. If the input
 is a sequence, each encoder will encode its corresponding input in the
 sequence. Otherwise, the same input will be encoded by every encoders.</p>
 <dl class="method">
 <dt id="opennmt.encoders.encoder.ParallelEncoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>encoders</em>, <em>outputs_reducer=&lt;opennmt.utils.reducer.ConcatReducer object&gt;</em>, <em>states_reducer=&lt;opennmt.utils.reducer.JoinReducer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#ParallelEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.ParallelEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>encoders</em>, <em>outputs_reducer=&lt;opennmt.layers.reducer.ConcatReducer object&gt;</em>, <em>states_reducer=&lt;opennmt.layers.reducer.JoinReducer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#ParallelEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.ParallelEncoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the parameters of the encoder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -265,9 +265,9 @@ sequence. Otherwise, the same input will be encoded by every encoders.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>encoders</strong> – A list of <a class="reference internal" href="#opennmt.encoders.encoder.Encoder" title="opennmt.encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.encoder.Encoder</span></code></a>.</li>
-<li><strong>outputs_reducer</strong> – A <a class="reference internal" href="opennmt.utils.reducer.html#opennmt.utils.reducer.Reducer" title="opennmt.utils.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.reducer.Reducer</span></code></a> to merge all
+<li><strong>outputs_reducer</strong> – A <code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.reducer.Reducer</span></code> to merge all
 outputs.</li>
-<li><strong>states_reducer</strong> – A <a class="reference internal" href="opennmt.utils.reducer.html#opennmt.utils.reducer.Reducer" title="opennmt.utils.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.reducer.Reducer</span></code></a> to merge all
+<li><strong>states_reducer</strong> – A <code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.reducer.Reducer</span></code> to merge all
 states.</li>
 </ul>
 </td>

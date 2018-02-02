@@ -171,10 +171,10 @@
 <span></span><span class="sd">&quot;&quot;&quot;Define self-attention decoder.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">import</span> <span class="nn">opennmt.utils.transformer</span> <span class="k">as</span> <span class="nn">transformer</span>
+<span class="kn">import</span> <span class="nn">opennmt.layers.transformer</span> <span class="k">as</span> <span class="nn">transformer</span>
 
 <span class="kn">from</span> <span class="nn">opennmt.decoders.decoder</span> <span class="k">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">get_embedding_fn</span>
-<span class="kn">from</span> <span class="nn">opennmt.utils.position</span> <span class="k">import</span> <span class="n">PositionEmbedder</span>
+<span class="kn">from</span> <span class="nn">opennmt.layers.position</span> <span class="k">import</span> <span class="n">PositionEmbedder</span>
 <span class="kn">from</span> <span class="nn">opennmt.utils.beam_search</span> <span class="k">import</span> <span class="n">beam_search</span>
 
 
@@ -204,7 +204,7 @@
 <span class="sd">      attention_dropout: The probability to drop units from the attention.</span>
 <span class="sd">      relu_dropout: The probability to drop units from the ReLU activation in</span>
 <span class="sd">        the feed forward layer.</span>
-<span class="sd">      position_encoder: A :class:`opennmt.utils.position.PositionEncoder` to</span>
+<span class="sd">      position_encoder: A :class:`opennmt.layers.position.PositionEncoder` to</span>
 <span class="sd">        apply on inputs or ``None``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">=</span> <span class="n">num_layers</span>

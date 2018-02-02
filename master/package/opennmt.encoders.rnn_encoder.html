@@ -113,6 +113,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.inputters.html">opennmt.inputters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="opennmt.layers.html">opennmt.layers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.models.html">opennmt.models package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.tokenizers.html">opennmt.tokenizers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.utils.html">opennmt.utils package</a></li>
@@ -244,12 +245,12 @@ output.</li>
 
 <dl class="class">
 <dt id="opennmt.encoders.rnn_encoder.BidirectionalRNNEncoder">
-<em class="property">class </em><code class="descclassname">opennmt.encoders.rnn_encoder.</code><code class="descname">BidirectionalRNNEncoder</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units</em>, <em>reducer=&lt;opennmt.utils.reducer.SumReducer object&gt;</em>, <em>cell_class=&lt;class 'tensorflow.python.ops.rnn_cell_impl.LSTMCell'&gt;</em>, <em>dropout=0.3</em>, <em>residual_connections=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/rnn_encoder.html#BidirectionalRNNEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.rnn_encoder.BidirectionalRNNEncoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.encoders.rnn_encoder.</code><code class="descname">BidirectionalRNNEncoder</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units</em>, <em>reducer=&lt;opennmt.layers.reducer.SumReducer object&gt;</em>, <em>cell_class=&lt;class 'tensorflow.python.ops.rnn_cell_impl.LSTMCell'&gt;</em>, <em>dropout=0.3</em>, <em>residual_connections=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/rnn_encoder.html#BidirectionalRNNEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.rnn_encoder.BidirectionalRNNEncoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#opennmt.encoders.rnn_encoder.RNNEncoder" title="opennmt.encoders.rnn_encoder.RNNEncoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.rnn_encoder.RNNEncoder</span></code></a></p>
 <p>An encoder that encodes an input sequence in both directions.</p>
 <dl class="method">
 <dt id="opennmt.encoders.rnn_encoder.BidirectionalRNNEncoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units</em>, <em>reducer=&lt;opennmt.utils.reducer.SumReducer object&gt;</em>, <em>cell_class=&lt;class 'tensorflow.python.ops.rnn_cell_impl.LSTMCell'&gt;</em>, <em>dropout=0.3</em>, <em>residual_connections=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/rnn_encoder.html#BidirectionalRNNEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.rnn_encoder.BidirectionalRNNEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units</em>, <em>reducer=&lt;opennmt.layers.reducer.SumReducer object&gt;</em>, <em>cell_class=&lt;class 'tensorflow.python.ops.rnn_cell_impl.LSTMCell'&gt;</em>, <em>dropout=0.3</em>, <em>residual_connections=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/rnn_encoder.html#BidirectionalRNNEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.rnn_encoder.BidirectionalRNNEncoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the parameters of the encoder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -258,7 +259,7 @@ output.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>num_layers</strong> – The number of layers.</li>
 <li><strong>num_units</strong> – The number of units in each layer.</li>
-<li><strong>reducer</strong> – A <a class="reference internal" href="opennmt.utils.reducer.html#opennmt.utils.reducer.Reducer" title="opennmt.utils.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.reducer.Reducer</span></code></a> instance to merge
+<li><strong>reducer</strong> – A <a class="reference internal" href="opennmt.layers.reducer.html#opennmt.layers.reducer.Reducer" title="opennmt.layers.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.reducer.Reducer</span></code></a> instance to merge
 bidirectional state and outputs.</li>
 <li><strong>cell_class</strong> – The inner cell class or a callable taking <code class="xref py py-obj docutils literal"><span class="pre">num_units</span></code> as
 argument and returning a cell.</li>
@@ -268,7 +269,7 @@ output.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – when using <a class="reference internal" href="opennmt.utils.reducer.html#opennmt.utils.reducer.ConcatReducer" title="opennmt.utils.reducer.ConcatReducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.reducer.ConcatReducer</span></code></a> and
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – when using <a class="reference internal" href="opennmt.layers.reducer.html#opennmt.layers.reducer.ConcatReducer" title="opennmt.layers.reducer.ConcatReducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.reducer.ConcatReducer</span></code></a> and
 <code class="xref py py-obj docutils literal"><span class="pre">num_units</span></code> is not divisible by 2.</p>
 </td>
 </tr>

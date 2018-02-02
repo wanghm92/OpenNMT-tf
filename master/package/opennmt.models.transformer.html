@@ -110,6 +110,7 @@
 <li class="toctree-l3"><a class="reference internal" href="opennmt.decoders.html">opennmt.decoders package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.encoders.html">opennmt.encoders package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.inputters.html">opennmt.inputters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="opennmt.layers.html">opennmt.layers package</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="opennmt.models.html">opennmt.models package</a><ul class="current">
 <li class="toctree-l4 current"><a class="reference internal" href="opennmt.models.html#submodules">Submodules</a></li>
 </ul>
@@ -191,13 +192,13 @@
 <p>Define the Google’s Transformer model.</p>
 <dl class="class">
 <dt id="opennmt.models.transformer.Transformer">
-<em class="property">class </em><code class="descclassname">opennmt.models.transformer.</code><code class="descname">Transformer</code><span class="sig-paren">(</span><em>source_inputter</em>, <em>target_inputter</em>, <em>num_layers</em>, <em>num_units</em>, <em>num_heads</em>, <em>ffn_inner_dim</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.utils.position.PositionEmbedder object&gt;</em>, <em>name='transformer'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/transformer.html#Transformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.transformer.Transformer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.models.transformer.</code><code class="descname">Transformer</code><span class="sig-paren">(</span><em>source_inputter</em>, <em>target_inputter</em>, <em>num_layers</em>, <em>num_units</em>, <em>num_heads</em>, <em>ffn_inner_dim</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.layers.position.PositionEmbedder object&gt;</em>, <em>name='transformer'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/transformer.html#Transformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.transformer.Transformer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="opennmt.models.sequence_to_sequence.html#opennmt.models.sequence_to_sequence.SequenceToSequence" title="opennmt.models.sequence_to_sequence.SequenceToSequence"><code class="xref py py-class docutils literal"><span class="pre">opennmt.models.sequence_to_sequence.SequenceToSequence</span></code></a></p>
 <p>Attention-based sequence-to-sequence model as described in
 <a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a>.</p>
 <dl class="method">
 <dt id="opennmt.models.transformer.Transformer.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>source_inputter</em>, <em>target_inputter</em>, <em>num_layers</em>, <em>num_units</em>, <em>num_heads</em>, <em>ffn_inner_dim</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.utils.position.PositionEmbedder object&gt;</em>, <em>name='transformer'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/transformer.html#Transformer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.transformer.Transformer.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>source_inputter</em>, <em>target_inputter</em>, <em>num_layers</em>, <em>num_units</em>, <em>num_heads</em>, <em>ffn_inner_dim</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.layers.position.PositionEmbedder object&gt;</em>, <em>name='transformer'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/transformer.html#Transformer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.transformer.Transformer.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a Transformer model.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -217,7 +218,7 @@ the target data. Currently, only the
 <li><strong>attention_dropout</strong> – The probability to drop units from the attention.</li>
 <li><strong>relu_dropout</strong> – The probability to drop units from the ReLU activation in
 the feed forward layer.</li>
-<li><strong>position_encoder</strong> – A <a class="reference internal" href="opennmt.utils.position.html#opennmt.utils.position.PositionEncoder" title="opennmt.utils.position.PositionEncoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.position.PositionEncoder</span></code></a> to
+<li><strong>position_encoder</strong> – A <a class="reference internal" href="opennmt.layers.position.html#opennmt.layers.position.PositionEncoder" title="opennmt.layers.position.PositionEncoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.position.PositionEncoder</span></code></a> to
 apply on the inputs.</li>
 <li><strong>name</strong> – The name of this model.</li>
 </ul>

@@ -113,6 +113,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.inputters.html">opennmt.inputters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="opennmt.layers.html">opennmt.layers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.models.html">opennmt.models package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.tokenizers.html">opennmt.tokenizers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.utils.html">opennmt.utils package</a></li>
@@ -191,13 +192,13 @@
 <p>Define the self-attention encoder.</p>
 <dl class="class">
 <dt id="opennmt.encoders.self_attention_encoder.SelfAttentionEncoder">
-<em class="property">class </em><code class="descclassname">opennmt.encoders.self_attention_encoder.</code><code class="descname">SelfAttentionEncoder</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units=512</em>, <em>num_heads=8</em>, <em>ffn_inner_dim=2048</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.utils.position.PositionEmbedder object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/self_attention_encoder.html#SelfAttentionEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.self_attention_encoder.SelfAttentionEncoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.encoders.self_attention_encoder.</code><code class="descname">SelfAttentionEncoder</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units=512</em>, <em>num_heads=8</em>, <em>ffn_inner_dim=2048</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.layers.position.PositionEmbedder object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/self_attention_encoder.html#SelfAttentionEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.self_attention_encoder.SelfAttentionEncoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="opennmt.encoders.encoder.html#opennmt.encoders.encoder.Encoder" title="opennmt.encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.encoder.Encoder</span></code></a></p>
 <p>Encoder using self-attention as described in
 <a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a>.</p>
 <dl class="method">
 <dt id="opennmt.encoders.self_attention_encoder.SelfAttentionEncoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units=512</em>, <em>num_heads=8</em>, <em>ffn_inner_dim=2048</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.utils.position.PositionEmbedder object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/self_attention_encoder.html#SelfAttentionEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.self_attention_encoder.SelfAttentionEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units=512</em>, <em>num_heads=8</em>, <em>ffn_inner_dim=2048</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.layers.position.PositionEmbedder object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/self_attention_encoder.html#SelfAttentionEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.self_attention_encoder.SelfAttentionEncoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the parameters of the encoder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -213,7 +214,7 @@ in the feed forward layer.</li>
 <li><strong>attention_dropout</strong> – The probability to drop units from the attention.</li>
 <li><strong>relu_dropout</strong> – The probability to drop units from the ReLU activation in
 the feed forward layer.</li>
-<li><strong>position_encoder</strong> – The <a class="reference internal" href="opennmt.utils.position.html#opennmt.utils.position.PositionEncoder" title="opennmt.utils.position.PositionEncoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.position.PositionEncoder</span></code></a> to
+<li><strong>position_encoder</strong> – The <a class="reference internal" href="opennmt.layers.position.html#opennmt.layers.position.PositionEncoder" title="opennmt.layers.position.PositionEncoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.position.PositionEncoder</span></code></a> to
 apply on inputs or <code class="docutils literal"><span class="pre">None</span></code>.</li>
 </ul>
 </td>

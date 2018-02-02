@@ -175,7 +175,7 @@
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
-<span class="kn">from</span> <span class="nn">opennmt.utils.reducer</span> <span class="k">import</span> <span class="n">ConcatReducer</span>
+<span class="kn">from</span> <span class="nn">opennmt.layers.reducer</span> <span class="k">import</span> <span class="n">ConcatReducer</span>
 <span class="kn">from</span> <span class="nn">opennmt.utils.misc</span> <span class="k">import</span> <span class="n">extract_prefixed_keys</span>
 
 
@@ -428,7 +428,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">      inputters: A list of :class:`opennmt.inputters.inputter.Inputter`.</span>
-<span class="sd">      reducer: A :class:`opennmt.utils.reducer.Reducer` to merge all inputs. If</span>
+<span class="sd">      reducer: A :class:`opennmt.layers.reducer.Reducer` to merge all inputs. If</span>
 <span class="sd">        set, parallel inputs are assumed to have the same length.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">ParallelInputter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">inputters</span><span class="p">)</span>
@@ -505,7 +505,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">      inputters: A list of :class:`opennmt.inputters.inputter.Inputter`.</span>
-<span class="sd">      reducer: A :class:`opennmt.utils.reducer.Reducer` to merge all inputs.</span>
+<span class="sd">      reducer: A :class:`opennmt.layers.reducer.Reducer` to merge all inputs.</span>
 <span class="sd">      dropout: The probability to drop units in the merged inputs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">MixedInputter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">inputters</span><span class="p">)</span>

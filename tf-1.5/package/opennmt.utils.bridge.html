@@ -185,95 +185,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-opennmt.utils.bridge">
-<span id="opennmt-utils-bridge-module"></span><h1>opennmt.utils.bridge module<a class="headerlink" href="#module-opennmt.utils.bridge" title="Permalink to this headline">¶</a></h1>
-<p>Define bridges: logic of passing the encoder state to the decoder.</p>
-<dl class="function">
-<dt id="opennmt.utils.bridge.assert_state_is_compatible">
-<code class="descclassname">opennmt.utils.bridge.</code><code class="descname">assert_state_is_compatible</code><span class="sig-paren">(</span><em>expected_state</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/bridge.html#assert_state_is_compatible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.bridge.assert_state_is_compatible" title="Permalink to this definition">¶</a></dt>
-<dd><p>Asserts that states are compatible.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>expected_state</strong> – The reference state.</li>
-<li><strong>state</strong> – The state that must be compatible with <code class="xref py py-obj docutils literal"><span class="pre">expected_state</span></code>.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if the states are incompatible.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="opennmt.utils.bridge.Bridge">
-<em class="property">class </em><code class="descclassname">opennmt.utils.bridge.</code><code class="descname">Bridge</code><a class="reference internal" href="../_modules/opennmt/utils/bridge.html#Bridge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.bridge.Bridge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>Base class for bridges.</p>
-<dl class="method">
-<dt id="opennmt.utils.bridge.Bridge.__call__">
-<code class="descname">__call__</code><span class="sig-paren">(</span><em>encoder_state</em>, <em>decoder_zero_state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/bridge.html#Bridge.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.bridge.Bridge.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the initial decoder state.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>encoder_state</strong> – The encoder state.</li>
-<li><strong>decoder_zero_state</strong> – The default decoder state.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The decoder initial state.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="opennmt.utils.bridge.CopyBridge">
-<em class="property">class </em><code class="descclassname">opennmt.utils.bridge.</code><code class="descname">CopyBridge</code><a class="reference internal" href="../_modules/opennmt/utils/bridge.html#CopyBridge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.bridge.CopyBridge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#opennmt.utils.bridge.Bridge" title="opennmt.utils.bridge.Bridge"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.bridge.Bridge</span></code></a></p>
-<p>A bridge that passes the encoder state as is.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="opennmt.utils.bridge.ZeroBridge">
-<em class="property">class </em><code class="descclassname">opennmt.utils.bridge.</code><code class="descname">ZeroBridge</code><a class="reference internal" href="../_modules/opennmt/utils/bridge.html#ZeroBridge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.bridge.ZeroBridge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#opennmt.utils.bridge.Bridge" title="opennmt.utils.bridge.Bridge"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.bridge.Bridge</span></code></a></p>
-<p>A bridge that does not pass information from the encoder.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="opennmt.utils.bridge.DenseBridge">
-<em class="property">class </em><code class="descclassname">opennmt.utils.bridge.</code><code class="descname">DenseBridge</code><span class="sig-paren">(</span><em>activation=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/bridge.html#DenseBridge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.bridge.DenseBridge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#opennmt.utils.bridge.Bridge" title="opennmt.utils.bridge.Bridge"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.bridge.Bridge</span></code></a></p>
-<p>A bridge that applies a parameterized linear transformation from the
-encoder state to the decoder state size.</p>
-<dl class="method">
-<dt id="opennmt.utils.bridge.DenseBridge.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>activation=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/bridge.html#DenseBridge.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.bridge.DenseBridge.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes the bridge.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>activation</strong> – Activation function (a callable).
-Set it to <code class="docutils literal"><span class="pre">None</span></code> to maintain a linear activation.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
+  <div class="section" id="opennmt-utils-bridge-module">
+<h1>opennmt.utils.bridge module<a class="headerlink" href="#opennmt-utils-bridge-module" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
@@ -320,7 +233,7 @@ Set it to <code class="docutils literal"><span class="pre">None</span></code> to
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../master/package/opennmt.utils.bridge.html">master</a></dd>
+            <dd><a href="../../master/index.html">master</a></dd>
             <dd><a href="opennmt.utils.bridge.html">tf-1.5</a></dd>
         </dl>
     </div>

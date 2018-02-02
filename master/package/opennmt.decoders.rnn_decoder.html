@@ -113,6 +113,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.encoders.html">opennmt.encoders package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.inputters.html">opennmt.inputters package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="opennmt.layers.html">opennmt.layers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.models.html">opennmt.models package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.tokenizers.html">opennmt.tokenizers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.utils.html">opennmt.utils package</a></li>
@@ -205,7 +206,7 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>num_layers</strong> – The number of layers.</li>
 <li><strong>num_units</strong> – The number of units in each layer.</li>
-<li><strong>bridge</strong> – A <a class="reference internal" href="opennmt.utils.bridge.html#opennmt.utils.bridge.Bridge" title="opennmt.utils.bridge.Bridge"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.bridge.Bridge</span></code></a> to pass the encoder state
+<li><strong>bridge</strong> – A <a class="reference internal" href="opennmt.layers.bridge.html#opennmt.layers.bridge.Bridge" title="opennmt.layers.bridge.Bridge"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.bridge.Bridge</span></code></a> to pass the encoder state
 to the decoder.</li>
 <li><strong>cell_class</strong> – The inner cell class or a callable taking <code class="xref py py-obj docutils literal"><span class="pre">num_units</span></code> as
 argument and returning a cell.</li>
@@ -253,7 +254,7 @@ output.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>num_layers</strong> – The number of layers.</li>
 <li><strong>num_units</strong> – The number of units in each layer.</li>
-<li><strong>bridge</strong> – A <a class="reference internal" href="opennmt.utils.bridge.html#opennmt.utils.bridge.Bridge" title="opennmt.utils.bridge.Bridge"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.bridge.Bridge</span></code></a> to pass the encoder state
+<li><strong>bridge</strong> – A <a class="reference internal" href="opennmt.layers.bridge.html#opennmt.layers.bridge.Bridge" title="opennmt.layers.bridge.Bridge"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.bridge.Bridge</span></code></a> to pass the encoder state
 to the decoder.</li>
 <li><strong>attention_mechanism_class</strong> – A class inheriting from
 <code class="docutils literal"><span class="pre">tf.contrib.seq2seq.AttentionMechanism</span></code> or a callable that takes
@@ -284,7 +285,7 @@ output.</li>
 <p>This decoder can attend the encoder outputs after multiple RNN layers using
 one or multiple attention mechanisms. Additionally, the cell state of this
 decoder is not initialized from the encoder state (i.e. a
-<a class="reference internal" href="opennmt.utils.bridge.html#opennmt.utils.bridge.ZeroBridge" title="opennmt.utils.bridge.ZeroBridge"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.bridge.ZeroBridge</span></code></a> is imposed).</p>
+<a class="reference internal" href="opennmt.layers.bridge.html#opennmt.layers.bridge.ZeroBridge" title="opennmt.layers.bridge.ZeroBridge"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.bridge.ZeroBridge</span></code></a> is imposed).</p>
 <dl class="method">
 <dt id="opennmt.decoders.rnn_decoder.MultiAttentionalRNNDecoder.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units</em>, <em>attention_layers=None</em>, <em>attention_mechanism_class=&lt;class 'tensorflow.contrib.seq2seq.python.ops.attention_wrapper.LuongAttention'&gt;</em>, <em>cell_class=&lt;class 'tensorflow.python.ops.rnn_cell_impl.LSTMCell'&gt;</em>, <em>dropout=0.3</em>, <em>residual_connections=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/rnn_decoder.html#MultiAttentionalRNNDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.rnn_decoder.MultiAttentionalRNNDecoder.__init__" title="Permalink to this definition">¶</a></dt>

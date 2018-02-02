@@ -175,7 +175,7 @@
 <span class="kn">from</span> <span class="nn">opennmt.models.sequence_to_sequence</span> <span class="k">import</span> <span class="n">SequenceToSequence</span>
 <span class="kn">from</span> <span class="nn">opennmt.encoders.self_attention_encoder</span> <span class="k">import</span> <span class="n">SelfAttentionEncoder</span>
 <span class="kn">from</span> <span class="nn">opennmt.decoders.self_attention_decoder</span> <span class="k">import</span> <span class="n">SelfAttentionDecoder</span>
-<span class="kn">from</span> <span class="nn">opennmt.utils.position</span> <span class="k">import</span> <span class="n">PositionEmbedder</span>
+<span class="kn">from</span> <span class="nn">opennmt.layers.position</span> <span class="k">import</span> <span class="n">PositionEmbedder</span>
 
 
 <div class="viewcode-block" id="Transformer"><a class="viewcode-back" href="../../../package/opennmt.models.transformer.html#opennmt.models.transformer.Transformer">[docs]</a><span class="k">class</span> <span class="nc">Transformer</span><span class="p">(</span><span class="n">SequenceToSequence</span><span class="p">):</span>
@@ -211,7 +211,7 @@
 <span class="sd">      attention_dropout: The probability to drop units from the attention.</span>
 <span class="sd">      relu_dropout: The probability to drop units from the ReLU activation in</span>
 <span class="sd">        the feed forward layer.</span>
-<span class="sd">      position_encoder: A :class:`opennmt.utils.position.PositionEncoder` to</span>
+<span class="sd">      position_encoder: A :class:`opennmt.layers.position.PositionEncoder` to</span>
 <span class="sd">        apply on the inputs.</span>
 <span class="sd">      name: The name of this model.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

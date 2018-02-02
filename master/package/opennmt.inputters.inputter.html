@@ -113,6 +113,7 @@
 <li class="toctree-l4 current"><a class="reference internal" href="opennmt.inputters.html#submodules">Submodules</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="opennmt.layers.html">opennmt.layers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.models.html">opennmt.models package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.tokenizers.html">opennmt.tokenizers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.utils.html">opennmt.utils package</a></li>
@@ -438,7 +439,7 @@ the inputter.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>inputters</strong> – A list of <a class="reference internal" href="#opennmt.inputters.inputter.Inputter" title="opennmt.inputters.inputter.Inputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.Inputter</span></code></a>.</li>
-<li><strong>reducer</strong> – A <a class="reference internal" href="opennmt.utils.reducer.html#opennmt.utils.reducer.Reducer" title="opennmt.utils.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.reducer.Reducer</span></code></a> to merge all inputs. If
+<li><strong>reducer</strong> – A <a class="reference internal" href="opennmt.layers.reducer.html#opennmt.layers.reducer.Reducer" title="opennmt.layers.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.reducer.Reducer</span></code></a> to merge all inputs. If
 set, parallel inputs are assumed to have the same length.</li>
 </ul>
 </td>
@@ -466,12 +467,12 @@ set, parallel inputs are assumed to have the same length.</li>
 
 <dl class="class">
 <dt id="opennmt.inputters.inputter.MixedInputter">
-<em class="property">class </em><code class="descclassname">opennmt.inputters.inputter.</code><code class="descname">MixedInputter</code><span class="sig-paren">(</span><em>inputters</em>, <em>reducer=&lt;opennmt.utils.reducer.ConcatReducer object&gt;</em>, <em>dropout=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/inputter.html#MixedInputter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.inputter.MixedInputter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.inputters.inputter.</code><code class="descname">MixedInputter</code><span class="sig-paren">(</span><em>inputters</em>, <em>reducer=&lt;opennmt.layers.reducer.ConcatReducer object&gt;</em>, <em>dropout=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/inputter.html#MixedInputter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.inputter.MixedInputter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#opennmt.inputters.inputter.MultiInputter" title="opennmt.inputters.inputter.MultiInputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.MultiInputter</span></code></a></p>
 <p>An multi inputter that applies several transformation on the same data.</p>
 <dl class="method">
 <dt id="opennmt.inputters.inputter.MixedInputter.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputters</em>, <em>reducer=&lt;opennmt.utils.reducer.ConcatReducer object&gt;</em>, <em>dropout=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/inputter.html#MixedInputter.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.inputter.MixedInputter.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputters</em>, <em>reducer=&lt;opennmt.layers.reducer.ConcatReducer object&gt;</em>, <em>dropout=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/inputter.html#MixedInputter.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.inputter.MixedInputter.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a mixed inputter.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -479,7 +480,7 @@ set, parallel inputs are assumed to have the same length.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>inputters</strong> – A list of <a class="reference internal" href="#opennmt.inputters.inputter.Inputter" title="opennmt.inputters.inputter.Inputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.Inputter</span></code></a>.</li>
-<li><strong>reducer</strong> – A <a class="reference internal" href="opennmt.utils.reducer.html#opennmt.utils.reducer.Reducer" title="opennmt.utils.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.reducer.Reducer</span></code></a> to merge all inputs.</li>
+<li><strong>reducer</strong> – A <a class="reference internal" href="opennmt.layers.reducer.html#opennmt.layers.reducer.Reducer" title="opennmt.layers.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.reducer.Reducer</span></code></a> to merge all inputs.</li>
 <li><strong>dropout</strong> – The probability to drop units in the merged inputs.</li>
 </ul>
 </td>

@@ -174,7 +174,7 @@
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
-<span class="kn">from</span> <span class="nn">opennmt.utils.reducer</span> <span class="k">import</span> <span class="n">ConcatReducer</span><span class="p">,</span> <span class="n">JoinReducer</span>
+<span class="kn">from</span> <span class="nn">opennmt.layers.reducer</span> <span class="k">import</span> <span class="n">ConcatReducer</span><span class="p">,</span> <span class="n">JoinReducer</span>
 
 
 <div class="viewcode-block" id="Encoder"><a class="viewcode-back" href="../../../package/opennmt.encoders.encoder.html#opennmt.encoders.encoder.Encoder">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
@@ -204,7 +204,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">      encoders: A list of :class:`opennmt.encoders.encoder.Encoder`.</span>
-<span class="sd">      states_reducer: A :class:`opennmt.utils.reducer.Reducer` to merge all</span>
+<span class="sd">      states_reducer: A :class:`opennmt.layers.reducer.Reducer` to merge all</span>
 <span class="sd">        states.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">encoders</span> <span class="o">=</span> <span class="n">encoders</span>
@@ -241,9 +241,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">      encoders: A list of :class:`opennmt.encoders.encoder.Encoder`.</span>
-<span class="sd">      outputs_reducer: A :class:`opennmt.utils.reducer.Reducer` to merge all</span>
+<span class="sd">      outputs_reducer: A :class:`opennmt.layers.reducer.Reducer` to merge all</span>
 <span class="sd">        outputs.</span>
-<span class="sd">      states_reducer: A :class:`opennmt.utils.reducer.Reducer` to merge all</span>
+<span class="sd">      states_reducer: A :class:`opennmt.layers.reducer.Reducer` to merge all</span>
 <span class="sd">        states.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">encoders</span> <span class="o">=</span> <span class="n">encoders</span>

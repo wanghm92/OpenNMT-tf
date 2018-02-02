@@ -192,7 +192,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">      num_layers: The number of layers.</span>
 <span class="sd">      num_units: The number of units in each layer.</span>
-<span class="sd">      bridge: A :class:`opennmt.utils.bridge.Bridge` to pass the encoder state</span>
+<span class="sd">      bridge: A :class:`opennmt.layers.bridge.Bridge` to pass the encoder state</span>
 <span class="sd">        to the decoder.</span>
 <span class="sd">      cell_class: The inner cell class or a callable taking :obj:`num_units` as</span>
 <span class="sd">        argument and returning a cell.</span>
@@ -445,7 +445,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">      num_layers: The number of layers.</span>
 <span class="sd">      num_units: The number of units in each layer.</span>
-<span class="sd">      bridge: A :class:`opennmt.utils.bridge.Bridge` to pass the encoder state</span>
+<span class="sd">      bridge: A :class:`opennmt.layers.bridge.Bridge` to pass the encoder state</span>
 <span class="sd">        to the decoder.</span>
 <span class="sd">      attention_mechanism_class: A class inheriting from</span>
 <span class="sd">        ``tf.contrib.seq2seq.AttentionMechanism`` or a callable that takes</span>
@@ -512,7 +512,7 @@
 <span class="sd">  This decoder can attend the encoder outputs after multiple RNN layers using</span>
 <span class="sd">  one or multiple attention mechanisms. Additionally, the cell state of this</span>
 <span class="sd">  decoder is not initialized from the encoder state (i.e. a</span>
-<span class="sd">  :class:`opennmt.utils.bridge.ZeroBridge` is imposed).</span>
+<span class="sd">  :class:`opennmt.layers.bridge.ZeroBridge` is imposed).</span>
 <span class="sd">  &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MultiAttentionalRNNDecoder.__init__"><a class="viewcode-back" href="../../../package/opennmt.decoders.rnn_decoder.html#opennmt.decoders.rnn_decoder.MultiAttentionalRNNDecoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>

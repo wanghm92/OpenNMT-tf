@@ -176,7 +176,7 @@
 
 <span class="kn">from</span> <span class="nn">opennmt.utils.cell</span> <span class="k">import</span> <span class="n">build_cell</span>
 <span class="kn">from</span> <span class="nn">opennmt.encoders.encoder</span> <span class="k">import</span> <span class="n">Encoder</span>
-<span class="kn">from</span> <span class="nn">opennmt.utils.reducer</span> <span class="k">import</span> <span class="n">SumReducer</span><span class="p">,</span> <span class="n">ConcatReducer</span><span class="p">,</span> <span class="n">JoinReducer</span>
+<span class="kn">from</span> <span class="nn">opennmt.layers.reducer</span> <span class="k">import</span> <span class="n">SumReducer</span><span class="p">,</span> <span class="n">ConcatReducer</span><span class="p">,</span> <span class="n">JoinReducer</span>
 
 
 <div class="viewcode-block" id="RNNEncoder"><a class="viewcode-back" href="../../../package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.RNNEncoder">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
@@ -264,7 +264,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">      num_layers: The number of layers.</span>
 <span class="sd">      num_units: The number of units in each layer.</span>
-<span class="sd">      reducer: A :class:`opennmt.utils.reducer.Reducer` instance to merge</span>
+<span class="sd">      reducer: A :class:`opennmt.layers.reducer.Reducer` instance to merge</span>
 <span class="sd">        bidirectional state and outputs.</span>
 <span class="sd">      cell_class: The inner cell class or a callable taking :obj:`num_units` as</span>
 <span class="sd">        argument and returning a cell.</span>
@@ -273,7 +273,7 @@
 <span class="sd">        output.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">      ValueError: when using :class:`opennmt.utils.reducer.ConcatReducer` and</span>
+<span class="sd">      ValueError: when using :class:`opennmt.layers.reducer.ConcatReducer` and</span>
 <span class="sd">        :obj:`num_units` is not divisible by 2.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reducer</span><span class="p">,</span> <span class="n">ConcatReducer</span><span class="p">):</span>
