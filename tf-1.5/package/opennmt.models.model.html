@@ -188,22 +188,6 @@
   <div class="section" id="module-opennmt.models.model">
 <span id="opennmt-models-model-module"></span><h1>opennmt.models.model module<a class="headerlink" href="#module-opennmt.models.model" title="Permalink to this headline">¶</a></h1>
 <p>Base class for models.</p>
-<dl class="function">
-<dt id="opennmt.models.model.filter_irregular_batches">
-<code class="descclassname">opennmt.models.model.</code><code class="descname">filter_irregular_batches</code><span class="sig-paren">(</span><em>multiple</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#filter_irregular_batches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.filter_irregular_batches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transformation that filters out batches based on their size.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>multiple</strong> – The divisor of the batch size.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="docutils literal"><span class="pre">tf.data.Dataset</span></code> transformation.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="class">
 <dt id="opennmt.models.model.Model">
 <em class="property">class </em><code class="descclassname">opennmt.models.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>name</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model" title="Permalink to this definition">¶</a></dt>
