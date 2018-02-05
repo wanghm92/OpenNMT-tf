@@ -185,6 +185,33 @@
     <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of trainable parameters: </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">misc</span><span class="o">.</span><span class="n">count_parameters</span><span class="p">())</span></div></div>
 
 
+<span class="n">_DEFAULT_COUNTERS_COLLECTION</span> <span class="o">=</span> <span class="s2">&quot;counters&quot;</span>
+
+
+<div class="viewcode-block" id="add_counter"><a class="viewcode-back" href="../../../package/opennmt.utils.hooks.html#opennmt.utils.hooks.add_counter">[docs]</a><span class="k">def</span> <span class="nf">add_counter</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tensor</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Registers a new counter.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    name: The name of this counter.</span>
+<span class="sd">    tensor: The integer ``tf.Tensor`` to count.</span>
+
+<span class="sd">  See Also:</span>
+<span class="sd">    :meth:`opennmt.utils.misc.WordCounterHook` that fetches these counters</span>
+<span class="sd">    to log their value in TensorBoard.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">count</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+  <span class="n">total_count_init</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
+      <span class="n">initial_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+      <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_init&quot;</span><span class="p">,</span>
+      <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+      <span class="n">dtype</span><span class="o">=</span><span class="n">count</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+  <span class="n">total_count</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign_add</span><span class="p">(</span>
+      <span class="n">total_count_init</span><span class="p">,</span>
+      <span class="n">count</span><span class="p">,</span>
+      <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+  <span class="n">tf</span><span class="o">.</span><span class="n">add_to_collection</span><span class="p">(</span><span class="n">_DEFAULT_COUNTERS_COLLECTION</span><span class="p">,</span> <span class="n">total_count</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="CountersHook"><a class="viewcode-back" href="../../../package/opennmt.utils.hooks.html#opennmt.utils.hooks.CountersHook">[docs]</a><span class="k">class</span> <span class="nc">CountersHook</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">SessionRunHook</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Hook that summarizes counters.</span>
 
@@ -206,7 +233,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_output_dir</span> <span class="o">=</span> <span class="n">output_dir</span>
 
 <div class="viewcode-block" id="CountersHook.begin"><a class="viewcode-back" href="../../../package/opennmt.utils.hooks.html#opennmt.utils.hooks.CountersHook.begin">[docs]</a>  <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_counters</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_collection</span><span class="p">(</span><span class="s2">&quot;counters&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_counters</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_collection</span><span class="p">(</span><span class="n">_DEFAULT_COUNTERS_COLLECTION</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counters</span><span class="p">:</span>
       <span class="k">return</span>
 

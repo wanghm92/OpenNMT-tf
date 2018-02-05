@@ -200,6 +200,29 @@
 
 </dd></dl>
 
+<dl class="function">
+<dt id="opennmt.utils.hooks.add_counter">
+<code class="descclassname">opennmt.utils.hooks.</code><code class="descname">add_counter</code><span class="sig-paren">(</span><em>name</em>, <em>tensor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/hooks.html#add_counter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.hooks.add_counter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers a new counter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> – The name of this counter.</li>
+<li><strong>tensor</strong> – The integer <code class="docutils literal"><span class="pre">tf.Tensor</span></code> to count.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-meth docutils literal"><span class="pre">opennmt.utils.misc.WordCounterHook()</span></code> that fetches these counters
+to log their value in TensorBoard.</p>
+</div>
+</dd></dl>
+
 <dl class="class">
 <dt id="opennmt.utils.hooks.CountersHook">
 <em class="property">class </em><code class="descclassname">opennmt.utils.hooks.</code><code class="descname">CountersHook</code><span class="sig-paren">(</span><em>every_n_steps=100</em>, <em>every_n_secs=None</em>, <em>output_dir=None</em>, <em>summary_writer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/hooks.html#CountersHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.hooks.CountersHook" title="Permalink to this definition">¶</a></dt>
