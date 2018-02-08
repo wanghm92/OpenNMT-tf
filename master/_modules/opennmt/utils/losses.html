@@ -244,7 +244,7 @@
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="n">cross_entropy</span> <span class="o">=</span> <span class="n">_softmax_cross_entropy</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">label_smoothing</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
   <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">cross_entropy</span><span class="p">)</span>
-  <span class="n">loss_normalizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">cross_entropy</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">loss_normalizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">cross_entropy</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">loss</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">loss_normalizer</span></div>
 </pre></div>
 
