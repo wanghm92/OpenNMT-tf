@@ -172,7 +172,11 @@
 
 <span class="kn">from</span> <span class="nn">importlib</span> <span class="k">import</span> <span class="n">import_module</span>
 
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 
 <div class="viewcode-block" id="load_model_module"><a class="viewcode-back" href="../../package/opennmt.config.html#opennmt.config.load_model_module">[docs]</a><span class="k">def</span> <span class="nf">load_model_module</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
@@ -192,6 +196,43 @@
     <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;No model defined in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 
   <span class="k">return</span> <span class="n">module</span></div>
+
+<div class="viewcode-block" id="load_model"><a class="viewcode-back" href="../../package/opennmt.config.html#opennmt.config.load_model">[docs]</a><span class="k">def</span> <span class="nf">load_model</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span> <span class="n">model_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Loads the model.</span>
+
+<span class="sd">  The model object is pickled in :obj:`model_dir` to make the model</span>
+<span class="sd">  configuration optional for future runs.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    model_dir: The model directory.</span>
+<span class="sd">    model_file: An optional model configuration.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A :class:`opennmt.models.model.Model` object.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">serial_model_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span> <span class="s2">&quot;model_description.pkl&quot;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">model_file</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">model_dir</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+          <span class="s2">&quot;You provided a model configuration but a checkpoint already exists. &quot;</span>
+          <span class="s2">&quot;The model configuration must define the same model as the one used for &quot;</span>
+          <span class="s2">&quot;the initial training. However, you can change non structural values like &quot;</span>
+          <span class="s2">&quot;dropout.&quot;</span><span class="p">)</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">load_model_module</span><span class="p">(</span><span class="n">model_file</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">model_config</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">serial_model_file</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">serial_model</span><span class="p">:</span>
+      <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">serial_model</span><span class="p">)</span>
+  <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">serial_model_file</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;A model configuration is required.&quot;</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading serialized model description from </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">serial_model_file</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">serial_model_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">serial_model</span><span class="p">:</span>
+      <span class="n">model</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">serial_model</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">model</span></div>
 
 <div class="viewcode-block" id="load_config"><a class="viewcode-back" href="../../package/opennmt.config.html#opennmt.config.load_config">[docs]</a><span class="k">def</span> <span class="nf">load_config</span><span class="p">(</span><span class="n">config_paths</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Loads configuration files.</span>
