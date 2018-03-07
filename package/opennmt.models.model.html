@@ -196,27 +196,8 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Base class for models.</p>
 <dl class="method">
-<dt id="opennmt.models.model.Model.model_fn">
-<code class="descname">model_fn</code><span class="sig-paren">(</span><em>num_devices=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.model_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.model_fn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the model function.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_devices</strong> – The number of devices used for training.</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><code class="docutils literal"><span class="pre">tf.estimator.Estimator</span></code> ‘s <code class="docutils literal"><span class="pre">model_fn</span></code> argument for more details about
-arguments and the returned value.</p>
-</div>
-</dd></dl>
-
-<dl class="method">
 <dt id="opennmt.models.model.Model.input_fn">
-<code class="descname">input_fn</code><span class="sig-paren">(</span><em>mode</em>, <em>batch_size</em>, <em>metadata</em>, <em>features_file</em>, <em>labels_file=None</em>, <em>batch_type='examples'</em>, <em>batch_multiplier=1</em>, <em>bucket_width=None</em>, <em>num_threads=None</em>, <em>sample_buffer_size=None</em>, <em>maximum_features_length=None</em>, <em>maximum_labels_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.input_fn" title="Permalink to this definition">¶</a></dt>
+<code class="descname">input_fn</code><span class="sig-paren">(</span><em>mode</em>, <em>batch_size</em>, <em>metadata</em>, <em>features_file</em>, <em>labels_file=None</em>, <em>batch_type='examples'</em>, <em>batch_multiplier=1</em>, <em>bucket_width=None</em>, <em>single_pass=False</em>, <em>num_threads=None</em>, <em>sample_buffer_size=None</em>, <em>prefetch_buffer_size=None</em>, <em>maximum_features_length=None</em>, <em>maximum_labels_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.input_fn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an input function.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -235,8 +216,10 @@ by the user.</li>
 replicated graph parts.</li>
 <li><strong>bucket_width</strong> – The width of the length buckets to select batch candidates
 from. <code class="docutils literal"><span class="pre">None</span></code> to not constrain batch formation.</li>
+<li><strong>single_pass</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, makes a single pass over the training data.</li>
 <li><strong>num_threads</strong> – The number of elements processed in parallel.</li>
 <li><strong>sample_buffer_size</strong> – The number of elements from which to sample.</li>
+<li><strong>prefetch_buffer_size</strong> – The number of batches to prefetch asynchronously.</li>
 <li><strong>maximum_features_length</strong> – The maximum length or list of maximum lengths of
 the features sequence(s). <code class="docutils literal"><span class="pre">None</span></code> to not constrain the length.</li>
 <li><strong>maximum_labels_length</strong> – The maximum length of the labels sequence.
@@ -260,20 +243,22 @@ evaluation mode.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="opennmt.models.model.Model.serving_input_fn">
-<code class="descname">serving_input_fn</code><span class="sig-paren">(</span><em>metadata</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.serving_input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.serving_input_fn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the serving input function.</p>
+<dt id="opennmt.models.model.Model.model_fn">
+<code class="descname">model_fn</code><span class="sig-paren">(</span><em>num_devices=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.model_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.model_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the model function.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>metadata</strong> – A dictionary containing additional metadata set
-by the user.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A callable that returns a <code class="docutils literal"><span class="pre">tf.estimator.export.ServingInputReceiver</span></code>.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_devices</strong> – The number of devices used for training.</td>
 </tr>
 </tbody>
 </table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="docutils literal"><span class="pre">tf.estimator.Estimator</span></code> ‘s <code class="docutils literal"><span class="pre">model_fn</span></code> argument for more details about
+arguments and the returned value.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -290,6 +275,23 @@ by the user.</td>
 <li><strong>stream</strong> – (optional) The stream to print to.</li>
 </ul>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="opennmt.models.model.Model.serving_input_fn">
+<code class="descname">serving_input_fn</code><span class="sig-paren">(</span><em>metadata</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.serving_input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.serving_input_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the serving input function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>metadata</strong> – A dictionary containing additional metadata set
+by the user.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A callable that returns a <code class="docutils literal"><span class="pre">tf.estimator.export.ServingInputReceiver</span></code>.</td>
 </tr>
 </tbody>
 </table>

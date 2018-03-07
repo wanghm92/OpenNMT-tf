@@ -191,6 +191,12 @@
 <span id="opennmt-utils-beam-search-module"></span><h1>opennmt.utils.beam_search module<a class="headerlink" href="#module-opennmt.utils.beam_search" title="Permalink to this headline">¶</a></h1>
 <p>Implemetation of beam seach with penalties.</p>
 <dl class="function">
+<dt id="opennmt.utils.beam_search.get_state_shape_invariants">
+<code class="descclassname">opennmt.utils.beam_search.</code><code class="descname">get_state_shape_invariants</code><span class="sig-paren">(</span><em>tensor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/beam_search.html#get_state_shape_invariants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.beam_search.get_state_shape_invariants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the shape of the tensor but sets middle dims to None.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="opennmt.utils.beam_search.compute_batch_indices">
 <code class="descclassname">opennmt.utils.beam_search.</code><code class="descname">compute_batch_indices</code><span class="sig-paren">(</span><em>batch_size</em>, <em>beam_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/beam_search.html#compute_batch_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.beam_search.compute_batch_indices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the i’th coodinate that contains the batch index for gathers.</p>
@@ -271,7 +277,7 @@ topk_finished_flags[batch_size, beam_size])</p>
 
 <dl class="function">
 <dt id="opennmt.utils.beam_search.beam_search">
-<code class="descclassname">opennmt.utils.beam_search.</code><code class="descname">beam_search</code><span class="sig-paren">(</span><em>symbols_to_logits_fn</em>, <em>initial_ids</em>, <em>beam_size</em>, <em>decode_length</em>, <em>vocab_size</em>, <em>alpha</em>, <em>states=None</em>, <em>eos_id=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/beam_search.html#beam_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.beam_search.beam_search" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">opennmt.utils.beam_search.</code><code class="descname">beam_search</code><span class="sig-paren">(</span><em>symbols_to_logits_fn</em>, <em>initial_ids</em>, <em>beam_size</em>, <em>decode_length</em>, <em>vocab_size</em>, <em>alpha</em>, <em>states=None</em>, <em>eos_id=1</em>, <em>stop_early=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/beam_search.html#beam_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.beam_search.beam_search" title="Permalink to this definition">¶</a></dt>
 <dd><p>Beam search with length penalties.</p>
 <p>Requires a function that can take the currently decoded sybmols and return
 the logits for the next symbol. The implementation is inspired by
@@ -289,6 +295,9 @@ Operations marked <cite>scores</cite> store the sequence’s final log scores.</
 <p>The beam search steps will be processed sequentially in order, so when
 capturing observed from these operations, tensors, clients can make
 assumptions about which step is being recorded.</p>
+<p>WARNING: Assumes 2nd dimension of tensors in <cite>states</cite> and not invariant, this
+means that the shape of the 2nd dimension of these tensors will not be
+available (i.e. set to None) inside symbols_to_logits_fn.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -306,6 +315,7 @@ symbols_to_logits_fn</li>
 <li><strong>alpha</strong> – alpha for length penalty.</li>
 <li><strong>states</strong> – dict (possibly nested) of decoding states.</li>
 <li><strong>eos_id</strong> – ID for end of sentence.</li>
+<li><strong>stop_early</strong> – a boolean - stop once best sequence is provably determined.</li>
 </ul>
 </td>
 </tr>

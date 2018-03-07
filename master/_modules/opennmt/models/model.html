@@ -395,6 +395,18 @@
     <span class="k">return</span> <span class="kc">None</span>
 
   <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+  <span class="k">def</span> <span class="nf">_get_dataset_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the size of the dataset.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      features_file: The file of features.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      The total size.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
   <span class="k">def</span> <span class="nf">_get_features_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features_file</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns the recipe to build features.</span>
 
@@ -427,8 +439,10 @@
                      <span class="n">batch_type</span><span class="o">=</span><span class="s2">&quot;examples&quot;</span><span class="p">,</span>
                      <span class="n">batch_multiplier</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                      <span class="n">bucket_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">single_pass</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                      <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">sample_buffer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">prefetch_buffer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">maximum_features_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">maximum_labels_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;See ``input_fn``.&quot;&quot;&quot;</span>
@@ -452,6 +466,12 @@
           <span class="n">feat_padded_shapes_fn</span><span class="p">(),</span> <span class="n">labels_padded_shapes_fn</span><span class="p">())</span>
 
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">TRAIN</span><span class="p">:</span>
+      <span class="n">dataset_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dataset_size</span><span class="p">(</span><span class="n">features_file</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">sample_buffer_size</span> <span class="o">&lt;</span> <span class="n">dataset_size</span><span class="p">:</span>
+        <span class="c1"># When the sample buffer size is smaller than the dataset size, shard</span>
+        <span class="c1"># the dataset in a random order. This ensures that all parts of the</span>
+        <span class="c1"># dataset can be seen when the evaluation frequency is high.</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">random_shard</span><span class="p">(</span><span class="n">sample_buffer_size</span><span class="p">,</span> <span class="n">dataset_size</span><span class="p">))</span>
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">sample_buffer_size</span><span class="p">)</span>
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
           <span class="n">process_fn</span><span class="p">,</span>
@@ -470,7 +490,8 @@
           <span class="n">features_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_features_length</span><span class="p">,</span>
           <span class="n">labels_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_labels_length</span><span class="p">))</span>
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">filter_irregular_batches</span><span class="p">(</span><span class="n">batch_multiplier</span><span class="p">))</span>
-      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">()</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">single_pass</span><span class="p">:</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
           <span class="n">process_fn</span><span class="p">,</span>
@@ -479,7 +500,8 @@
           <span class="n">batch_size</span><span class="p">,</span>
           <span class="n">padded_shapes</span><span class="o">=</span><span class="n">padded_shapes_fn</span><span class="p">())</span>
 
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">prefetch_buffer_size</span><span class="p">:</span>
+      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">prefetch_buffer_size</span><span class="p">)</span>
 
     <span class="n">iterator</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">make_initializable_iterator</span><span class="p">()</span>
 
@@ -497,8 +519,10 @@
                <span class="n">batch_type</span><span class="o">=</span><span class="s2">&quot;examples&quot;</span><span class="p">,</span>
                <span class="n">batch_multiplier</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                <span class="n">bucket_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">single_pass</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">sample_buffer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">prefetch_buffer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">maximum_features_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">maximum_labels_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns an input function.</span>
@@ -516,8 +540,10 @@
 <span class="sd">         replicated graph parts.</span>
 <span class="sd">      bucket_width: The width of the length buckets to select batch candidates</span>
 <span class="sd">        from. ``None`` to not constrain batch formation.</span>
+<span class="sd">      single_pass: If ``True``, makes a single pass over the training data.</span>
 <span class="sd">      num_threads: The number of elements processed in parallel.</span>
 <span class="sd">      sample_buffer_size: The number of elements from which to sample.</span>
+<span class="sd">      prefetch_buffer_size: The number of batches to prefetch asynchronously.</span>
 <span class="sd">      maximum_features_length: The maximum length or list of maximum lengths of</span>
 <span class="sd">        the features sequence(s). ``None`` to not constrain the length.</span>
 <span class="sd">      maximum_labels_length: The maximum length of the labels sequence.</span>
@@ -545,8 +571,10 @@
         <span class="n">batch_type</span><span class="o">=</span><span class="n">batch_type</span><span class="p">,</span>
         <span class="n">batch_multiplier</span><span class="o">=</span><span class="n">batch_multiplier</span><span class="p">,</span>
         <span class="n">bucket_width</span><span class="o">=</span><span class="n">bucket_width</span><span class="p">,</span>
+        <span class="n">single_pass</span><span class="o">=</span><span class="n">single_pass</span><span class="p">,</span>
         <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
         <span class="n">sample_buffer_size</span><span class="o">=</span><span class="n">sample_buffer_size</span><span class="p">,</span>
+        <span class="n">prefetch_buffer_size</span><span class="o">=</span><span class="n">prefetch_buffer_size</span><span class="p">,</span>
         <span class="n">maximum_features_length</span><span class="o">=</span><span class="n">maximum_features_length</span><span class="p">,</span>
         <span class="n">maximum_labels_length</span><span class="o">=</span><span class="n">maximum_labels_length</span><span class="p">)</span></div>
 

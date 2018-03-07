@@ -171,6 +171,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;Functions for reading data.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
 <div class="viewcode-block" id="filter_irregular_batches"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.filter_irregular_batches">[docs]</a><span class="k">def</span> <span class="nf">filter_irregular_batches</span><span class="p">(</span><span class="n">multiple</span><span class="p">):</span>
@@ -238,6 +239,28 @@
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_all</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
 
   <span class="k">return</span> <span class="k">lambda</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">_predicate</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="random_shard"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.random_shard">[docs]</a><span class="k">def</span> <span class="nf">random_shard</span><span class="p">(</span><span class="n">shard_size</span><span class="p">,</span> <span class="n">dataset_size</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Transformation that shards the dataset in a random order.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    shard_size: The number of examples in each shard.</span>
+<span class="sd">    dataset_size: The total number of examples in the dataset.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A ``tf.data.Dataset`` transformation.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">num_shards</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="o">-</span><span class="n">dataset_size</span> <span class="o">//</span> <span class="n">shard_size</span><span class="p">)</span>  <span class="c1"># Ceil division.</span>
+  <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dataset_size</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num_shards</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">_random_shard</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+    <span class="n">sharded_dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">from_tensor_slices</span><span class="p">(</span><span class="n">offsets</span><span class="p">)</span>
+    <span class="n">sharded_dataset</span> <span class="o">=</span> <span class="n">sharded_dataset</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">num_shards</span><span class="p">)</span>
+    <span class="n">sharded_dataset</span> <span class="o">=</span> <span class="n">sharded_dataset</span><span class="o">.</span><span class="n">flat_map</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">offset</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">shard_size</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">sharded_dataset</span>
+
+  <span class="k">return</span> <span class="n">_random_shard</span></div>
 
 <div class="viewcode-block" id="batch_train_dataset"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.batch_train_dataset">[docs]</a><span class="k">def</span> <span class="nf">batch_train_dataset</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span>
                         <span class="n">batch_type</span><span class="o">=</span><span class="s2">&quot;examples&quot;</span><span class="p">,</span>

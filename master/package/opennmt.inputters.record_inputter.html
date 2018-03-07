@@ -192,7 +192,7 @@
 <p>Define inputters reading from TFRecord files.</p>
 <dl class="class">
 <dt id="opennmt.inputters.record_inputter.SequenceRecordInputter">
-<em class="property">class </em><code class="descclassname">opennmt.inputters.record_inputter.</code><code class="descname">SequenceRecordInputter</code><span class="sig-paren">(</span><em>input_depth_key</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.inputters.record_inputter.</code><code class="descname">SequenceRecordInputter</code><span class="sig-paren">(</span><em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter" title="opennmt.inputters.inputter.Inputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.Inputter</span></code></a></p>
 <p>Inputter that reads variable-length tensors.</p>
 <p>Each record contains the following fields:</p>
@@ -205,27 +205,17 @@
 <p>Tensors are expected to be of shape <code class="docutils literal"><span class="pre">[time,</span> <span class="pre">depth]</span></code>.</p>
 <dl class="method">
 <dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_depth_key</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the parameters of the record inputter.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_depth_key</strong> – The data configuration key of the input depth value
-which has to be known statically.</li>
-<li><strong>dtype</strong> – The values type.</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dtype</strong> – The values type.</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
-
-<dl class="method">
-<dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.initialize">
-<code class="descname">initialize</code><span class="sig-paren">(</span><em>metadata</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.initialize" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="method">
 <dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.get_length">
@@ -235,6 +225,11 @@ which has to be known statically.</li>
 <dl class="method">
 <dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.make_dataset">
 <code class="descname">make_dataset</code><span class="sig-paren">(</span><em>data_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.make_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.make_dataset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.get_dataset_size">
+<code class="descname">get_dataset_size</code><span class="sig-paren">(</span><em>data_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.get_dataset_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.get_dataset_size" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">

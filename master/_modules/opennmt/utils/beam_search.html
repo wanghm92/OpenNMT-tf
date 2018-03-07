@@ -169,7 +169,7 @@
             
   <h1>Source code for opennmt.utils.beam_search</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding=utf-8</span>
-<span class="c1"># Copyright 2017 The Tensor2Tensor Authors.</span>
+<span class="c1"># Copyright 2018 The Tensor2Tensor Authors.</span>
 <span class="c1">#</span>
 <span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="c1"># you may not use this file except in compliance with the License.</span>
@@ -190,6 +190,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 
 <span class="c1"># Dependency imports</span>
+
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 <span class="kn">from</span> <span class="nn">tensorflow.python.util</span> <span class="k">import</span> <span class="n">nest</span>
@@ -200,11 +201,24 @@
 <span class="n">INF</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">*</span> <span class="mf">1e7</span>
 
 
-<span class="k">def</span> <span class="nf">_get_shape</span><span class="p">(</span><span class="n">tensor</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;Returns static shape if available and dynamic shape otherwise.&quot;&quot;&quot;</span>
-  <span class="n">static</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
-  <span class="n">dynamic</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">tensor</span><span class="p">))</span>
-  <span class="k">return</span> <span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">static</span><span class="p">,</span> <span class="n">dynamic</span><span class="p">)]</span>
+<span class="k">def</span> <span class="nf">_shape_list</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Return list of dims, statically where possible.&quot;&quot;&quot;</span>
+  <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+  <span class="c1"># If unknown rank, return dynamic shape</span>
+  <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+  <span class="n">static</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+  <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+  <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">static</span><span class="p">)):</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">static</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">dim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">dim</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">ret</span>
 
 
 <span class="k">def</span> <span class="nf">_merge_beam_dim</span><span class="p">(</span><span class="n">tensor</span><span class="p">):</span>
@@ -216,7 +230,7 @@
 <span class="sd">  Returns:</span>
 <span class="sd">    Reshaped tensor of shape [A*B, ...]</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">shape</span> <span class="o">=</span> <span class="n">_get_shape</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span>
+  <span class="n">shape</span> <span class="o">=</span> <span class="n">_shape_list</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span>
   <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># batch -&gt; batch * beam_size</span>
   <span class="n">shape</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Remove beam dim</span>
   <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
@@ -233,7 +247,7 @@
 <span class="sd">  Returns:</span>
 <span class="sd">    Reshaped tensor of shape [batch_size, beam_size, ...]</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">shape</span> <span class="o">=</span> <span class="n">_get_shape</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span>
+  <span class="n">shape</span> <span class="o">=</span> <span class="n">_shape_list</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span>
   <span class="n">new_shape</span> <span class="o">=</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">beam_size</span><span class="p">]</span> <span class="o">+</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
   <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">new_shape</span><span class="p">)</span>
 
@@ -253,6 +267,14 @@
   <span class="n">tile_dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">beam_size</span>
 
   <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">tile_dims</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_state_shape_invariants"><a class="viewcode-back" href="../../../package/opennmt.utils.beam_search.html#opennmt.utils.beam_search.get_state_shape_invariants">[docs]</a><span class="k">def</span> <span class="nf">get_state_shape_invariants</span><span class="p">(</span><span class="n">tensor</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Returns the shape of the tensor but sets middle dims to None.&quot;&quot;&quot;</span>
+  <span class="n">shape</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+  <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">_log_prob_from_logits</span><span class="p">(</span><span class="n">logits</span><span class="p">):</span>
@@ -350,7 +372,8 @@
                 <span class="n">vocab_size</span><span class="p">,</span>
                 <span class="n">alpha</span><span class="p">,</span>
                 <span class="n">states</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                <span class="n">eos_id</span><span class="o">=</span><span class="n">EOS_ID</span><span class="p">):</span>
+                <span class="n">eos_id</span><span class="o">=</span><span class="n">EOS_ID</span><span class="p">,</span>
+                <span class="n">stop_early</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Beam search with length penalties.</span>
 
 <span class="sd">  Requires a function that can take the currently decoded sybmols and return</span>
@@ -373,6 +396,10 @@
 <span class="sd">  capturing observed from these operations, tensors, clients can make</span>
 <span class="sd">  assumptions about which step is being recorded.</span>
 
+<span class="sd">  WARNING: Assumes 2nd dimension of tensors in `states` and not invariant, this</span>
+<span class="sd">  means that the shape of the 2nd dimension of these tensors will not be</span>
+<span class="sd">  available (i.e. set to None) inside symbols_to_logits_fn.</span>
+
 <span class="sd">  Args:</span>
 <span class="sd">    symbols_to_logits_fn: Interface to the model, to provide logits.</span>
 <span class="sd">        Shoud take [batch_size, decoded_ids] and return [batch_size, vocab_size]</span>
@@ -386,12 +413,13 @@
 <span class="sd">    alpha: alpha for length penalty.</span>
 <span class="sd">    states: dict (possibly nested) of decoding states.</span>
 <span class="sd">    eos_id: ID for end of sentence.</span>
+<span class="sd">    stop_early: a boolean - stop once best sequence is provably determined.</span>
 <span class="sd">  Returns:</span>
 <span class="sd">    Tuple of</span>
 <span class="sd">    (decoded beams [batch_size, beam_size, decode_length]</span>
 <span class="sd">     decoding probablities [batch_size, beam_size])</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">batch_size</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">initial_ids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">batch_size</span> <span class="o">=</span> <span class="n">_shape_list</span><span class="p">(</span><span class="n">initial_ids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
   <span class="c1"># Assume initial_ids are prob 1.0</span>
   <span class="n">initial_log_probs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">([[</span><span class="mf">0.</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)]</span> <span class="o">*</span> <span class="p">(</span><span class="n">beam_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)])</span>
@@ -410,7 +438,7 @@
   <span class="c1"># Finished will keep track of all the sequences that have finished so far</span>
   <span class="c1"># Finished log probs will be negative infinity in the beginning</span>
   <span class="c1"># finished_flags will keep track of booleans</span>
-  <span class="n">finished_seq</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">alive_seq</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+  <span class="n">finished_seq</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">_shape_list</span><span class="p">(</span><span class="n">alive_seq</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
   <span class="c1"># Setting the scores of the initial to negative infinity.</span>
   <span class="n">finished_scores</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">beam_size</span><span class="p">])</span> <span class="o">*</span> <span class="o">-</span><span class="n">INF</span>
   <span class="n">finished_flags</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">beam_size</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
@@ -645,6 +673,8 @@
 <span class="sd">    Returns:</span>
 <span class="sd">      Bool.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stop_early</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">less</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">decode_length</span><span class="p">)</span>
     <span class="n">max_length_penalty</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pow</span><span class="p">(((</span><span class="mf">5.</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="n">decode_length</span><span class="p">))</span> <span class="o">/</span> <span class="mf">6.</span><span class="p">),</span> <span class="n">alpha</span><span class="p">)</span>
     <span class="c1"># The best possible score of the most likley alive sequence</span>
     <span class="n">lower_bound_alive_scores</span> <span class="o">=</span> <span class="n">alive_log_probs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">max_length_penalty</span>
@@ -683,8 +713,7 @@
            <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]),</span>
            <span class="n">finished_scores</span><span class="o">.</span><span class="n">get_shape</span><span class="p">(),</span>
            <span class="n">finished_flags</span><span class="o">.</span><span class="n">get_shape</span><span class="p">(),</span>
-           <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span>
-               <span class="k">lambda</span> <span class="n">tensor</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">states</span><span class="p">),</span>
+           <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="n">get_state_shape_invariants</span><span class="p">,</span> <span class="n">states</span><span class="p">),</span>
        <span class="p">],</span>
        <span class="n">parallel_iterations</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
        <span class="n">back_prop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>

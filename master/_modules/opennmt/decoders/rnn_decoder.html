@@ -174,7 +174,7 @@
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
-<span class="kn">from</span> <span class="nn">opennmt.decoders.decoder</span> <span class="k">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">logits_to_cum_log_probs</span>
+<span class="kn">from</span> <span class="nn">opennmt.decoders.decoder</span> <span class="k">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">logits_to_cum_log_probs</span><span class="p">,</span> <span class="n">build_output_layer</span>
 <span class="kn">from</span> <span class="nn">opennmt.utils.cell</span> <span class="k">import</span> <span class="n">build_cell</span>
 
 
@@ -241,15 +241,6 @@
 
     <span class="k">return</span> <span class="n">cell</span><span class="p">,</span> <span class="n">initial_state</span>
 
-  <span class="k">def</span> <span class="nf">_build_output_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">vocab_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-      <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;projection&quot;</span><span class="p">):</span>
-      <span class="n">layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
-      <span class="n">layer</span><span class="o">.</span><span class="n">build</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_units</span><span class="p">])</span>
-      <span class="k">return</span> <span class="n">layer</span>
-
 <div class="viewcode-block" id="RNNDecoder.decode"><a class="viewcode-back" href="../../../package/opennmt.decoders.rnn_decoder.html#opennmt.decoders.rnn_decoder.RNNDecoder.decode">[docs]</a>  <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
              <span class="n">inputs</span><span class="p">,</span>
              <span class="n">sequence_length</span><span class="p">,</span>
@@ -257,6 +248,7 @@
              <span class="n">initial_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">sampling_probability</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">embedding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">output_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">mode</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">TRAIN</span><span class="p">,</span>
              <span class="n">memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -288,7 +280,8 @@
         <span class="n">memory_sequence_length</span><span class="o">=</span><span class="n">memory_sequence_length</span><span class="p">,</span>
         <span class="n">dtype</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
-    <span class="n">output_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_output_layer</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">output_layer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">output_layer</span> <span class="o">=</span> <span class="n">build_output_layer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_units</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
     <span class="c1"># With TrainingHelper, project all timesteps at once.</span>
     <span class="n">fused_projection</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">helper</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">TrainingHelper</span><span class="p">)</span>
@@ -312,8 +305,9 @@
                      <span class="n">embedding</span><span class="p">,</span>
                      <span class="n">start_tokens</span><span class="p">,</span>
                      <span class="n">end_token</span><span class="p">,</span>
-                     <span class="n">vocab_size</span><span class="p">,</span>
+                     <span class="n">vocab_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">initial_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">output_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">maximum_iterations</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
                      <span class="n">mode</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">PREDICT</span><span class="p">,</span>
                      <span class="n">memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -334,7 +328,8 @@
         <span class="n">memory_sequence_length</span><span class="o">=</span><span class="n">memory_sequence_length</span><span class="p">,</span>
         <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
 
-    <span class="n">output_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_output_layer</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span> <span class="ow">or</span> <span class="n">memory</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">output_layer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">output_layer</span> <span class="o">=</span> <span class="n">build_output_layer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_units</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span> <span class="ow">or</span> <span class="n">memory</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
     <span class="n">decoder</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">BasicDecoder</span><span class="p">(</span>
         <span class="n">cell</span><span class="p">,</span>
@@ -359,8 +354,9 @@
                                 <span class="n">embedding</span><span class="p">,</span>
                                 <span class="n">start_tokens</span><span class="p">,</span>
                                 <span class="n">end_token</span><span class="p">,</span>
-                                <span class="n">vocab_size</span><span class="p">,</span>
+                                <span class="n">vocab_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">initial_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">output_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">beam_width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
                                 <span class="n">length_penalty</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
                                 <span class="n">maximum_iterations</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
@@ -389,7 +385,8 @@
         <span class="n">memory_sequence_length</span><span class="o">=</span><span class="n">memory_sequence_length</span><span class="p">,</span>
         <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
 
-    <span class="n">output_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_output_layer</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span> <span class="ow">or</span> <span class="n">memory</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">output_layer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">output_layer</span> <span class="o">=</span> <span class="n">build_output_layer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_units</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span> <span class="ow">or</span> <span class="n">memory</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
     <span class="n">decoder</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">BeamSearchDecoder</span><span class="p">(</span>
         <span class="n">cell</span><span class="p">,</span>

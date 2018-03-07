@@ -385,6 +385,9 @@
 <div class="viewcode-block" id="TextInputter.make_dataset"><a class="viewcode-back" href="../../../package/opennmt.inputters.text_inputter.html#opennmt.inputters.text_inputter.TextInputter.make_dataset">[docs]</a>  <span class="k">def</span> <span class="nf">make_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_file</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">TextLineDataset</span><span class="p">(</span><span class="n">data_file</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="TextInputter.get_dataset_size"><a class="viewcode-back" href="../../../package/opennmt.inputters.text_inputter.html#opennmt.inputters.text_inputter.TextInputter.get_dataset_size">[docs]</a>  <span class="k">def</span> <span class="nf">get_dataset_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_file</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">count_lines</span><span class="p">(</span><span class="n">data_file</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="TextInputter.initialize"><a class="viewcode-back" href="../../../package/opennmt.inputters.text_inputter.html#opennmt.inputters.text_inputter.TextInputter.initialize">[docs]</a>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span></div>
 
