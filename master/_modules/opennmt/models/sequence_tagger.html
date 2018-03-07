@@ -187,6 +187,7 @@
                <span class="n">labels_vocabulary_file_key</span><span class="p">,</span>
                <span class="n">tagging_scheme</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">crf_decoding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">daisy_chain_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;seqtagger&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Initializes a sequence tagger.</span>
 
@@ -200,9 +201,12 @@
 <span class="sd">        only BIOES), additional evaluation metrics could be computed such as</span>
 <span class="sd">        precision, recall, etc.</span>
 <span class="sd">      crf_decoding: If ``True``, add a CRF layer after the encoder.</span>
+<span class="sd">      daisy_chain_variables: If ``True``, copy variables in a daisy chain</span>
+<span class="sd">        between devices for this model. Not compatible with RNN based models.</span>
 <span class="sd">      name: The name of this model.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">SequenceTagger</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">inputter</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">SequenceTagger</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">daisy_chain_variables</span><span class="o">=</span><span class="n">daisy_chain_variables</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">inputter</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">encoder</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">inputter</span> <span class="o">=</span> <span class="n">inputter</span>

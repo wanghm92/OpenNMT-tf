@@ -182,17 +182,20 @@
 <span class="sd">  sharded batches.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="GraphDispatcher.__init__"><a class="viewcode-back" href="../../../package/opennmt.utils.parallel.html#opennmt.utils.parallel.GraphDispatcher.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_devices</span><span class="p">):</span>
+<div class="viewcode-block" id="GraphDispatcher.__init__"><a class="viewcode-back" href="../../../package/opennmt.utils.parallel.html#opennmt.utils.parallel.GraphDispatcher.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_devices</span><span class="p">,</span> <span class="n">daisy_chain_variables</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Initializes the dispatcher.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">      num_devices: The number of devices to dispatch on.</span>
+<span class="sd">      daisy_chain_variables: If ``True``, variables are copied in a daisy chain</span>
+<span class="sd">        fashion between devices (credits to Tensor2Tensor).</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">      ValueError: if the number of visible devices is lower than</span>
 <span class="sd">        :obj:`num_devices`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">devices</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">device_lib</span><span class="o">.</span><span class="n">list_local_devices</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">device_type</span> <span class="o">==</span> <span class="s2">&quot;GPU&quot;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_daisy_chain_variables</span> <span class="o">=</span> <span class="n">daisy_chain_variables</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">devices</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_n</span> <span class="o">=</span> <span class="mi">1</span>
@@ -252,10 +255,8 @@
 <div class="viewcode-block" id="GraphDispatcher.__call__"><a class="viewcode-back" href="../../../package/opennmt.utils.parallel.html#opennmt.utils.parallel.GraphDispatcher.__call__">[docs]</a>  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Dispatches :obj:`fun` calls accross devices.</span>
 
-<span class="sd">    * Each argument must either not be a list or a list with length the</span>
-<span class="sd">      number of devices used for dispatching.</span>
-<span class="sd">    * Variables are copied in a daisy chain fashion between devices</span>
-<span class="sd">      (credits to Tensor2Tensor).</span>
+<span class="sd">    Each argument must either not be a list or a list with length the number of</span>
+<span class="sd">    devices used for dispatching.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">      fun: A callable.</span>
@@ -301,11 +302,15 @@
         <span class="n">cache</span><span class="p">[</span><span class="n">device_var_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
         <span class="k">return</span> <span class="n">v</span>
 
+      <span class="n">custom_getter</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_daisy_chain_variables</span><span class="p">:</span>
+        <span class="n">custom_getter</span> <span class="o">=</span> <span class="n">_daisy_chain_getter</span>
+
       <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;parallel_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
         <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span>
             <span class="n">tf</span><span class="o">.</span><span class="n">get_variable_scope</span><span class="p">(),</span>
             <span class="n">reuse</span><span class="o">=</span><span class="kc">True</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">custom_getter</span><span class="o">=</span><span class="n">_daisy_chain_getter</span><span class="p">):</span>
+            <span class="n">custom_getter</span><span class="o">=</span><span class="n">custom_getter</span><span class="p">):</span>
           <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">funs</span><span class="p">[</span><span class="n">i</span><span class="p">](</span><span class="o">*</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
           <span class="k">else</span><span class="p">:</span>

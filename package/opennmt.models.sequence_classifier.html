@@ -192,12 +192,12 @@
 <p>Sequence classifier.</p>
 <dl class="class">
 <dt id="opennmt.models.sequence_classifier.SequenceClassifier">
-<em class="property">class </em><code class="descclassname">opennmt.models.sequence_classifier.</code><code class="descname">SequenceClassifier</code><span class="sig-paren">(</span><em>inputter</em>, <em>encoder</em>, <em>labels_vocabulary_file_key</em>, <em>encoding='average'</em>, <em>name='seqclassifier'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_classifier.html#SequenceClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_classifier.SequenceClassifier" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.models.sequence_classifier.</code><code class="descname">SequenceClassifier</code><span class="sig-paren">(</span><em>inputter</em>, <em>encoder</em>, <em>labels_vocabulary_file_key</em>, <em>encoding='average'</em>, <em>daisy_chain_variables=False</em>, <em>name='seqclassifier'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_classifier.html#SequenceClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_classifier.SequenceClassifier" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="opennmt.models.model.html#opennmt.models.model.Model" title="opennmt.models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">opennmt.models.model.Model</span></code></a></p>
 <p>A sequence classifier.</p>
 <dl class="method">
 <dt id="opennmt.models.sequence_classifier.SequenceClassifier.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputter</em>, <em>encoder</em>, <em>labels_vocabulary_file_key</em>, <em>encoding='average'</em>, <em>name='seqclassifier'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_classifier.html#SequenceClassifier.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_classifier.SequenceClassifier.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputter</em>, <em>encoder</em>, <em>labels_vocabulary_file_key</em>, <em>encoding='average'</em>, <em>daisy_chain_variables=False</em>, <em>name='seqclassifier'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_classifier.html#SequenceClassifier.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_classifier.SequenceClassifier.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a sequence classifier.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -211,6 +211,8 @@ input data.</li>
 vocabulary file containing one label per line.</li>
 <li><strong>encoding</strong> – “average” or “last” (case insensitive), the encoding vector to
 extract from the encoder outputs.</li>
+<li><strong>daisy_chain_variables</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, copy variables in a daisy chain
+between devices for this model. Not compatible with RNN based models.</li>
 <li><strong>name</strong> – The name of this model.</li>
 </ul>
 </td>

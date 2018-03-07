@@ -192,22 +192,28 @@
 <p>Utilities to run execution in parallel.</p>
 <dl class="class">
 <dt id="opennmt.utils.parallel.GraphDispatcher">
-<em class="property">class </em><code class="descclassname">opennmt.utils.parallel.</code><code class="descname">GraphDispatcher</code><span class="sig-paren">(</span><em>num_devices</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#GraphDispatcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.GraphDispatcher" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.utils.parallel.</code><code class="descname">GraphDispatcher</code><span class="sig-paren">(</span><em>num_devices</em>, <em>daisy_chain_variables=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#GraphDispatcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.GraphDispatcher" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Helper class to replicate graph parts on multiple devices and dispatch
 sharded batches.</p>
 <dl class="method">
 <dt id="opennmt.utils.parallel.GraphDispatcher.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_devices</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#GraphDispatcher.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.GraphDispatcher.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_devices</em>, <em>daisy_chain_variables=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#GraphDispatcher.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.GraphDispatcher.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the dispatcher.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_devices</strong> – The number of devices to dispatch on.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>num_devices</strong> – The number of devices to dispatch on.</li>
+<li><strong>daisy_chain_variables</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, variables are copied in a daisy chain
+fashion between devices (credits to Tensor2Tensor).</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if the number of visible devices is lower than
-<code class="xref py py-obj docutils literal"><span class="pre">num_devices</span></code>.</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if the number of visible devices is lower than
+<code class="xref py py-obj docutils literal"><span class="pre">num_devices</span></code>.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -251,12 +257,8 @@ sharded batches.</p>
 <dt id="opennmt.utils.parallel.GraphDispatcher.__call__">
 <code class="descname">__call__</code><span class="sig-paren">(</span><em>fun</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/parallel.html#GraphDispatcher.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.parallel.GraphDispatcher.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dispatches <code class="xref py py-obj docutils literal"><span class="pre">fun</span></code> calls accross devices.</p>
-<ul class="simple">
-<li>Each argument must either not be a list or a list with length the
-number of devices used for dispatching.</li>
-<li>Variables are copied in a daisy chain fashion between devices
-(credits to Tensor2Tensor).</li>
-</ul>
+<p>Each argument must either not be a list or a list with length the number of
+devices used for dispatching.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

@@ -192,12 +192,12 @@
 <p>Sequence tagger.</p>
 <dl class="class">
 <dt id="opennmt.models.sequence_tagger.SequenceTagger">
-<em class="property">class </em><code class="descclassname">opennmt.models.sequence_tagger.</code><code class="descname">SequenceTagger</code><span class="sig-paren">(</span><em>inputter</em>, <em>encoder</em>, <em>labels_vocabulary_file_key</em>, <em>tagging_scheme=None</em>, <em>crf_decoding=False</em>, <em>name='seqtagger'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_tagger.html#SequenceTagger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_tagger.SequenceTagger" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.models.sequence_tagger.</code><code class="descname">SequenceTagger</code><span class="sig-paren">(</span><em>inputter</em>, <em>encoder</em>, <em>labels_vocabulary_file_key</em>, <em>tagging_scheme=None</em>, <em>crf_decoding=False</em>, <em>daisy_chain_variables=False</em>, <em>name='seqtagger'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_tagger.html#SequenceTagger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_tagger.SequenceTagger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="opennmt.models.model.html#opennmt.models.model.Model" title="opennmt.models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">opennmt.models.model.Model</span></code></a></p>
 <p>A sequence tagger.</p>
 <dl class="method">
 <dt id="opennmt.models.sequence_tagger.SequenceTagger.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputter</em>, <em>encoder</em>, <em>labels_vocabulary_file_key</em>, <em>tagging_scheme=None</em>, <em>crf_decoding=False</em>, <em>name='seqtagger'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_tagger.html#SequenceTagger.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_tagger.SequenceTagger.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputter</em>, <em>encoder</em>, <em>labels_vocabulary_file_key</em>, <em>tagging_scheme=None</em>, <em>crf_decoding=False</em>, <em>daisy_chain_variables=False</em>, <em>name='seqtagger'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_tagger.html#SequenceTagger.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_tagger.SequenceTagger.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a sequence tagger.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -213,6 +213,8 @@ vocabulary file containing one label per line.</li>
 only BIOES), additional evaluation metrics could be computed such as
 precision, recall, etc.</li>
 <li><strong>crf_decoding</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, add a CRF layer after the encoder.</li>
+<li><strong>daisy_chain_variables</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, copy variables in a daisy chain
+between devices for this model. Not compatible with RNN based models.</li>
 <li><strong>name</strong> – The name of this model.</li>
 </ul>
 </td>

@@ -220,12 +220,12 @@ to reflect the added token on both sequences.</p>
 
 <dl class="class">
 <dt id="opennmt.models.sequence_to_sequence.SequenceToSequence">
-<em class="property">class </em><code class="descclassname">opennmt.models.sequence_to_sequence.</code><code class="descname">SequenceToSequence</code><span class="sig-paren">(</span><em>source_inputter</em>, <em>target_inputter</em>, <em>encoder</em>, <em>decoder</em>, <em>name='seq2seq'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_to_sequence.html#SequenceToSequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_to_sequence.SequenceToSequence" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.models.sequence_to_sequence.</code><code class="descname">SequenceToSequence</code><span class="sig-paren">(</span><em>source_inputter</em>, <em>target_inputter</em>, <em>encoder</em>, <em>decoder</em>, <em>daisy_chain_variables=False</em>, <em>name='seq2seq'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_to_sequence.html#SequenceToSequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_to_sequence.SequenceToSequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="opennmt.models.model.html#opennmt.models.model.Model" title="opennmt.models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">opennmt.models.model.Model</span></code></a></p>
 <p>A sequence to sequence model.</p>
 <dl class="method">
 <dt id="opennmt.models.sequence_to_sequence.SequenceToSequence.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>source_inputter</em>, <em>target_inputter</em>, <em>encoder</em>, <em>decoder</em>, <em>name='seq2seq'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_to_sequence.html#SequenceToSequence.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_to_sequence.SequenceToSequence.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>source_inputter</em>, <em>target_inputter</em>, <em>encoder</em>, <em>decoder</em>, <em>daisy_chain_variables=False</em>, <em>name='seq2seq'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_to_sequence.html#SequenceToSequence.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_to_sequence.SequenceToSequence.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a sequence-to-sequence model.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -239,6 +239,8 @@ the target data. Currently, only the
 <a class="reference internal" href="opennmt.inputters.text_inputter.html#opennmt.inputters.text_inputter.WordEmbedder" title="opennmt.inputters.text_inputter.WordEmbedder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.text_inputter.WordEmbedder</span></code></a> is supported.</li>
 <li><strong>encoder</strong> – A <a class="reference internal" href="opennmt.encoders.encoder.html#opennmt.encoders.encoder.Encoder" title="opennmt.encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.encoder.Encoder</span></code></a> to encode the source.</li>
 <li><strong>decoder</strong> – A <a class="reference internal" href="opennmt.decoders.decoder.html#opennmt.decoders.decoder.Decoder" title="opennmt.decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.decoders.decoder.Decoder</span></code></a> to decode the target.</li>
+<li><strong>daisy_chain_variables</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, copy variables in a daisy chain
+between devices for this model. Not compatible with RNN based models.</li>
 <li><strong>name</strong> – The name of this model.</li>
 </ul>
 </td>
