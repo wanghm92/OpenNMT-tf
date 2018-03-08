@@ -240,6 +240,24 @@
 
 <div class="viewcode-block" id="SequenceRecordInputter.transform"><a class="viewcode-back" href="../../../package/opennmt.inputters.record_inputter.html#opennmt.inputters.record_inputter.SequenceRecordInputter.transform">[docs]</a>  <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">inputs</span></div></div>
+
+
+<div class="viewcode-block" id="write_sequence_record"><a class="viewcode-back" href="../../../package/opennmt.inputters.record_inputter.html#opennmt.inputters.record_inputter.write_sequence_record">[docs]</a><span class="k">def</span> <span class="nf">write_sequence_record</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">writer</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Writes a vector as a TFRecord.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    vector: A 2D Numpy array.</span>
+<span class="sd">    writer: A ``tf.python_io.TFRecordWriter``.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">vector</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+  <span class="n">values</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+  <span class="n">example</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Example</span><span class="p">(</span><span class="n">features</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Features</span><span class="p">(</span><span class="n">feature</span><span class="o">=</span><span class="p">{</span>
+      <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">int64_list</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Int64List</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">shape</span><span class="p">)),</span>
+      <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">float_list</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">FloatList</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">values</span><span class="p">))</span>
+  <span class="p">}))</span>
+
+  <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">example</span><span class="o">.</span><span class="n">SerializeToString</span><span class="p">())</span></div>
 </pre></div>
 
            </div>
