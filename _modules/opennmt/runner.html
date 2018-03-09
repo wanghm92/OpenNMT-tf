@@ -215,6 +215,10 @@
         <span class="n">session_config</span><span class="o">=</span><span class="n">session_config</span><span class="p">,</span>
         <span class="n">tf_random_seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
+    <span class="c1"># Create a first session to enforce GPU options.</span>
+    <span class="c1"># See https://github.com/OpenNMT/OpenNMT-tf/issues/80.</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">session_config</span><span class="p">)</span>
+
     <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
 
