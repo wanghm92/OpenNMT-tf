@@ -207,6 +207,38 @@
   <span class="k">return</span> <span class="p">(</span><span class="n">scale</span>
           <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">)</span>
           <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">),</span> <span class="n">step</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">warmup_steps</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="rsqrt_decay"><a class="viewcode-back" href="../../../package/opennmt.utils.decay.html#opennmt.utils.decay.rsqrt_decay">[docs]</a><span class="k">def</span> <span class="nf">rsqrt_decay</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">,</span>
+                <span class="n">global_step</span><span class="p">,</span>
+                <span class="n">decay_steps</span><span class="p">,</span>
+                <span class="n">decay_rate</span><span class="p">,</span>
+                <span class="n">staircase</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Decay based on the reciprocal of the step square root.</span>
+
+<span class="sd">  The semantic of the arguments are changed accordingly.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    learning_rate: The scale constant.</span>
+<span class="sd">    global_step: The current learning step.</span>
+<span class="sd">    decay_steps: The warmup steps.</span>
+<span class="sd">    decay_rate: Ignored.</span>
+<span class="sd">    staircase: Ignored.</span>
+<span class="sd">    name: Ignored.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    The learning rate for the step :obj:`global_step`.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">_</span> <span class="o">=</span> <span class="n">decay_rate</span>
+  <span class="n">_</span> <span class="o">=</span> <span class="n">staircase</span>
+  <span class="n">_</span> <span class="o">=</span> <span class="n">name</span>
+
+  <span class="n">scale</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">)</span>
+  <span class="n">step</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="n">global_step</span><span class="p">)</span>
+  <span class="n">warmup_steps</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="n">decay_steps</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">rsqrt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">warmup_steps</span><span class="p">))</span></div>
 </pre></div>
 
            </div>
