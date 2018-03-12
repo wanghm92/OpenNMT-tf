@@ -280,7 +280,9 @@
     <span class="n">decay_fn</span> <span class="o">=</span> <span class="kc">None</span>
 
   <span class="n">learning_rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;learning_rate&quot;</span><span class="p">])</span>
-  <span class="n">clip_gradients</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;clip_gradients&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="s2">&quot;clip_gradients&quot;</span> <span class="ow">in</span> <span class="n">params</span> <span class="k">else</span> <span class="kc">None</span>
+  <span class="n">clip_gradients</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;clip_gradients&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">clip_gradients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">clip_gradients</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">clip_gradients</span><span class="p">)</span>
 
   <span class="n">optimizer_class</span> <span class="o">=</span> <span class="n">get_optimizer_class</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;optimizer&quot;</span><span class="p">])</span>
   <span class="n">optimizer_params</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;optimizer_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
