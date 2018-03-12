@@ -172,6 +172,7 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">six</span>
 
@@ -204,6 +205,16 @@
     <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">x</span></div>
+
+<div class="viewcode-block" id="get_third_party_dir"><a class="viewcode-back" href="../../../package/opennmt.utils.misc.html#opennmt.utils.misc.get_third_party_dir">[docs]</a><span class="k">def</span> <span class="nf">get_third_party_dir</span><span class="p">():</span>
+  <span class="sd">&quot;&quot;&quot;Returns a path to the third_party directory.&quot;&quot;&quot;</span>
+  <span class="n">utils_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+  <span class="n">opennmt_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">utils_dir</span><span class="p">)</span>
+  <span class="n">root_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">opennmt_dir</span><span class="p">)</span>
+  <span class="n">third_party_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="s2">&quot;third_party&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">third_party_dir</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;no third_party directory found in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">root_dir</span><span class="p">))</span>
+  <span class="k">return</span> <span class="n">third_party_dir</span></div>
 
 <div class="viewcode-block" id="count_lines"><a class="viewcode-back" href="../../../package/opennmt.utils.misc.html#opennmt.utils.misc.count_lines">[docs]</a><span class="k">def</span> <span class="nf">count_lines</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Returns the number of lines of the file :obj:`filename`.&quot;&quot;&quot;</span>

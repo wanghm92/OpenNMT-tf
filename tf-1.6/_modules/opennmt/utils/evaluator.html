@@ -181,6 +181,8 @@
 
 <span class="kn">from</span> <span class="nn">tensorflow.python.summary.writer.writer_cache</span> <span class="k">import</span> <span class="n">FileWriterCache</span> <span class="k">as</span> <span class="n">SummaryWriterCache</span>
 
+<span class="kn">from</span> <span class="nn">opennmt.utils.misc</span> <span class="k">import</span> <span class="n">get_third_party_dir</span>
+
 
 <div class="viewcode-block" id="ExternalEvaluator"><a class="viewcode-back" href="../../../package/opennmt.utils.evaluator.html#opennmt.utils.evaluator.ExternalEvaluator">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ExternalEvaluator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -241,9 +243,14 @@
 <div class="viewcode-block" id="BLEUEvaluator.score"><a class="viewcode-back" href="../../../package/opennmt.utils.evaluator.html#opennmt.utils.evaluator.BLEUEvaluator.score">[docs]</a>  <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels_file</span><span class="p">,</span> <span class="n">predictions_path</span><span class="p">):</span>
     <span class="n">bleu_script</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_bleu_script</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
+      <span class="n">third_party_dir</span> <span class="o">=</span> <span class="n">get_third_party_dir</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+      <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+      <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
       <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">predictions_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">predictions_file</span><span class="p">:</span>
         <span class="n">bleu_out</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;third_party&quot;</span><span class="p">,</span> <span class="n">bleu_script</span><span class="p">),</span> <span class="n">labels_file</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">third_party_dir</span><span class="p">,</span> <span class="n">bleu_script</span><span class="p">),</span> <span class="n">labels_file</span><span class="p">],</span>
             <span class="n">stdin</span><span class="o">=</span><span class="n">predictions_file</span><span class="p">,</span>
             <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
         <span class="n">bleu_out</span> <span class="o">=</span> <span class="n">bleu_out</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
