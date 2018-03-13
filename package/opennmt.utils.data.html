@@ -191,6 +191,23 @@
 <span id="opennmt-utils-data-module"></span><h1>opennmt.utils.data module<a class="headerlink" href="#module-opennmt.utils.data" title="Permalink to this headline">¶</a></h1>
 <p>Functions for reading data.</p>
 <dl class="function">
+<dt id="opennmt.utils.data.get_padded_shapes">
+<code class="descclassname">opennmt.utils.data.</code><code class="descname">get_padded_shapes</code><span class="sig-paren">(</span><em>dataset</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/data.html#get_padded_shapes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.data.get_padded_shapes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the padded shapes for <code class="docutils literal"><span class="pre">tf.data.Dataset.padded_batch</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dataset</strong> – The dataset that will be batched with padding.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The same structure as <code class="docutils literal"><span class="pre">dataset.output_shapes</span></code> containing the padded
+shapes.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="opennmt.utils.data.filter_irregular_batches">
 <code class="descclassname">opennmt.utils.data.</code><code class="descname">filter_irregular_batches</code><span class="sig-paren">(</span><em>multiple</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/data.html#filter_irregular_batches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.data.filter_irregular_batches" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transformation that filters out batches based on their size.</p>
@@ -253,9 +270,9 @@ the features sequence(s). <code class="docutils literal"><span class="pre">None<
 </dd></dl>
 
 <dl class="function">
-<dt id="opennmt.utils.data.batch_train_dataset">
-<code class="descclassname">opennmt.utils.data.</code><code class="descname">batch_train_dataset</code><span class="sig-paren">(</span><em>batch_size</em>, <em>batch_type='examples'</em>, <em>batch_multiplier=1</em>, <em>bucket_width=None</em>, <em>padded_shapes=None</em>, <em>features_length_fn=None</em>, <em>labels_length_fn=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/data.html#batch_train_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.data.batch_train_dataset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transformation that batches the dataset for training.</p>
+<dt id="opennmt.utils.data.batch_parallel_dataset">
+<code class="descclassname">opennmt.utils.data.</code><code class="descname">batch_parallel_dataset</code><span class="sig-paren">(</span><em>batch_size</em>, <em>batch_type='examples'</em>, <em>batch_multiplier=1</em>, <em>bucket_width=None</em>, <em>padded_shapes=None</em>, <em>features_length_fn=None</em>, <em>labels_length_fn=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/data.html#batch_parallel_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.data.batch_parallel_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation that batches a parallel dataset.</p>
 <p>This implements an example-based and a token-based batching strategy
 with optional bucketing of sequences.</p>
 <p>Bucketing makes the batches contain sequences of similar lengths to optimize
@@ -275,7 +292,8 @@ Then each batch will only consider sequences from the same bucket.</p>
 <li><strong>batch_multiplier</strong> – The batch size multiplier to prepare splitting accross
 replicated graph parts.</li>
 <li><strong>bucket_width</strong> – The sequence length bucket width.</li>
-<li><strong>padded_shapes</strong> – The padded shapes.</li>
+<li><strong>padded_shapes</strong> – The padded shapes for this dataset. If <code class="docutils literal"><span class="pre">None</span></code>, the shapes
+are automatically infered from the dataset output shapes.</li>
 <li><strong>features_length_fn</strong> – A callable mapping features to a sequence length.</li>
 <li><strong>labels_length_fn</strong> – A callable mapping labels to a sequence length.</li>
 </ul>

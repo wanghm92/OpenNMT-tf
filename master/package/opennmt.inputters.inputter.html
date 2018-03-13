@@ -215,7 +215,7 @@ functions applied after calling this inputter
 
 <dl class="method">
 <dt id="opennmt.inputters.inputter.Inputter.set_data_field">
-<code class="descname">set_data_field</code><span class="sig-paren">(</span><em>data</em>, <em>key</em>, <em>value</em>, <em>padded_shape=None</em>, <em>volatile=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/inputter.html#Inputter.set_data_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.inputter.Inputter.set_data_field" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_data_field</code><span class="sig-paren">(</span><em>data</em>, <em>key</em>, <em>value</em>, <em>volatile=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/inputter.html#Inputter.set_data_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.inputter.Inputter.set_data_field" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets a data field.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -225,8 +225,6 @@ functions applied after calling this inputter
 <li><strong>data</strong> – The data dictionary.</li>
 <li><strong>key</strong> – The value key.</li>
 <li><strong>value</strong> – The value to assign.</li>
-<li><strong>padded_shape</strong> – The padded shape of the value as given to
-<code class="docutils literal"><span class="pre">tf.data.Dataset.padded_batch</span></code>.</li>
 <li><strong>volatile</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, the key/value pair will be removed once the
 processing done.</li>
 </ul>

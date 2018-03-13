@@ -174,6 +174,19 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
+<div class="viewcode-block" id="get_padded_shapes"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.get_padded_shapes">[docs]</a><span class="k">def</span> <span class="nf">get_padded_shapes</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Returns the padded shapes for ``tf.data.Dataset.padded_batch``.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    dataset: The dataset that will be batched with padding.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    The same structure as ``dataset.output_shapes`` containing the padded</span>
+<span class="sd">    shapes.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span>
+      <span class="k">lambda</span> <span class="n">shape</span><span class="p">:</span> <span class="n">shape</span><span class="o">.</span><span class="n">as_list</span><span class="p">(),</span> <span class="n">dataset</span><span class="o">.</span><span class="n">output_shapes</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="filter_irregular_batches"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.filter_irregular_batches">[docs]</a><span class="k">def</span> <span class="nf">filter_irregular_batches</span><span class="p">(</span><span class="n">multiple</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Transformation that filters out batches based on their size.</span>
 
@@ -262,14 +275,14 @@
 
   <span class="k">return</span> <span class="n">_random_shard</span></div>
 
-<div class="viewcode-block" id="batch_train_dataset"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.batch_train_dataset">[docs]</a><span class="k">def</span> <span class="nf">batch_train_dataset</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span>
-                        <span class="n">batch_type</span><span class="o">=</span><span class="s2">&quot;examples&quot;</span><span class="p">,</span>
-                        <span class="n">batch_multiplier</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                        <span class="n">bucket_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                        <span class="n">padded_shapes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                        <span class="n">features_length_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                        <span class="n">labels_length_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;Transformation that batches the dataset for training.</span>
+<div class="viewcode-block" id="batch_parallel_dataset"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.batch_parallel_dataset">[docs]</a><span class="k">def</span> <span class="nf">batch_parallel_dataset</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span>
+                           <span class="n">batch_type</span><span class="o">=</span><span class="s2">&quot;examples&quot;</span><span class="p">,</span>
+                           <span class="n">batch_multiplier</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                           <span class="n">bucket_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">padded_shapes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">features_length_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">labels_length_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Transformation that batches a parallel dataset.</span>
 
 <span class="sd">  This implements an example-based and a token-based batching strategy</span>
 <span class="sd">  with optional bucketing of sequences.</span>
@@ -290,7 +303,8 @@
 <span class="sd">    batch_multiplier: The batch size multiplier to prepare splitting accross</span>
 <span class="sd">      replicated graph parts.</span>
 <span class="sd">    bucket_width: The sequence length bucket width.</span>
-<span class="sd">    padded_shapes: The padded shapes.</span>
+<span class="sd">    padded_shapes: The padded shapes for this dataset. If ``None``, the shapes</span>
+<span class="sd">      are automatically infered from the dataset output shapes.</span>
 <span class="sd">    features_length_fn: A callable mapping features to a sequence length.</span>
 <span class="sd">    labels_length_fn: A callable mapping labels to a sequence length.</span>
 
@@ -302,10 +316,10 @@
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span> <span class="o">*</span> <span class="n">batch_multiplier</span>
 
-  <span class="k">if</span> <span class="n">bucket_width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">return</span> <span class="k">lambda</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span>
+  <span class="k">def</span> <span class="nf">_batch_func</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span>
         <span class="n">batch_size</span><span class="p">,</span>
-        <span class="n">padded_shapes</span><span class="o">=</span><span class="n">padded_shapes</span><span class="p">)</span>
+        <span class="n">padded_shapes</span><span class="o">=</span><span class="n">padded_shapes</span> <span class="ow">or</span> <span class="n">get_padded_shapes</span><span class="p">(</span><span class="n">dataset</span><span class="p">))</span>
 
   <span class="k">def</span> <span class="nf">_key_func</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
     <span class="n">features_length</span> <span class="o">=</span> <span class="n">features_length_fn</span><span class="p">(</span><span class="n">features</span><span class="p">)</span> <span class="k">if</span> <span class="n">features_length_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
@@ -321,9 +335,7 @@
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_int64</span><span class="p">(</span><span class="n">bucket_id</span><span class="p">)</span>
 
   <span class="k">def</span> <span class="nf">_reduce_func</span><span class="p">(</span><span class="n">unused_key</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span>
-        <span class="n">batch_size</span><span class="p">,</span>
-        <span class="n">padded_shapes</span><span class="o">=</span><span class="n">padded_shapes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_batch_func</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
 
   <span class="k">def</span> <span class="nf">_window_size_func</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">bucket_width</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -333,6 +345,9 @@
       <span class="c1"># Make the window size a multiple of batch_multiplier.</span>
       <span class="n">size</span> <span class="o">=</span> <span class="n">size</span> <span class="o">+</span> <span class="n">batch_multiplier</span> <span class="o">-</span> <span class="n">size</span> <span class="o">%</span> <span class="n">batch_multiplier</span>
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_int64</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">batch_multiplier</span><span class="p">))</span>
+
+  <span class="k">if</span> <span class="n">bucket_width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">_batch_func</span>
 
   <span class="k">if</span> <span class="n">batch_type</span> <span class="o">==</span> <span class="s2">&quot;examples&quot;</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">group_by_window</span><span class="p">(</span>

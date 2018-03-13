@@ -416,7 +416,7 @@
 <span class="sd">      features_file: The file of features.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">      A tuple ``(tf.data.Dataset, process_fn, padded_shapes_fn)``.</span>
+<span class="sd">      A tuple ``(tf.data.Dataset, process_fn)``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
@@ -428,7 +428,7 @@
 <span class="sd">      labels_file: The file of labels.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">      A tuple ``(tf.data.Dataset, process_fn, padded_shapes_fn)``.</span>
+<span class="sd">      A tuple ``(tf.data.Dataset, process_fn)``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
@@ -450,22 +450,18 @@
     <span class="sd">&quot;&quot;&quot;See ``input_fn``.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_initialize</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
 
-    <span class="n">feat_dataset</span><span class="p">,</span> <span class="n">feat_process_fn</span><span class="p">,</span> <span class="n">feat_padded_shapes_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_features_builder</span><span class="p">(</span><span class="n">features_file</span><span class="p">)</span>
+    <span class="n">feat_dataset</span><span class="p">,</span> <span class="n">feat_process_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_features_builder</span><span class="p">(</span><span class="n">features_file</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">labels_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">feat_dataset</span>
       <span class="c1"># Parallel inputs must be catched in a single tuple and not considered as multiple arguments.</span>
       <span class="n">process_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">arg</span><span class="p">:</span> <span class="n">feat_process_fn</span><span class="p">(</span><span class="n">item_or_tuple</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span>
-      <span class="n">padded_shapes_fn</span> <span class="o">=</span> <span class="n">feat_padded_shapes_fn</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="n">labels_dataset</span><span class="p">,</span> <span class="n">labels_process_fn</span><span class="p">,</span> <span class="n">labels_padded_shapes_fn</span> <span class="o">=</span> <span class="p">(</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">_get_labels_builder</span><span class="p">(</span><span class="n">labels_file</span><span class="p">))</span>
+      <span class="n">labels_dataset</span><span class="p">,</span> <span class="n">labels_process_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_labels_builder</span><span class="p">(</span><span class="n">labels_file</span><span class="p">)</span>
 
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">zip</span><span class="p">((</span><span class="n">feat_dataset</span><span class="p">,</span> <span class="n">labels_dataset</span><span class="p">))</span>
       <span class="n">process_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="p">(</span>
           <span class="n">feat_process_fn</span><span class="p">(</span><span class="n">features</span><span class="p">),</span> <span class="n">labels_process_fn</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
-      <span class="n">padded_shapes_fn</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
-          <span class="n">feat_padded_shapes_fn</span><span class="p">(),</span> <span class="n">labels_padded_shapes_fn</span><span class="p">())</span>
 
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">TRAIN</span><span class="p">:</span>
       <span class="n">dataset_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dataset_size</span><span class="p">(</span><span class="n">features_file</span><span class="p">)</span>
@@ -483,12 +479,11 @@
           <span class="n">maximum_labels_length</span><span class="o">=</span><span class="n">maximum_labels_length</span><span class="p">,</span>
           <span class="n">features_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_features_length</span><span class="p">,</span>
           <span class="n">labels_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_labels_length</span><span class="p">))</span>
-      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">batch_train_dataset</span><span class="p">(</span>
+      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">batch_parallel_dataset</span><span class="p">(</span>
           <span class="n">batch_size</span><span class="p">,</span>
           <span class="n">batch_type</span><span class="o">=</span><span class="n">batch_type</span><span class="p">,</span>
           <span class="n">batch_multiplier</span><span class="o">=</span><span class="n">batch_multiplier</span><span class="p">,</span>
           <span class="n">bucket_width</span><span class="o">=</span><span class="n">bucket_width</span><span class="p">,</span>
-          <span class="n">padded_shapes</span><span class="o">=</span><span class="n">padded_shapes_fn</span><span class="p">(),</span>
           <span class="n">features_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_features_length</span><span class="p">,</span>
           <span class="n">labels_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_labels_length</span><span class="p">))</span>
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">filter_irregular_batches</span><span class="p">(</span><span class="n">batch_multiplier</span><span class="p">))</span>
@@ -498,9 +493,7 @@
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
           <span class="n">process_fn</span><span class="p">,</span>
           <span class="n">num_parallel_calls</span><span class="o">=</span><span class="n">num_threads</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
-      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span>
-          <span class="n">batch_size</span><span class="p">,</span>
-          <span class="n">padded_shapes</span><span class="o">=</span><span class="n">padded_shapes_fn</span><span class="p">())</span>
+      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">batch_parallel_dataset</span><span class="p">(</span><span class="n">batch_size</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">prefetch_buffer_size</span><span class="p">:</span>
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">prefetch_buffer_size</span><span class="p">)</span>

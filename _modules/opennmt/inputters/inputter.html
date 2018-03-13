@@ -184,7 +184,6 @@
   <span class="sd">&quot;&quot;&quot;Base class for inputters.&quot;&quot;&quot;</span>
 
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">padded_shapes</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">volatile</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">process_hooks</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span>
@@ -202,25 +201,20 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">process_hooks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hooks</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Inputter.set_data_field"><a class="viewcode-back" href="../../../package/opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter.set_data_field">[docs]</a>  <span class="k">def</span> <span class="nf">set_data_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">padded_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">volatile</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Inputter.set_data_field"><a class="viewcode-back" href="../../../package/opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter.set_data_field">[docs]</a>  <span class="k">def</span> <span class="nf">set_data_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">volatile</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Sets a data field.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">      data: The data dictionary.</span>
 <span class="sd">      key: The value key.</span>
 <span class="sd">      value: The value to assign.</span>
-<span class="sd">      padded_shape: The padded shape of the value as given to</span>
-<span class="sd">        ``tf.data.Dataset.padded_batch``.</span>
 <span class="sd">      volatile: If ``True``, the key/value pair will be removed once the</span>
 <span class="sd">        processing done.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">      The updated data dictionary.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">padded_shape</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-      <span class="n">padded_shape</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">padded_shapes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">padded_shape</span>
     <span class="k">if</span> <span class="n">volatile</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">volatile</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span></div>
@@ -236,7 +230,6 @@
 <span class="sd">      The updated data dictionary.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">padded_shapes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="Inputter.get_length"><a class="viewcode-back" href="../../../package/opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter.get_length">[docs]</a>  <span class="k">def</span> <span class="nf">get_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unused_data</span><span class="p">):</span>
@@ -501,7 +494,6 @@
             <span class="n">processed_data</span><span class="p">,</span>
             <span class="n">prefixed_key</span><span class="p">,</span>
             <span class="n">value</span><span class="p">,</span>
-            <span class="n">padded_shape</span><span class="o">=</span><span class="n">inputter</span><span class="o">.</span><span class="n">padded_shapes</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
             <span class="n">volatile</span><span class="o">=</span><span class="n">key</span> <span class="ow">in</span> <span class="n">inputter</span><span class="o">.</span><span class="n">volatile</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">processed_data</span>
 
@@ -561,7 +553,6 @@
   <span class="k">def</span> <span class="nf">_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">inputter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputters</span><span class="p">:</span>
       <span class="n">data</span> <span class="o">=</span> <span class="n">inputter</span><span class="o">.</span><span class="n">_process</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># pylint: disable=protected-access</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">padded_shapes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inputter</span><span class="o">.</span><span class="n">padded_shapes</span><span class="p">)</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">volatile</span> <span class="o">|=</span> <span class="n">inputter</span><span class="o">.</span><span class="n">volatile</span>
     <span class="k">return</span> <span class="n">data</span>
 
