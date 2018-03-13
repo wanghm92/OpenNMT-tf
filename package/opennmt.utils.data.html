@@ -287,13 +287,13 @@ Then each batch will only consider sequences from the same bucket.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>batch_size</strong> – The batch size.</li>
-<li><strong>batch_type</strong> – The training batching stragety to use: can be “examples” or
+<li><strong>batch_type</strong> – The training batching strategy to use: can be “examples” or
 “tokens”.</li>
 <li><strong>batch_multiplier</strong> – The batch size multiplier to prepare splitting accross
 replicated graph parts.</li>
 <li><strong>bucket_width</strong> – The sequence length bucket width.</li>
 <li><strong>padded_shapes</strong> – The padded shapes for this dataset. If <code class="docutils literal"><span class="pre">None</span></code>, the shapes
-are automatically infered from the dataset output shapes.</li>
+are automatically inferred from the dataset output shapes.</li>
 <li><strong>features_length_fn</strong> – A callable mapping features to a sequence length.</li>
 <li><strong>labels_length_fn</strong> – A callable mapping labels to a sequence length.</li>
 </ul>
