@@ -364,13 +364,14 @@
   <span class="sd">&quot;&quot;&quot;A reducer that joins its inputs in a single tuple.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="JoinReducer.reduce"><a class="viewcode-back" href="../../../package/opennmt.layers.reducer.html#opennmt.layers.reducer.JoinReducer.reduce">[docs]</a>  <span class="k">def</span> <span class="nf">reduce</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
-      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="n">elem</span>
+      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s2">&quot;_fields&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">:</span>
+          <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="p">(</span><span class="n">elem</span><span class="p">,)</span>
-    <span class="k">return</span> <span class="n">output</span></div>
+        <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="JoinReducer.reduce_sequence"><a class="viewcode-back" href="../../../package/opennmt.layers.reducer.html#opennmt.layers.reducer.JoinReducer.reduce_sequence">[docs]</a>  <span class="k">def</span> <span class="nf">reduce_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">sequence_lengths</span><span class="p">):</span>
     <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;JoinReducer does not support sequence reduction&quot;</span><span class="p">)</span></div></div>
