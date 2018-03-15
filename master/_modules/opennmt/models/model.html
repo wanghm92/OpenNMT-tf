@@ -498,7 +498,12 @@
     <span class="k">if</span> <span class="n">prefetch_buffer_size</span><span class="p">:</span>
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">prefetch_buffer_size</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">dataset</span>
+    <span class="n">iterator</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">make_initializable_iterator</span><span class="p">()</span>
+
+    <span class="c1"># Add the initializer to a standard collection for it to be initialized.</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">add_to_collection</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">GraphKeys</span><span class="o">.</span><span class="n">TABLE_INITIALIZERS</span><span class="p">,</span> <span class="n">iterator</span><span class="o">.</span><span class="n">initializer</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">iterator</span><span class="o">.</span><span class="n">get_next</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Model.input_fn"><a class="viewcode-back" href="../../../package/opennmt.models.model.html#opennmt.models.model.Model.input_fn">[docs]</a>  <span class="k">def</span> <span class="nf">input_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                <span class="n">mode</span><span class="p">,</span>
@@ -515,7 +520,7 @@
                <span class="n">prefetch_buffer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">maximum_features_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">maximum_labels_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns an input pipeline.</span>
+    <span class="sd">&quot;&quot;&quot;Returns an input function.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">      mode: A ``tf.estimator.ModeKeys`` mode.</span>
@@ -540,7 +545,7 @@
 <span class="sd">        ``None`` to not constrain the length.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">      A ``tf.data.Dataset``.</span>
+<span class="sd">      A callable that returns the next element.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">      ValueError: if :obj:`labels_file` is not set when in training or</span>
@@ -631,8 +636,8 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../../../../1.0.0/index.html">1.0.0</a></dd>
-            <dd><a href="../../../../1.0.1/index.html">1.0.1</a></dd>
+            <dd><a href="../../../../v1.0.0/index.html">v1.0.0</a></dd>
+            <dd><a href="../../../../v1.0.1/index.html">v1.0.1</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
