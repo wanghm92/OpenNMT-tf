@@ -278,7 +278,7 @@
 
 
 <span class="k">def</span> <span class="nf">_log_prob_from_logits</span><span class="p">(</span><span class="n">logits</span><span class="p">):</span>
-  <span class="k">return</span> <span class="n">logits</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_logsumexp</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">logits</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_logsumexp</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">keep_dims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="compute_batch_indices"><a class="viewcode-back" href="../../../package/opennmt.utils.beam_search.html#opennmt.utils.beam_search.compute_batch_indices">[docs]</a><span class="k">def</span> <span class="nf">compute_batch_indices</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">beam_size</span><span class="p">):</span>
@@ -769,6 +769,7 @@
             <dt>Tags</dt>
             <dd><a href="../../../../v1.0.0/index.html">v1.0.0</a></dd>
             <dd><a href="beam_search.html">v1.0.1</a></dd>
+            <dd><a href="../../../../v1.0.2/index.html">v1.0.2</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>

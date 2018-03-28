@@ -198,7 +198,7 @@
 <dl class="method">
 <dt id="opennmt.models.model.Model.input_fn">
 <code class="descname">input_fn</code><span class="sig-paren">(</span><em>mode</em>, <em>batch_size</em>, <em>metadata</em>, <em>features_file</em>, <em>labels_file=None</em>, <em>batch_type='examples'</em>, <em>batch_multiplier=1</em>, <em>bucket_width=None</em>, <em>single_pass=False</em>, <em>num_threads=None</em>, <em>sample_buffer_size=None</em>, <em>prefetch_buffer_size=None</em>, <em>maximum_features_length=None</em>, <em>maximum_labels_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.input_fn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns an input pipeline.</p>
+<dd><p>Returns an input function.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -227,7 +227,7 @@ the features sequence(s). <code class="docutils literal"><span class="pre">None<
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="docutils literal"><span class="pre">tf.data.Dataset</span></code>.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A callable that returns the next element.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if <code class="xref py py-obj docutils literal"><span class="pre">labels_file</span></code> is not set when in training or
@@ -347,6 +347,7 @@ by the user.</td>
             <dt>Tags</dt>
             <dd><a href="../../v1.0.0/package/opennmt.models.model.html">v1.0.0</a></dd>
             <dd><a href="../../v1.0.1/package/opennmt.models.model.html">v1.0.1</a></dd>
+            <dd><a href="../../v1.0.2/package/opennmt.models.model.html">v1.0.2</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
