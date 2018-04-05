@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.models.model &mdash; OpenNMT-tf 0.1 documentation</title>
+  <title>opennmt.models.model &mdash; OpenNMT-tf 1.0.3 documentation</title>
   
 
   
@@ -39,7 +39,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="OpenNMT-tf 0.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="OpenNMT-tf 1.0.3 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -72,7 +72,7 @@
             
             
               <div class="version">
-                0.1
+                1.0
               </div>
             
           
@@ -498,7 +498,12 @@
     <span class="k">if</span> <span class="n">prefetch_buffer_size</span><span class="p">:</span>
       <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">prefetch_buffer_size</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">dataset</span>
+    <span class="n">iterator</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">make_initializable_iterator</span><span class="p">()</span>
+
+    <span class="c1"># Add the initializer to a standard collection for it to be initialized.</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">add_to_collection</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">GraphKeys</span><span class="o">.</span><span class="n">TABLE_INITIALIZERS</span><span class="p">,</span> <span class="n">iterator</span><span class="o">.</span><span class="n">initializer</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">iterator</span><span class="o">.</span><span class="n">get_next</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Model.input_fn"><a class="viewcode-back" href="../../../package/opennmt.models.model.html#opennmt.models.model.Model.input_fn">[docs]</a>  <span class="k">def</span> <span class="nf">input_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                <span class="n">mode</span><span class="p">,</span>
@@ -515,7 +520,7 @@
                <span class="n">prefetch_buffer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">maximum_features_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">maximum_labels_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns an input pipeline.</span>
+    <span class="sd">&quot;&quot;&quot;Returns an input function.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">      mode: A ``tf.estimator.ModeKeys`` mode.</span>
@@ -540,7 +545,7 @@
 <span class="sd">        ``None`` to not constrain the length.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">      A ``tf.data.Dataset``.</span>
+<span class="sd">      A callable that returns the next element.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">      ValueError: if :obj:`labels_file` is not set when in training or</span>
@@ -625,19 +630,21 @@
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: master
+        v: v1.0.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../../../v1.0.0/index.html">v1.0.0</a></dd>
-            <dd><a href="../../../v1.0.1/index.html">v1.0.1</a></dd>
+            <dd><a href="../../../v1.0.3/_modules/opennmt/models/model.html">v1.0.3</a></dd>
             <dd><a href="../../../v1.0.2/index.html">v1.0.2</a></dd>
+            <dd><a href="../../../v1.0.1/index.html">v1.0.1</a></dd>
+            <dd><a href="../../../v1.0.0/index.html">v1.0.0</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../master/_modules/opennmt/models/model.html">master</a></dd>
+            <dd><a href="../../../master/index.html">master</a></dd>
+            <dd><a href="../../../r1/index.html">r1</a></dd>
         </dl>
     </div>
 </div>
@@ -648,7 +655,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1',
+            VERSION:'1.0.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Data &mdash; OpenNMT-tf 0.1 documentation</title>
+  <title>Data &mdash; OpenNMT-tf 1.0.3 documentation</title>
   
 
   
@@ -39,7 +39,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="OpenNMT-tf 0.1 documentation" href="index.html"/>
+    <link rel="top" title="OpenNMT-tf 1.0.3 documentation" href="index.html"/>
         <link rel="next" title="Tokenization" href="tokenization.html"/>
         <link rel="prev" title="Overview" href="index.html"/> 
 
@@ -73,7 +73,7 @@
             
             
               <div class="version">
-                0.1
+                1.0
               </div>
             
           
@@ -198,7 +198,7 @@ The name of this site , and program name Title purchased will not be displayed .
 </div>
 <div class="section" id="vectors">
 <span id="vectors"></span><h3>Vectors<a class="headerlink" href="#vectors" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal"><span class="pre">opennmt.inputters.SequenceRecordInputter</span></code> expects a file with serialized <em>TFRecords</em>. To simplify the preparation of these data, the script <code class="docutils literal"><span class="pre">bin/ark_to_records.py</span></code> can be used to convert vectors serialized in the ARK text format:</p>
+<p>The <code class="docutils literal"><span class="pre">opennmt.inputters.SequenceRecordInputter</span></code> expects a file with serialized <em>TFRecords</em>. To simplify the preparation of these data, the script <code class="docutils literal"><span class="pre">onmt-ark-to-records</span></code> can be used to convert vectors serialized in the ARK text format:</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>KEY [
 FEAT1.1 FEAT1.2 FEAT1.3 ... FEAT1.n
 ...
@@ -206,7 +206,7 @@ FEATm.1 FEATm.2 FEATm.3 ... FEATm.n ]
 </pre></div>
 </div>
 <p>which describes an example of <code class="docutils literal"><span class="pre">m</span></code> vectors of depth <code class="docutils literal"><span class="pre">n</span></code> and identified by <code class="docutils literal"><span class="pre">KEY</span></code>.</p>
-<p>See <code class="docutils literal"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">bin.ark_to_records</span> <span class="pre">-h</span></code> for the script usage. It also accepts an optional indexed text file (i.e. with lines prefixed with <code class="docutils literal"><span class="pre">KEY</span></code>s) to generate aligned source vectors and target texts.</p>
+<p>See <code class="docutils literal"><span class="pre">onmt-ark-to-records</span> <span class="pre">-h</span></code> for the script usage. It also accepts an optional indexed text file (i.e. with lines prefixed with <code class="docutils literal"><span class="pre">KEY</span></code>s) to generate aligned source vectors and target texts.</p>
 </div>
 </div>
 <div class="section" id="parallel-inputs">
@@ -260,19 +260,21 @@ FEATm.1 FEATm.2 FEATm.3 ... FEATm.n ]
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: master
+        v: v1.0.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="v1.0.0/data.html">v1.0.0</a></dd>
-            <dd><a href="v1.0.1/data.html">v1.0.1</a></dd>
+            <dd><a href="v1.0.3/data.html">v1.0.3</a></dd>
             <dd><a href="v1.0.2/data.html">v1.0.2</a></dd>
+            <dd><a href="v1.0.1/data.html">v1.0.1</a></dd>
+            <dd><a href="v1.0.0/data.html">v1.0.0</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
             <dd><a href="master/data.html">master</a></dd>
+            <dd><a href="r1/data.html">r1</a></dd>
         </dl>
     </div>
 </div>
@@ -283,7 +285,7 @@ FEATm.1 FEATm.2 FEATm.3 ... FEATm.n ]
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1',
+            VERSION:'1.0.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

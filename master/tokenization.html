@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Tokenization &mdash; OpenNMT-tf 0.1 documentation</title>
+  <title>Tokenization &mdash; OpenNMT-tf 1.0.3 documentation</title>
   
 
   
@@ -39,7 +39,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="OpenNMT-tf 0.1 documentation" href="index.html"/>
+    <link rel="top" title="OpenNMT-tf 1.0.3 documentation" href="index.html"/>
         <link rel="next" title="Configuration" href="configuration.html"/>
         <link rel="prev" title="Data" href="data.html"/> 
 
@@ -73,7 +73,7 @@
             
             
               <div class="version">
-                0.1
+                1.0
               </div>
             
           
@@ -176,32 +176,14 @@
 <p>OpenNMT-tf can use the OpenNMT <a class="reference external" href="https://github.com/OpenNMT/Tokenizer">Tokenizer</a> as a plugin to provide advanced tokenization behaviors.</p>
 <div class="section" id="installation">
 <span id="installation"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>The following tools and packages are required:</p>
-<ul class="simple">
-<li>C++11 compiler</li>
-<li>CMake</li>
-<li>Boost.Python</li>
-</ul>
-<p>On Ubuntu, these packages can be installed with <code class="docutils literal"><span class="pre">apt-get</span></code>:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get install build-essential gcc cmake libboost-python-dev
+<p><em>Note: we plan to release a package on PyPi to facilitate the installation of this plugin.</em></p>
+<p>1. Follow the Tokenizer <a class="reference external" href="https://github.com/OpenNMT/Tokenizer">installation instructions</a> with <a class="reference external" href="https://github.com/OpenNMT/Tokenizer/tree/master/bindings/python">Python bindings</a>.</p>
+<p>2. Configure your environment for Python to find the newly generated package, e.g.:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PYTHONPATH</span><span class="s2">:</span><span class="nv">$HOME</span><span class="s2">/Tokenizer/build/bindings/python/&quot;</span>
 </pre></div>
 </div>
-<p>1. Fetch the Tokenizer plugin under OpenNMT-tf repository:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>git submodule update --init
-</pre></div>
-</div>
-<p>2. Compile the tokenizer plugin:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
-cmake .. <span class="o">&amp;&amp;</span> make
-<span class="nb">cd</span> ..
-</pre></div>
-</div>
-<p>3. Configure your environment for Python to find the newly generated package:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PYTHONPATH</span><span class="s2">:</span><span class="nv">$HOME</span><span class="s2">/OpenNMT-tf/build/third_party/OpenNMTTokenizer/bindings/python/&quot;</span>
-</pre></div>
-</div>
-<p>4. Test the plugin:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>$ <span class="nb">echo</span> <span class="s2">&quot;Hello world!&quot;</span> <span class="p">|</span> python -m bin.tokenize_text --tokenizer OpenNMTTokenizer
+<p>3. Test the plugin:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ <span class="nb">echo</span> <span class="s2">&quot;Hello world!&quot;</span> <span class="p">|</span> onmt-tokenize-text --tokenizer OpenNMTTokenizer
 Hello world !
 </pre></div>
 </div>
@@ -211,8 +193,8 @@ Hello world !
 <p>YAML files are used to set the tokenizer options to ensure consistency during data preparation and training. See the sample file <code class="docutils literal"><span class="pre">config/tokenization/sample.yml</span></code>.</p>
 <p>Here is an example workflow:</p>
 <p>1. Build the vocabularies with the custom tokenizer, e.g.:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m bin.build_vocab --tokenizer OpenNMTTokenizer --tokenizer_config config/tokenization/aggressive.yml --size <span class="m">50000</span> --save_vocab data/enfr/en-vocab.txt data/enfr/en-train.txt
-python -m bin.build_vocab --tokenizer OpenNMTTokenizer --tokenizer_config config/tokenization/aggressive.yml --size <span class="m">50000</span> --save_vocab data/enfr/fr-vocab.txt data/enfr/fr-train.txt
+<div class="highlight-bash"><div class="highlight"><pre><span></span>onmt-build-vocab --tokenizer OpenNMTTokenizer --tokenizer_config config/tokenization/aggressive.yml --size <span class="m">50000</span> --save_vocab data/enfr/en-vocab.txt data/enfr/en-train.txt
+onmt-build-vocab --tokenizer OpenNMTTokenizer --tokenizer_config config/tokenization/aggressive.yml --size <span class="m">50000</span> --save_vocab data/enfr/fr-vocab.txt data/enfr/fr-train.txt
 </pre></div>
 </div>
 <p><em>The text files are only given as examples and are not part of the repository.</em></p>
@@ -291,13 +273,15 @@ python -m bin.build_vocab --tokenizer OpenNMTTokenizer --tokenizer_config config
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../v1.0.0/tokenization.html">v1.0.0</a></dd>
-            <dd><a href="../v1.0.1/tokenization.html">v1.0.1</a></dd>
+            <dd><a href="../v1.0.3/tokenization.html">v1.0.3</a></dd>
             <dd><a href="../v1.0.2/tokenization.html">v1.0.2</a></dd>
+            <dd><a href="../v1.0.1/tokenization.html">v1.0.1</a></dd>
+            <dd><a href="../v1.0.0/tokenization.html">v1.0.0</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
             <dd><a href="tokenization.html">master</a></dd>
+            <dd><a href="../r1/tokenization.html">r1</a></dd>
         </dl>
     </div>
 </div>
@@ -308,7 +292,7 @@ python -m bin.build_vocab --tokenizer OpenNMTTokenizer --tokenizer_config config
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1',
+            VERSION:'1.0.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

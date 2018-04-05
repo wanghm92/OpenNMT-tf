@@ -191,6 +191,63 @@
 <span id="opennmt-utils-misc-module"></span><h1>opennmt.utils.misc module<a class="headerlink" href="#module-opennmt.utils.misc" title="Permalink to this headline">¶</a></h1>
 <p>Various utility functions to use throughout the project.</p>
 <dl class="function">
+<dt id="opennmt.utils.misc.print_bytes">
+<code class="descclassname">opennmt.utils.misc.</code><code class="descname">print_bytes</code><span class="sig-paren">(</span><em>str_as_bytes</em>, <em>stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#print_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.print_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints a string viewed as bytes.</p>
+<p>This function calls <code class="docutils literal"><span class="pre">decode()</span></code> depending on the output stream encoding.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>str_as_bytes</strong> – The bytes to print.</li>
+<li><strong>stream</strong> – The stream to print to (<code class="docutils literal"><span class="pre">sys.stdout</span></code> if not set).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.misc.item_or_tuple">
+<code class="descclassname">opennmt.utils.misc.</code><code class="descname">item_or_tuple</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#item_or_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.item_or_tuple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="xref py py-obj docutils literal"><span class="pre">x</span></code> as a tuple or its single element.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.misc.get_third_party_dir">
+<code class="descclassname">opennmt.utils.misc.</code><code class="descname">get_third_party_dir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#get_third_party_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.get_third_party_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a path to the third_party directory.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.misc.count_lines">
+<code class="descclassname">opennmt.utils.misc.</code><code class="descname">count_lines</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#count_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.count_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of lines of the file <code class="xref py py-obj docutils literal"><span class="pre">filename</span></code>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.misc.count_parameters">
+<code class="descclassname">opennmt.utils.misc.</code><code class="descname">count_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#count_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.count_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the total number of trainable parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.misc.extract_prefixed_keys">
+<code class="descclassname">opennmt.utils.misc.</code><code class="descname">extract_prefixed_keys</code><span class="sig-paren">(</span><em>dictionary</em>, <em>prefix</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#extract_prefixed_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.extract_prefixed_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary with all keys from <code class="xref py py-obj docutils literal"><span class="pre">dictionary</span></code> that are prefixed
+with <code class="xref py py-obj docutils literal"><span class="pre">prefix</span></code>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.misc.extract_batches">
+<code class="descclassname">opennmt.utils.misc.</code><code class="descname">extract_batches</code><span class="sig-paren">(</span><em>tensors</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#extract_batches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.extract_batches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a generator to iterate on each batch of a Numpy array or dict of
+Numpy arrays.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="opennmt.utils.misc.add_dict_to_collection">
 <code class="descclassname">opennmt.utils.misc.</code><code class="descname">add_dict_to_collection</code><span class="sig-paren">(</span><em>collection_name</em>, <em>dict_</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#add_dict_to_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.add_dict_to_collection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a dictionary to a graph collection.</p>
@@ -209,32 +266,6 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="opennmt.utils.misc.count_lines">
-<code class="descclassname">opennmt.utils.misc.</code><code class="descname">count_lines</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#count_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.count_lines" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the number of lines of the file <code class="xref py py-obj docutils literal"><span class="pre">filename</span></code>.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="opennmt.utils.misc.count_parameters">
-<code class="descclassname">opennmt.utils.misc.</code><code class="descname">count_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#count_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.count_parameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the total number of trainable parameters.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="opennmt.utils.misc.extract_batches">
-<code class="descclassname">opennmt.utils.misc.</code><code class="descname">extract_batches</code><span class="sig-paren">(</span><em>tensors</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#extract_batches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.extract_batches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a generator to iterate on each batch of a Numpy array or dict of
-Numpy arrays.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="opennmt.utils.misc.extract_prefixed_keys">
-<code class="descclassname">opennmt.utils.misc.</code><code class="descname">extract_prefixed_keys</code><span class="sig-paren">(</span><em>dictionary</em>, <em>prefix</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#extract_prefixed_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.extract_prefixed_keys" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a dictionary with all keys from <code class="xref py py-obj docutils literal"><span class="pre">dictionary</span></code> that are prefixed
-with <code class="xref py py-obj docutils literal"><span class="pre">prefix</span></code>.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="opennmt.utils.misc.get_dict_from_collection">
 <code class="descclassname">opennmt.utils.misc.</code><code class="descname">get_dict_from_collection</code><span class="sig-paren">(</span><em>collection_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#get_dict_from_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.get_dict_from_collection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets a dictionary from a graph collection.</p>
@@ -245,37 +276,6 @@ with <code class="xref py py-obj docutils literal"><span class="pre">prefix</spa
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>collection_name</strong> – A collection name to read a dictionary from</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A dictionary with string keys and tensor values</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="opennmt.utils.misc.get_third_party_dir">
-<code class="descclassname">opennmt.utils.misc.</code><code class="descname">get_third_party_dir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#get_third_party_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.get_third_party_dir" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a path to the third_party directory.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="opennmt.utils.misc.item_or_tuple">
-<code class="descclassname">opennmt.utils.misc.</code><code class="descname">item_or_tuple</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#item_or_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.item_or_tuple" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <code class="xref py py-obj docutils literal"><span class="pre">x</span></code> as a tuple or its single element.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="opennmt.utils.misc.print_bytes">
-<code class="descclassname">opennmt.utils.misc.</code><code class="descname">print_bytes</code><span class="sig-paren">(</span><em>str_as_bytes</em>, <em>stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/misc.html#print_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.misc.print_bytes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints a string viewed as bytes.</p>
-<p>This function calls <code class="docutils literal"><span class="pre">decode()</span></code> depending on the output stream encoding.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>str_as_bytes</strong> – The bytes to print.</li>
-<li><strong>stream</strong> – The stream to print to (<code class="docutils literal"><span class="pre">sys.stdout</span></code> if not set).</li>
-</ul>
-</td>
 </tr>
 </tbody>
 </table>
@@ -327,13 +327,15 @@ with <code class="xref py py-obj docutils literal"><span class="pre">prefix</spa
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../../v1.0.0/package/opennmt.utils.misc.html">v1.0.0</a></dd>
-            <dd><a href="../../v1.0.1/package/opennmt.utils.misc.html">v1.0.1</a></dd>
+            <dd><a href="../../v1.0.3/package/opennmt.utils.misc.html">v1.0.3</a></dd>
             <dd><a href="opennmt.utils.misc.html">v1.0.2</a></dd>
+            <dd><a href="../../v1.0.1/package/opennmt.utils.misc.html">v1.0.1</a></dd>
+            <dd><a href="../../v1.0.0/package/opennmt.utils.misc.html">v1.0.0</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
             <dd><a href="../../master/package/opennmt.utils.misc.html">master</a></dd>
+            <dd><a href="../../r1/package/opennmt.utils.misc.html">r1</a></dd>
         </dl>
     </div>
 </div>
