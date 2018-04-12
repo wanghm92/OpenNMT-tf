@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Tokenization &mdash; OpenNMT-tf 1.0.3 documentation</title>
+  <title>Tokenization &mdash; OpenNMT-tf 1.1.0 documentation</title>
   
 
   
@@ -25,30 +25,21 @@
   
 
   
-  
     <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/banner.css" type="text/css" />
-  
-    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="OpenNMT-tf 1.0.3 documentation" href="index.html"/>
-        <link rel="next" title="Configuration" href="configuration.html"/>
-        <link rel="prev" title="Data" href="data.html"/> 
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/banner.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
+    <link rel="prev" title="Data" href="data.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -65,7 +56,7 @@
 
           
             
-            <img src="_static/logo-alpha.png" class="logo" />
+            <img src="_static/logo-alpha.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -73,7 +64,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -100,8 +91,9 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tokenization</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-files">Configuration files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#offline-usage">Offline usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#online-usage">Online usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#notes">Notes</a></li>
 </ul>
 </li>
@@ -121,7 +113,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">OpenNMT-tf</a>
@@ -129,9 +121,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -173,24 +166,25 @@
             
   <div class="section" id="tokenization">
 <span id="tokenization"></span><h1>Tokenization<a class="headerlink" href="#tokenization" title="Permalink to this headline">¶</a></h1>
-<p>OpenNMT-tf can use the OpenNMT <a class="reference external" href="https://github.com/OpenNMT/Tokenizer">Tokenizer</a> as a plugin to provide advanced tokenization behaviors.</p>
-<div class="section" id="installation">
-<span id="installation"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p><em>Note: we plan to release a package on PyPi to facilitate the installation of this plugin.</em></p>
-<p>1. Follow the Tokenizer <a class="reference external" href="https://github.com/OpenNMT/Tokenizer">installation instructions</a> with <a class="reference external" href="https://github.com/OpenNMT/Tokenizer/tree/master/bindings/python">Python bindings</a>.</p>
-<p>2. Configure your environment for Python to find the newly generated package, e.g.:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PYTHONPATH</span><span class="s2">:</span><span class="nv">$HOME</span><span class="s2">/Tokenizer/build/bindings/python/&quot;</span>
-</pre></div>
+<p>OpenNMT-tf ships the OpenNMT <a class="reference external" href="https://github.com/OpenNMT/Tokenizer">Tokenizer</a> as a dependency to provide advanced tokenization behaviors, either offline or online.</p>
+<p><em>Note: the <code class="docutils literal"><span class="pre">pyonmttok</span></code> package is only supported on Linux as of now.</em></p>
+<div class="section" id="configuration-files">
+<span id="configuration-files"></span><h2>Configuration files<a class="headerlink" href="#configuration-files" title="Permalink to this headline">¶</a></h2>
+<p>YAML files are used to set the tokenizer options to ensure consistency during data preparation and training. See the sample file <code class="docutils literal"><span class="pre">config/tokenization/sample.yml</span></code>.</p>
 </div>
-<p>3. Test the plugin:</p>
+<div class="section" id="offline-usage">
+<span id="offline-usage"></span><h2>Offline usage<a class="headerlink" href="#offline-usage" title="Permalink to this headline">¶</a></h2>
+<p>You can invoke the <code class="docutils literal"><span class="pre">onmt-tokenize-text</span></code> script directly and select the <code class="docutils literal"><span class="pre">OpenNMTTokenizer</span></code> tokenizer:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>$ <span class="nb">echo</span> <span class="s2">&quot;Hello world!&quot;</span> <span class="p">|</span> onmt-tokenize-text --tokenizer OpenNMTTokenizer
 Hello world !
+$ <span class="nb">echo</span> <span class="s2">&quot;Hello world!&quot;</span> <span class="p">|</span> onmt-tokenize-text --tokenizer OpenNMTTokenizer --tokenizer_config config/tokenization/aggressive.yml
+Hello world ￭!
 </pre></div>
 </div>
 </div>
-<div class="section" id="usage">
-<span id="usage"></span><h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
-<p>YAML files are used to set the tokenizer options to ensure consistency during data preparation and training. See the sample file <code class="docutils literal"><span class="pre">config/tokenization/sample.yml</span></code>.</p>
+<div class="section" id="online-usage">
+<span id="online-usage"></span><h2>Online usage<a class="headerlink" href="#online-usage" title="Permalink to this headline">¶</a></h2>
+<p>A key feature is the possibility to tokenize the data on-the-fly during the training. This avoids the need of storing tokenized files and also increases the consistency of your preprocessing pipeline.</p>
 <p>Here is an example workflow:</p>
 <p>1. Build the vocabularies with the custom tokenizer, e.g.:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>onmt-build-vocab --tokenizer OpenNMTTokenizer --tokenizer_config config/tokenization/aggressive.yml --size <span class="m">50000</span> --save_vocab data/enfr/en-vocab.txt data/enfr/en-train.txt
@@ -231,9 +225,7 @@ onmt-build-vocab --tokenizer OpenNMTTokenizer --tokenizer_config config/tokeniza
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -267,21 +259,14 @@ onmt-build-vocab --tokenizer OpenNMTTokenizer --tokenizer_config config/tokeniza
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.0.3
+        v: v1.1.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="v1.0.3/tokenization.html">v1.0.3</a></dd>
-            <dd><a href="v1.0.2/tokenization.html">v1.0.2</a></dd>
-            <dd><a href="v1.0.1/tokenization.html">v1.0.1</a></dd>
+            <dd><a href="v1.1.0/tokenization.html">v1.1.0</a></dd>
             <dd><a href="v1.0.0/tokenization.html">v1.0.0</a></dd>
-        </dl>
-        <dl>
-            <dt>Branches</dt>
-            <dd><a href="master/tokenization.html">master</a></dd>
-            <dd><a href="r1/tokenization.html">r1</a></dd>
         </dl>
     </div>
 </div>
@@ -292,7 +277,8 @@ onmt-build-vocab --tokenizer OpenNMTTokenizer --tokenizer_config config/tokeniza
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.0.3',
+            VERSION:'1.1.0',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -311,14 +297,13 @@ onmt-build-vocab --tokenizer OpenNMTTokenizer --tokenizer_config config/tokeniza
     <script type="text/javascript" src="_static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.config module &mdash; OpenNMT-tf 1.0.3 documentation</title>
+  <title>opennmt.config module &mdash; OpenNMT-tf 1.1.0 documentation</title>
   
 
   
@@ -25,31 +25,21 @@
   
 
   
-  
     <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
-  
-    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="OpenNMT-tf 1.0.3 documentation" href="../index.html"/>
-        <link rel="up" title="opennmt package" href="opennmt.html"/>
-        <link rel="next" title="opennmt.constants module" href="opennmt.constants.html"/>
-        <link rel="prev" title="opennmt.utils.vocab module" href="opennmt.utils.vocab.html"/> 
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="opennmt.constants module" href="opennmt.constants.html" />
+    <link rel="prev" title="opennmt.utils.vocab module" href="opennmt.utils.vocab.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -66,7 +56,7 @@
 
           
             
-            <img src="../_static/logo-alpha.png" class="logo" />
+            <img src="../_static/logo-alpha.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -74,7 +64,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -126,7 +116,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">OpenNMT-tf</a>
@@ -134,9 +124,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -178,76 +169,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-opennmt.config">
-<span id="opennmt-config-module"></span><h1>opennmt.config module<a class="headerlink" href="#module-opennmt.config" title="Permalink to this headline">¶</a></h1>
-<p>Defines functions related to configuration files.</p>
-<dl class="function">
-<dt id="opennmt.config.load_model_module">
-<code class="descclassname">opennmt.config.</code><code class="descname">load_model_module</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/config.html#load_model_module"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.config.load_model_module" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads a model configuration file.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> – The relative path to the configuration file.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A Python module.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="opennmt.config.load_model">
-<code class="descclassname">opennmt.config.</code><code class="descname">load_model</code><span class="sig-paren">(</span><em>model_dir</em>, <em>model_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/config.html#load_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.config.load_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads the model.</p>
-<p>The model object is pickled in <code class="xref py py-obj docutils literal"><span class="pre">model_dir</span></code> to make the model
-configuration optional for future runs.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>model_dir</strong> – The model directory.</li>
-<li><strong>model_file</strong> – An optional model configuration.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="opennmt.models.model.html#opennmt.models.model.Model" title="opennmt.models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">opennmt.models.model.Model</span></code></a> object.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="opennmt.config.load_config">
-<code class="descclassname">opennmt.config.</code><code class="descname">load_config</code><span class="sig-paren">(</span><em>config_paths</em>, <em>config=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/config.html#load_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.config.load_config" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads configuration files.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>config_paths</strong> – A list of configuration files.</li>
-<li><strong>config</strong> – A (possibly non empty) config dictionary to fill.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The configuration dictionary.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+  <div class="section" id="opennmt-config-module">
+<h1>opennmt.config module<a class="headerlink" href="#opennmt-config-module" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -281,21 +209,14 @@ configuration optional for future runs.</p>
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.0.3
+        v: v1.1.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../v1.0.3/package/opennmt.config.html">v1.0.3</a></dd>
-            <dd><a href="../v1.0.2/package/opennmt.config.html">v1.0.2</a></dd>
-            <dd><a href="../v1.0.1/package/opennmt.config.html">v1.0.1</a></dd>
+            <dd><a href="../v1.1.0/package/opennmt.config.html">v1.1.0</a></dd>
             <dd><a href="../v1.0.0/package/opennmt.config.html">v1.0.0</a></dd>
-        </dl>
-        <dl>
-            <dt>Branches</dt>
-            <dd><a href="../master/package/opennmt.config.html">master</a></dd>
-            <dd><a href="../r1/package/opennmt.config.html">r1</a></dd>
         </dl>
     </div>
 </div>
@@ -306,7 +227,8 @@ configuration optional for future runs.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.0.3',
+            VERSION:'1.1.0',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -325,14 +247,13 @@ configuration optional for future runs.</p>
     <script type="text/javascript" src="../_static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

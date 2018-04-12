@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.utils.cell module &mdash; OpenNMT-tf 1.0.3 documentation</title>
+  <title>opennmt.utils.cell module &mdash; OpenNMT-tf 1.1.0 documentation</title>
   
 
   
@@ -25,31 +25,21 @@
   
 
   
-  
     <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
-  
-    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="OpenNMT-tf 1.0.3 documentation" href="../index.html"/>
-        <link rel="up" title="opennmt.utils package" href="opennmt.utils.html"/>
-        <link rel="next" title="opennmt.utils.data module" href="opennmt.utils.data.html"/>
-        <link rel="prev" title="opennmt.utils.beam_search module" href="opennmt.utils.beam_search.html"/> 
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="opennmt.utils.data module" href="opennmt.utils.data.html" />
+    <link rel="prev" title="opennmt.utils.beam_search module" href="opennmt.utils.beam_search.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -66,7 +56,7 @@
 
           
             
-            <img src="../_static/logo-alpha.png" class="logo" />
+            <img src="../_static/logo-alpha.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -74,7 +64,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -133,7 +123,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">OpenNMT-tf</a>
@@ -141,9 +131,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -187,49 +178,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-opennmt.utils.cell">
-<span id="opennmt-utils-cell-module"></span><h1>opennmt.utils.cell module<a class="headerlink" href="#module-opennmt.utils.cell" title="Permalink to this headline">¶</a></h1>
-<p>RNN cells helpers.</p>
-<dl class="function">
-<dt id="opennmt.utils.cell.build_cell">
-<code class="descclassname">opennmt.utils.cell.</code><code class="descname">build_cell</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units</em>, <em>mode</em>, <em>dropout=0.0</em>, <em>residual_connections=False</em>, <em>cell_class=&lt;class 'tensorflow.python.ops.rnn_cell_impl.LSTMCell'&gt;</em>, <em>attention_layers=None</em>, <em>attention_mechanisms=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/cell.html#build_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.cell.build_cell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convenience function to build a multi-layer RNN cell.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>num_layers</strong> – The number of layers.</li>
-<li><strong>num_units</strong> – The number of units in each layer.</li>
-<li><strong>mode</strong> – A <code class="docutils literal"><span class="pre">tf.estimator.ModeKeys</span></code> mode.</li>
-<li><strong>dropout</strong> – The probability to drop units in each layer output.</li>
-<li><strong>residual_connections</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, each layer input will be added to its output.</li>
-<li><strong>cell_class</strong> – The inner cell class or a callable taking <code class="xref py py-obj docutils literal"><span class="pre">num_units</span></code> as
-argument and returning a cell.</li>
-<li><strong>attention_layers</strong> – A list of integers, the layers after which to add attention.</li>
-<li><strong>attention_mechanisms</strong> – A list of <code class="docutils literal"><span class="pre">tf.contrib.seq2seq.AttentionMechanism</span></code>
-with the same length as <code class="xref py py-obj docutils literal"><span class="pre">attention_layers</span></code>.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <code class="docutils literal"><span class="pre">tf.contrib.rnn.RNNCell</span></code>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if <code class="xref py py-obj docutils literal"><span class="pre">attention_layers</span></code> and <code class="xref py py-obj docutils literal"><span class="pre">attention_mechanisms</span></code> do
-not have the same length.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+  <div class="section" id="opennmt-utils-cell-module">
+<h1>opennmt.utils.cell module<a class="headerlink" href="#opennmt-utils-cell-module" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -263,21 +218,14 @@ not have the same length.</p>
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.0.3
+        v: v1.1.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../v1.0.3/package/opennmt.utils.cell.html">v1.0.3</a></dd>
-            <dd><a href="../v1.0.2/package/opennmt.utils.cell.html">v1.0.2</a></dd>
-            <dd><a href="../v1.0.1/package/opennmt.utils.cell.html">v1.0.1</a></dd>
+            <dd><a href="../v1.1.0/package/opennmt.utils.cell.html">v1.1.0</a></dd>
             <dd><a href="../v1.0.0/package/opennmt.utils.cell.html">v1.0.0</a></dd>
-        </dl>
-        <dl>
-            <dt>Branches</dt>
-            <dd><a href="../master/package/opennmt.utils.cell.html">master</a></dd>
-            <dd><a href="../r1/package/opennmt.utils.cell.html">r1</a></dd>
         </dl>
     </div>
 </div>
@@ -288,7 +236,8 @@ not have the same length.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.0.3',
+            VERSION:'1.1.0',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -307,14 +256,13 @@ not have the same length.</p>
     <script type="text/javascript" src="../_static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

@@ -25,31 +25,21 @@
   
 
   
-  
     <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
-  
-    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="OpenNMT-tf 0.1 documentation" href="../index.html"/>
-        <link rel="up" title="opennmt.inputters package" href="opennmt.inputters.html"/>
-        <link rel="next" title="opennmt.inputters.text_inputter module" href="opennmt.inputters.text_inputter.html"/>
-        <link rel="prev" title="opennmt.inputters.inputter module" href="opennmt.inputters.inputter.html"/> 
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="opennmt.inputters.text_inputter module" href="opennmt.inputters.text_inputter.html" />
+    <link rel="prev" title="opennmt.inputters.inputter module" href="opennmt.inputters.inputter.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -66,7 +56,7 @@
 
           
             
-            <img src="../_static/logo-alpha.png" class="logo" />
+            <img src="../_static/logo-alpha.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -133,7 +123,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">OpenNMT-tf</a>
@@ -141,9 +131,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -187,83 +178,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-opennmt.inputters.record_inputter">
-<span id="opennmt-inputters-record-inputter-module"></span><h1>opennmt.inputters.record_inputter module<a class="headerlink" href="#module-opennmt.inputters.record_inputter" title="Permalink to this headline">¶</a></h1>
-<p>Define inputters reading from TFRecord files.</p>
-<dl class="class">
-<dt id="opennmt.inputters.record_inputter.SequenceRecordInputter">
-<em class="property">class </em><code class="descclassname">opennmt.inputters.record_inputter.</code><code class="descname">SequenceRecordInputter</code><span class="sig-paren">(</span><em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter" title="opennmt.inputters.inputter.Inputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.Inputter</span></code></a></p>
-<p>Inputter that reads variable-length tensors.</p>
-<p>Each record contains the following fields:</p>
-<blockquote>
-<div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">shape</span></code>: the shape of the tensor as a <code class="docutils literal"><span class="pre">int64</span></code> list.</li>
-<li><code class="docutils literal"><span class="pre">values</span></code>: the flattened tensor values as a <code class="xref py py-obj docutils literal"><span class="pre">dtype</span></code> list.</li>
-</ul>
-</div></blockquote>
-<p>Tensors are expected to be of shape <code class="docutils literal"><span class="pre">[time,</span> <span class="pre">depth]</span></code>.</p>
-<dl class="method">
-<dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes the parameters of the record inputter.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dtype</strong> – The values type.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.get_length">
-<code class="descname">get_length</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.get_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.get_length" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.make_dataset">
-<code class="descname">make_dataset</code><span class="sig-paren">(</span><em>data_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.make_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.make_dataset" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.get_dataset_size">
-<code class="descname">get_dataset_size</code><span class="sig-paren">(</span><em>data_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.get_dataset_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.get_dataset_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="opennmt.inputters.record_inputter.SequenceRecordInputter.transform">
-<code class="descname">transform</code><span class="sig-paren">(</span><em>inputs</em>, <em>mode</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#SequenceRecordInputter.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.SequenceRecordInputter.transform" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="opennmt.inputters.record_inputter.write_sequence_record">
-<code class="descclassname">opennmt.inputters.record_inputter.</code><code class="descname">write_sequence_record</code><span class="sig-paren">(</span><em>vector</em>, <em>writer</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/inputters/record_inputter.html#write_sequence_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.inputters.record_inputter.write_sequence_record" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes a vector as a TFRecord.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>vector</strong> – A 2D Numpy array.</li>
-<li><strong>writer</strong> – A <code class="docutils literal"><span class="pre">tf.python_io.TFRecordWriter</span></code>.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+  <div class="section" id="opennmt-inputters-record-inputter-module">
+<h1>opennmt.inputters.record_inputter module<a class="headerlink" href="#opennmt-inputters-record-inputter-module" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -303,15 +224,8 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../../v1.0.3/package/opennmt.inputters.record_inputter.html">v1.0.3</a></dd>
-            <dd><a href="../../v1.0.2/package/opennmt.inputters.record_inputter.html">v1.0.2</a></dd>
-            <dd><a href="../../v1.0.1/package/opennmt.inputters.record_inputter.html">v1.0.1</a></dd>
+            <dd><a href="../../v1.1.0/package/opennmt.inputters.record_inputter.html">v1.1.0</a></dd>
             <dd><a href="opennmt.inputters.record_inputter.html">v1.0.0</a></dd>
-        </dl>
-        <dl>
-            <dt>Branches</dt>
-            <dd><a href="../../master/package/opennmt.inputters.record_inputter.html">master</a></dd>
-            <dd><a href="../../r1/package/opennmt.inputters.record_inputter.html">r1</a></dd>
         </dl>
     </div>
 </div>
@@ -323,6 +237,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
             VERSION:'0.1',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -341,14 +256,13 @@
     <script type="text/javascript" src="../_static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
