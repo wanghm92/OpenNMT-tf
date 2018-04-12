@@ -25,21 +25,31 @@
   
 
   
+  
     <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="opennmt.models.sequence_to_sequence module" href="opennmt.models.sequence_to_sequence.html" />
-    <link rel="prev" title="opennmt.models.sequence_classifier module" href="opennmt.models.sequence_classifier.html" /> 
+  
+
+  
+    <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="OpenNMT-tf 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="opennmt.models package" href="opennmt.models.html"/>
+        <link rel="next" title="opennmt.models.sequence_to_sequence module" href="opennmt.models.sequence_to_sequence.html"/>
+        <link rel="prev" title="opennmt.models.sequence_classifier module" href="opennmt.models.sequence_classifier.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -56,7 +66,7 @@
 
           
             
-            <img src="../_static/logo-alpha.png" class="logo" alt="Logo"/>
+            <img src="../_static/logo-alpha.png" class="logo" />
           
           </a>
 
@@ -123,7 +133,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">OpenNMT-tf</a>
@@ -131,10 +141,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -178,13 +187,86 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="opennmt-models-sequence-tagger-module">
-<h1>opennmt.models.sequence_tagger module<a class="headerlink" href="#opennmt-models-sequence-tagger-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-opennmt.models.sequence_tagger">
+<span id="opennmt-models-sequence-tagger-module"></span><h1>opennmt.models.sequence_tagger module<a class="headerlink" href="#module-opennmt.models.sequence_tagger" title="Permalink to this headline">¶</a></h1>
+<p>Sequence tagger.</p>
+<dl class="class">
+<dt id="opennmt.models.sequence_tagger.SequenceTagger">
+<em class="property">class </em><code class="descclassname">opennmt.models.sequence_tagger.</code><code class="descname">SequenceTagger</code><span class="sig-paren">(</span><em>inputter</em>, <em>encoder</em>, <em>labels_vocabulary_file_key</em>, <em>tagging_scheme=None</em>, <em>crf_decoding=False</em>, <em>daisy_chain_variables=False</em>, <em>name='seqtagger'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_tagger.html#SequenceTagger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_tagger.SequenceTagger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="opennmt.models.model.html#opennmt.models.model.Model" title="opennmt.models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">opennmt.models.model.Model</span></code></a></p>
+<p>A sequence tagger.</p>
+<dl class="method">
+<dt id="opennmt.models.sequence_tagger.SequenceTagger.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputter</em>, <em>encoder</em>, <em>labels_vocabulary_file_key</em>, <em>tagging_scheme=None</em>, <em>crf_decoding=False</em>, <em>daisy_chain_variables=False</em>, <em>name='seqtagger'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_tagger.html#SequenceTagger.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_tagger.SequenceTagger.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a sequence tagger.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>inputter</strong> – A <a class="reference internal" href="opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter" title="opennmt.inputters.inputter.Inputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.Inputter</span></code></a> to process the
+input data.</li>
+<li><strong>encoder</strong> – A <a class="reference internal" href="opennmt.encoders.encoder.html#opennmt.encoders.encoder.Encoder" title="opennmt.encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.encoder.Encoder</span></code></a> to encode the input.</li>
+<li><strong>labels_vocabulary_file_key</strong> – The data configuration key of the labels
+vocabulary file containing one label per line.</li>
+<li><strong>tagging_scheme</strong> – The tagging scheme used. For supported schemes (currently
+only BIOES), additional evaluation metrics could be computed such as
+precision, recall, etc.</li>
+<li><strong>crf_decoding</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, add a CRF layer after the encoder.</li>
+<li><strong>daisy_chain_variables</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, copy variables in a daisy chain
+between devices for this model. Not compatible with RNN based models.</li>
+<li><strong>name</strong> – The name of this model.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="opennmt.models.sequence_tagger.SequenceTagger.print_prediction">
+<code class="descname">print_prediction</code><span class="sig-paren">(</span><em>prediction</em>, <em>params=None</em>, <em>stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_tagger.html#SequenceTagger.print_prediction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_tagger.SequenceTagger.print_prediction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.models.sequence_tagger.flag_bioes_tags">
+<code class="descclassname">opennmt.models.sequence_tagger.</code><code class="descname">flag_bioes_tags</code><span class="sig-paren">(</span><em>gold</em>, <em>predicted</em>, <em>sequence_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_tagger.html#flag_bioes_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_tagger.flag_bioes_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flags chunk matches for the BIOES tagging scheme.</p>
+<p>This function will produce the gold flags and the predicted flags. For each aligned
+gold flag <code class="docutils literal"><span class="pre">g</span></code> and predicted flag <code class="docutils literal"><span class="pre">p</span></code>:</p>
+<ul class="simple">
+<li>when <code class="docutils literal"><span class="pre">g</span> <span class="pre">==</span> <span class="pre">p</span> <span class="pre">==</span> <span class="pre">True</span></code>, the chunk has been correctly identified (true positive).</li>
+<li>when <code class="docutils literal"><span class="pre">g</span> <span class="pre">==</span> <span class="pre">False</span> <span class="pre">and</span> <span class="pre">p</span> <span class="pre">==</span> <span class="pre">True</span></code>, the chunk has been incorrectly identified (false positive).</li>
+<li>when <code class="docutils literal"><span class="pre">g</span> <span class="pre">==</span> <span class="pre">True</span> <span class="pre">and</span> <span class="pre">p</span> <span class="pre">==</span> <span class="pre">False</span></code>, the chunk has been missed (false negative).</li>
+<li>when <code class="docutils literal"><span class="pre">g</span> <span class="pre">==</span> <span class="pre">p</span> <span class="pre">==</span> <span class="pre">False</span></code>, the chunk has been correctly ignored (true negative).</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>gold</strong> – The gold tags as a Numpy 2D string array.</li>
+<li><strong>predicted</strong> – The predicted tags as a Numpy 2D string array.</li>
+<li><strong>sequence_length</strong> – The length of each sequence as Numpy array.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple <code class="docutils literal"><span class="pre">(gold_flags,</span> <span class="pre">predicted_flags)</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -237,7 +319,6 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
             VERSION:'0.1',
-            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -256,13 +337,14 @@
     <script type="text/javascript" src="../_static/js/theme.js"></script>
   
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>

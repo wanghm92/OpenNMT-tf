@@ -25,21 +25,31 @@
   
 
   
+  
     <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="opennmt.models.transformer module" href="opennmt.models.transformer.html" />
-    <link rel="prev" title="opennmt.models.sequence_tagger module" href="opennmt.models.sequence_tagger.html" /> 
+  
+
+  
+    <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="OpenNMT-tf 1.1.0 documentation" href="../index.html"/>
+        <link rel="up" title="opennmt.models package" href="opennmt.models.html"/>
+        <link rel="next" title="opennmt.models.transformer module" href="opennmt.models.transformer.html"/>
+        <link rel="prev" title="opennmt.models.sequence_tagger module" href="opennmt.models.sequence_tagger.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -56,7 +66,7 @@
 
           
             
-            <img src="../_static/logo-alpha.png" class="logo" alt="Logo"/>
+            <img src="../_static/logo-alpha.png" class="logo" />
           
           </a>
 
@@ -123,7 +133,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">OpenNMT-tf</a>
@@ -131,10 +141,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -178,13 +187,88 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="opennmt-models-sequence-to-sequence-module">
-<h1>opennmt.models.sequence_to_sequence module<a class="headerlink" href="#opennmt-models-sequence-to-sequence-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-opennmt.models.sequence_to_sequence">
+<span id="opennmt-models-sequence-to-sequence-module"></span><h1>opennmt.models.sequence_to_sequence module<a class="headerlink" href="#module-opennmt.models.sequence_to_sequence" title="Permalink to this headline">¶</a></h1>
+<p>Standard sequence-to-sequence model.</p>
+<dl class="function">
+<dt id="opennmt.models.sequence_to_sequence.shift_target_sequence">
+<code class="descclassname">opennmt.models.sequence_to_sequence.</code><code class="descname">shift_target_sequence</code><span class="sig-paren">(</span><em>inputter</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_to_sequence.html#shift_target_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_to_sequence.shift_target_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares shifted target sequences.</p>
+<p>Given a target sequence <code class="docutils literal"><span class="pre">a</span> <span class="pre">b</span> <span class="pre">c</span></code>, the decoder input should be
+<code class="docutils literal"><span class="pre">&lt;s&gt;</span> <span class="pre">a</span> <span class="pre">b</span> <span class="pre">c</span></code> and the output should be <code class="docutils literal"><span class="pre">a</span> <span class="pre">b</span> <span class="pre">c</span> <span class="pre">&lt;/s&gt;</span></code> for the dynamic
+decoding to start on <code class="docutils literal"><span class="pre">&lt;s&gt;</span></code> and stop on <code class="docutils literal"><span class="pre">&lt;/s&gt;</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputter</strong> – The <a class="reference internal" href="opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter" title="opennmt.inputters.inputter.Inputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.Inputter</span></code></a> that processed
+<code class="xref py py-obj docutils literal"><span class="pre">data</span></code>.</li>
+<li><strong>data</strong> – A dict of <code class="docutils literal"><span class="pre">tf.Tensor</span></code> containing <code class="docutils literal"><span class="pre">ids</span></code> and <code class="docutils literal"><span class="pre">length</span></code> keys.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The updated <code class="xref py py-obj docutils literal"><span class="pre">data</span></code> dictionary with <code class="docutils literal"><span class="pre">ids</span></code> the sequence prefixed
+with the start token id and <code class="docutils literal"><span class="pre">ids_out</span></code> the sequence suffixed with
+the end token id. Additionally, the <code class="docutils literal"><span class="pre">length</span></code> is increased by 1
+to reflect the added token on both sequences.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="opennmt.models.sequence_to_sequence.SequenceToSequence">
+<em class="property">class </em><code class="descclassname">opennmt.models.sequence_to_sequence.</code><code class="descname">SequenceToSequence</code><span class="sig-paren">(</span><em>source_inputter</em>, <em>target_inputter</em>, <em>encoder</em>, <em>decoder</em>, <em>daisy_chain_variables=False</em>, <em>name='seq2seq'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_to_sequence.html#SequenceToSequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_to_sequence.SequenceToSequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="opennmt.models.model.html#opennmt.models.model.Model" title="opennmt.models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">opennmt.models.model.Model</span></code></a></p>
+<p>A sequence to sequence model.</p>
+<dl class="method">
+<dt id="opennmt.models.sequence_to_sequence.SequenceToSequence.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>source_inputter</em>, <em>target_inputter</em>, <em>encoder</em>, <em>decoder</em>, <em>daisy_chain_variables=False</em>, <em>name='seq2seq'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_to_sequence.html#SequenceToSequence.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_to_sequence.SequenceToSequence.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a sequence-to-sequence model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source_inputter</strong> – A <a class="reference internal" href="opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter" title="opennmt.inputters.inputter.Inputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.Inputter</span></code></a> to process
+the source data.</li>
+<li><strong>target_inputter</strong> – A <a class="reference internal" href="opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter" title="opennmt.inputters.inputter.Inputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.Inputter</span></code></a> to process
+the target data. Currently, only the
+<a class="reference internal" href="opennmt.inputters.text_inputter.html#opennmt.inputters.text_inputter.WordEmbedder" title="opennmt.inputters.text_inputter.WordEmbedder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.text_inputter.WordEmbedder</span></code></a> is supported.</li>
+<li><strong>encoder</strong> – A <a class="reference internal" href="opennmt.encoders.encoder.html#opennmt.encoders.encoder.Encoder" title="opennmt.encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.encoder.Encoder</span></code></a> to encode the source.</li>
+<li><strong>decoder</strong> – A <a class="reference internal" href="opennmt.decoders.decoder.html#opennmt.decoders.decoder.Decoder" title="opennmt.decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.decoders.decoder.Decoder</span></code></a> to decode the target.</li>
+<li><strong>daisy_chain_variables</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, copy variables in a daisy chain
+between devices for this model. Not compatible with RNN based models.</li>
+<li><strong>name</strong> – The name of this model.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> – if <code class="xref py py-obj docutils literal"><span class="pre">target_inputter</span></code> is not a
+<a class="reference internal" href="opennmt.inputters.text_inputter.html#opennmt.inputters.text_inputter.WordEmbedder" title="opennmt.inputters.text_inputter.WordEmbedder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.text_inputter.WordEmbedder</span></code></a> or if
+<code class="xref py py-obj docutils literal"><span class="pre">source_inputter</span></code> and <code class="xref py py-obj docutils literal"><span class="pre">target_inputter</span></code> do not have the same
+<code class="docutils literal"><span class="pre">dtype</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="opennmt.models.sequence_to_sequence.SequenceToSequence.print_prediction">
+<code class="descname">print_prediction</code><span class="sig-paren">(</span><em>prediction</em>, <em>params=None</em>, <em>stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_to_sequence.html#SequenceToSequence.print_prediction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_to_sequence.SequenceToSequence.print_prediction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -237,7 +321,6 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
             VERSION:'1.1.0',
-            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -256,13 +339,14 @@
     <script type="text/javascript" src="../_static/js/theme.js"></script>
   
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>

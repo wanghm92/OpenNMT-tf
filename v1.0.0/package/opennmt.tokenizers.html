@@ -25,21 +25,31 @@
   
 
   
+  
     <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="opennmt.tokenizers.opennmt_tokenizer module" href="opennmt.tokenizers.opennmt_tokenizer.html" />
-    <link rel="prev" title="opennmt.models.transformer module" href="opennmt.models.transformer.html" /> 
+  
+
+  
+    <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="OpenNMT-tf 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="opennmt package" href="opennmt.html"/>
+        <link rel="next" title="opennmt.tokenizers.opennmt_tokenizer module" href="opennmt.tokenizers.opennmt_tokenizer.html"/>
+        <link rel="prev" title="opennmt.models.transformer module" href="opennmt.models.transformer.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -56,7 +66,7 @@
 
           
             
-            <img src="../_static/logo-alpha.png" class="logo" alt="Logo"/>
+            <img src="../_static/logo-alpha.png" class="logo" />
           
           </a>
 
@@ -123,7 +133,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">OpenNMT-tf</a>
@@ -131,10 +141,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -176,8 +185,22 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="opennmt-tokenizers-package">
-<h1>opennmt.tokenizers package<a class="headerlink" href="#opennmt-tokenizers-package" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-opennmt.tokenizers">
+<span id="opennmt-tokenizers-package"></span><h1>opennmt.tokenizers package<a class="headerlink" href="#module-opennmt.tokenizers" title="Permalink to this headline">¶</a></h1>
+<p>Module defining tokenizers.</p>
+<p>Tokenizers can work on string <code class="docutils literal"><span class="pre">tf.Tensor</span></code> as in-graph transformation.</p>
+<dl class="function">
+<dt id="opennmt.tokenizers.add_command_line_arguments">
+<code class="descclassname">opennmt.tokenizers.</code><code class="descname">add_command_line_arguments</code><span class="sig-paren">(</span><em>parser</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/tokenizers.html#add_command_line_arguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.tokenizers.add_command_line_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds command line arguments to select the tokenizer.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.tokenizers.build_tokenizer">
+<code class="descclassname">opennmt.tokenizers.</code><code class="descname">build_tokenizer</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/tokenizers.html#build_tokenizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.tokenizers.build_tokenizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new tokenizer based on command line arguments.</p>
+</dd></dl>
+
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
@@ -191,7 +214,9 @@
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -244,7 +269,6 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
             VERSION:'0.1',
-            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -263,13 +287,14 @@
     <script type="text/javascript" src="../_static/js/theme.js"></script>
   
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>

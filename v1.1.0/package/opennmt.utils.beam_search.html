@@ -25,21 +25,31 @@
   
 
   
+  
     <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="opennmt.utils.cell module" href="opennmt.utils.cell.html" />
-    <link rel="prev" title="opennmt.utils.adafactor module" href="opennmt.utils.adafactor.html" /> 
+  
+
+  
+    <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="OpenNMT-tf 1.1.0 documentation" href="../index.html"/>
+        <link rel="up" title="opennmt.utils package" href="opennmt.utils.html"/>
+        <link rel="next" title="opennmt.utils.cell module" href="opennmt.utils.cell.html"/>
+        <link rel="prev" title="opennmt.utils.adafactor module" href="opennmt.utils.adafactor.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -56,7 +66,7 @@
 
           
             
-            <img src="../_static/logo-alpha.png" class="logo" alt="Logo"/>
+            <img src="../_static/logo-alpha.png" class="logo" />
           
           </a>
 
@@ -123,7 +133,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">OpenNMT-tf</a>
@@ -131,10 +141,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -178,13 +187,157 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="opennmt-utils-beam-search-module">
-<h1>opennmt.utils.beam_search module<a class="headerlink" href="#opennmt-utils-beam-search-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-opennmt.utils.beam_search">
+<span id="opennmt-utils-beam-search-module"></span><h1>opennmt.utils.beam_search module<a class="headerlink" href="#module-opennmt.utils.beam_search" title="Permalink to this headline">¶</a></h1>
+<p>Implemetation of beam seach with penalties.</p>
+<dl class="function">
+<dt id="opennmt.utils.beam_search.get_state_shape_invariants">
+<code class="descclassname">opennmt.utils.beam_search.</code><code class="descname">get_state_shape_invariants</code><span class="sig-paren">(</span><em>tensor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/beam_search.html#get_state_shape_invariants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.beam_search.get_state_shape_invariants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the shape of the tensor but sets middle dims to None.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.beam_search.compute_batch_indices">
+<code class="descclassname">opennmt.utils.beam_search.</code><code class="descname">compute_batch_indices</code><span class="sig-paren">(</span><em>batch_size</em>, <em>beam_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/beam_search.html#compute_batch_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.beam_search.compute_batch_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the i’th coodinate that contains the batch index for gathers.</p>
+<p>Batch pos is a tensor like [[0,0,0,0,],[1,1,1,1],..]. It says which
+batch the beam item is in. This will create the i of the i,j coordinate
+needed for the gather.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>batch_size</strong> – Batch size</li>
+<li><strong>beam_size</strong> – Size of the beam.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">[batch_size, beam_size] tensor of ids</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">batch_pos</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.beam_search.compute_topk_scores_and_seq">
+<code class="descclassname">opennmt.utils.beam_search.</code><code class="descname">compute_topk_scores_and_seq</code><span class="sig-paren">(</span><em>sequences</em>, <em>scores</em>, <em>scores_to_gather</em>, <em>flags</em>, <em>beam_size</em>, <em>batch_size</em>, <em>prefix='default'</em>, <em>states_to_gather=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/beam_search.html#compute_topk_scores_and_seq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.beam_search.compute_topk_scores_and_seq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given sequences and scores, will gather the top k=beam size sequences.</p>
+<p>This function is used to grow alive, and finished. It takes sequences,
+scores, and flags, and returns the top k from sequences, scores_to_gather,
+and flags based on the values in scores.</p>
+<p>This method permits easy introspection using tfdbg.  It adds three named ops
+that are prefixed by <cite>prefix</cite>:</p>
+<blockquote>
+<div><ul class="simple">
+<li>_topk_seq: the tensor for topk_seq returned by this method.</li>
+<li>_topk_flags: the tensor for topk_finished_flags returned by this method.</li>
+<li>_topk_scores: the tensor for tokp_gathered_scores returned by this method.</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sequences</strong> – Tensor of sequences that we need to gather from.
+[batch_size, beam_size, seq_length]</li>
+<li><strong>scores</strong> – Tensor of scores for each sequence in sequences.
+[batch_size, beam_size]. We will use these to compute the topk.</li>
+<li><strong>scores_to_gather</strong> – Tensor of scores for each sequence in sequences.
+[batch_size, beam_size]. We will return the gathered scores from here.
+Scores to gather is different from scores because for grow_alive, we will
+need to return log_probs, while for grow_finished, we will need to return
+the length penalized scors.</li>
+<li><strong>flags</strong> – Tensor of bools for sequences that say whether a sequence has reached
+EOS or not</li>
+<li><strong>beam_size</strong> – int</li>
+<li><strong>batch_size</strong> – int</li>
+<li><strong>prefix</strong> – string that will prefix unique names for the ops run.</li>
+<li><strong>states_to_gather</strong> – dict (possibly nested) of decoding states.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>Tuple of
+(topk_seq [batch_size, beam_size, decode_length],</p>
+<blockquote>
+<div><p>topk_gathered_scores [batch_size, beam_size],
+topk_finished_flags[batch_size, beam_size])</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.beam_search.beam_search">
+<code class="descclassname">opennmt.utils.beam_search.</code><code class="descname">beam_search</code><span class="sig-paren">(</span><em>symbols_to_logits_fn</em>, <em>initial_ids</em>, <em>beam_size</em>, <em>decode_length</em>, <em>vocab_size</em>, <em>alpha</em>, <em>states=None</em>, <em>eos_id=1</em>, <em>stop_early=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/beam_search.html#beam_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.beam_search.beam_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Beam search with length penalties.</p>
+<p>Requires a function that can take the currently decoded sybmols and return
+the logits for the next symbol. The implementation is inspired by
+<a class="reference external" href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a>.</p>
+<p>When running, the beam search steps can be visualized by using tfdbg to watch
+the operations generating the output ids for each beam step.  These operations
+have the pattern:</p>
+<blockquote>
+<div>(alive|finished)_topk_(seq,scores)</div></blockquote>
+<p>Operations marked <cite>alive</cite> represent the new beam sequences that will be
+processed in the next step.  Operations marked <cite>finished</cite> represent the
+completed beam sequences, which may be padded with 0s if no beams finished.</p>
+<p>Operations marked <cite>seq</cite> store the full beam sequence for the time step.
+Operations marked <cite>scores</cite> store the sequence’s final log scores.</p>
+<p>The beam search steps will be processed sequentially in order, so when
+capturing observed from these operations, tensors, clients can make
+assumptions about which step is being recorded.</p>
+<p>WARNING: Assumes 2nd dimension of tensors in <cite>states</cite> and not invariant, this
+means that the shape of the 2nd dimension of these tensors will not be
+available (i.e. set to None) inside symbols_to_logits_fn.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>symbols_to_logits_fn</strong> – Interface to the model, to provide logits.
+Shoud take [batch_size, decoded_ids] and return [batch_size, vocab_size]</li>
+<li><strong>initial_ids</strong> – Ids to start off the decoding, this will be the first thing
+handed to symbols_to_logits_fn (after expanding to beam size)
+[batch_size]</li>
+<li><strong>beam_size</strong> – Size of the beam.</li>
+<li><strong>decode_length</strong> – Number of steps to decode for.</li>
+<li><strong>vocab_size</strong> – Size of the vocab, must equal the size of the logits returned by
+symbols_to_logits_fn</li>
+<li><strong>alpha</strong> – alpha for length penalty.</li>
+<li><strong>states</strong> – dict (possibly nested) of decoding states.</li>
+<li><strong>eos_id</strong> – ID for end of sentence.</li>
+<li><strong>stop_early</strong> – a boolean - stop once best sequence is provably determined.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>Tuple of
+(decoded beams [batch_size, beam_size, decode_length]</p>
+<blockquote>
+<div><p>decoding probablities [batch_size, beam_size])</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -237,7 +390,6 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
             VERSION:'1.1.0',
-            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -256,13 +408,14 @@
     <script type="text/javascript" src="../_static/js/theme.js"></script>
   
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>

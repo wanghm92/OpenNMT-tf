@@ -25,21 +25,31 @@
   
 
   
+  
     <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="opennmt.models.sequence_classifier module" href="opennmt.models.sequence_classifier.html" />
-    <link rel="prev" title="opennmt.models package" href="opennmt.models.html" /> 
+  
+
+  
+    <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="OpenNMT-tf 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="opennmt.models package" href="opennmt.models.html"/>
+        <link rel="next" title="opennmt.models.sequence_classifier module" href="opennmt.models.sequence_classifier.html"/>
+        <link rel="prev" title="opennmt.models package" href="opennmt.models.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -56,7 +66,7 @@
 
           
             
-            <img src="../_static/logo-alpha.png" class="logo" alt="Logo"/>
+            <img src="../_static/logo-alpha.png" class="logo" />
           
           </a>
 
@@ -123,7 +133,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">OpenNMT-tf</a>
@@ -131,10 +141,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -178,13 +187,125 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="opennmt-models-model-module">
-<h1>opennmt.models.model module<a class="headerlink" href="#opennmt-models-model-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-opennmt.models.model">
+<span id="opennmt-models-model-module"></span><h1>opennmt.models.model module<a class="headerlink" href="#module-opennmt.models.model" title="Permalink to this headline">¶</a></h1>
+<p>Base class for models.</p>
+<dl class="class">
+<dt id="opennmt.models.model.Model">
+<em class="property">class </em><code class="descclassname">opennmt.models.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>name</em>, <em>features_inputter=None</em>, <em>labels_inputter=None</em>, <em>daisy_chain_variables=False</em>, <em>dtype=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Base class for models.</p>
+<dl class="method">
+<dt id="opennmt.models.model.Model.input_fn">
+<code class="descname">input_fn</code><span class="sig-paren">(</span><em>mode</em>, <em>batch_size</em>, <em>metadata</em>, <em>features_file</em>, <em>labels_file=None</em>, <em>batch_type='examples'</em>, <em>batch_multiplier=1</em>, <em>bucket_width=None</em>, <em>single_pass=False</em>, <em>num_threads=None</em>, <em>sample_buffer_size=None</em>, <em>prefetch_buffer_size=None</em>, <em>maximum_features_length=None</em>, <em>maximum_labels_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.input_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an input function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mode</strong> – A <code class="docutils literal"><span class="pre">tf.estimator.ModeKeys</span></code> mode.</li>
+<li><strong>batch_size</strong> – The batch size to use.</li>
+<li><strong>metadata</strong> – A dictionary containing additional metadata set
+by the user.</li>
+<li><strong>features_file</strong> – The file containing input features.</li>
+<li><strong>labels_file</strong> – The file containing output labels.</li>
+<li><strong>batch_type</strong> – The training batching stragety to use: can be “examples” or
+“tokens”.</li>
+<li><strong>batch_multiplier</strong> – The batch size multiplier to prepare splitting accross
+replicated graph parts.</li>
+<li><strong>bucket_width</strong> – The width of the length buckets to select batch candidates
+from. <code class="docutils literal"><span class="pre">None</span></code> to not constrain batch formation.</li>
+<li><strong>single_pass</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, makes a single pass over the training data.</li>
+<li><strong>num_threads</strong> – The number of elements processed in parallel.</li>
+<li><strong>sample_buffer_size</strong> – The number of elements from which to sample.</li>
+<li><strong>prefetch_buffer_size</strong> – The number of batches to prefetch asynchronously.</li>
+<li><strong>maximum_features_length</strong> – The maximum length or list of maximum lengths of
+the features sequence(s). <code class="docutils literal"><span class="pre">None</span></code> to not constrain the length.</li>
+<li><strong>maximum_labels_length</strong> – The maximum length of the labels sequence.
+<code class="docutils literal"><span class="pre">None</span></code> to not constrain the length.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A callable that returns the next element.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if <code class="xref py py-obj docutils literal"><span class="pre">labels_file</span></code> is not set when in training or
+evaluation mode.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="docutils literal"><span class="pre">tf.estimator.Estimator</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="opennmt.models.model.Model.model_fn">
+<code class="descname">model_fn</code><span class="sig-paren">(</span><em>num_devices=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.model_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.model_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the model function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_devices</strong> – The number of devices used for training.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="docutils literal"><span class="pre">tf.estimator.Estimator</span></code> ‘s <code class="docutils literal"><span class="pre">model_fn</span></code> argument for more details about
+arguments and the returned value.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="opennmt.models.model.Model.print_prediction">
+<code class="descname">print_prediction</code><span class="sig-paren">(</span><em>prediction</em>, <em>params=None</em>, <em>stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.print_prediction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.print_prediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the model prediction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>prediction</strong> – The evaluated prediction.</li>
+<li><strong>params</strong> – (optional) Dictionary of formatting parameters.</li>
+<li><strong>stream</strong> – (optional) The stream to print to.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="opennmt.models.model.Model.serving_input_fn">
+<code class="descname">serving_input_fn</code><span class="sig-paren">(</span><em>metadata</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/model.html#Model.serving_input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.model.Model.serving_input_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the serving input function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>metadata</strong> – A dictionary containing additional metadata set
+by the user.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A callable that returns a <code class="docutils literal"><span class="pre">tf.estimator.export.ServingInputReceiver</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -237,7 +358,6 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
             VERSION:'0.1',
-            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -256,13 +376,14 @@
     <script type="text/javascript" src="../_static/js/theme.js"></script>
   
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>
