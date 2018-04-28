@@ -26,28 +26,19 @@
   
 
   
-  
     <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/banner.css" type="text/css" />
-  
-    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="#"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="OpenNMT-tf 0.1 documentation" href="index.html"/> 
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/banner.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -64,7 +55,7 @@
 
           
             
-            <img src="_static/logo-alpha.png" class="logo" />
+            <img src="_static/logo-alpha.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -115,7 +106,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">OpenNMT-tf</a>
@@ -123,9 +114,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -288,10 +280,10 @@
 </li>
       <li><a href="package/opennmt.utils.misc.html#opennmt.utils.misc.add_dict_to_collection">add_dict_to_collection() (in module opennmt.utils.misc)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="package/opennmt.utils.vocab.html#opennmt.utils.vocab.Vocab.add_from_text">add_from_text() (opennmt.utils.vocab.Vocab method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="package/opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter.add_process_hooks">add_process_hooks() (opennmt.inputters.inputter.Inputter method)</a>
 </li>
       <li><a href="package/opennmt.utils.hooks.html#opennmt.utils.hooks.CountersHook.after_run">after_run() (opennmt.utils.hooks.CountersHook method)</a>
@@ -300,6 +292,10 @@
         <li><a href="package/opennmt.utils.hooks.html#opennmt.utils.hooks.SaveEvaluationPredictionHook.after_run">(opennmt.utils.hooks.SaveEvaluationPredictionHook method)</a>
 </li>
       </ul></li>
+      <li><a href="package/opennmt.layers.reducer.html#opennmt.layers.reducer.align_in_time">align_in_time() (in module opennmt.layers.reducer)</a>
+</li>
+      <li><a href="package/opennmt.models.sequence_to_sequence.html#opennmt.models.sequence_to_sequence.align_tokens_from_attention">align_tokens_from_attention() (in module opennmt.models.sequence_to_sequence)</a>
+</li>
       <li><a href="package/opennmt.layers.position.html#opennmt.layers.position.PositionEncoder.apply">apply() (opennmt.layers.position.PositionEncoder method)</a>
 </li>
       <li><a href="package/opennmt.layers.position.html#opennmt.layers.position.PositionEncoder.apply_one">apply_one() (opennmt.layers.position.PositionEncoder method)</a>
@@ -874,6 +870,8 @@
 </li>
       <li><a href="package/opennmt.utils.parallel.html#opennmt.utils.parallel.GraphDispatcher.repeat">repeat() (opennmt.utils.parallel.GraphDispatcher method)</a>
 </li>
+      <li><a href="package/opennmt.models.sequence_to_sequence.html#opennmt.models.sequence_to_sequence.replace_unknown_target">replace_unknown_target() (in module opennmt.models.sequence_to_sequence)</a>
+</li>
       <li><a href="package/opennmt.decoders.rnn_decoder.html#opennmt.decoders.rnn_decoder.RNNDecoder">RNNDecoder (class in opennmt.decoders.rnn_decoder)</a>
 </li>
       <li><a href="package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.RNNEncoder">RNNEncoder (class in opennmt.encoders.rnn_encoder)</a>
@@ -1042,9 +1040,7 @@
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -1075,6 +1071,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../v1.2.0/index.html">v1.2.0</a></dd>
             <dd><a href="../v1.1.0/index.html">v1.1.0</a></dd>
             <dd><a href="genindex.html">v1.0.0</a></dd>
         </dl>
@@ -1088,6 +1085,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.1',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -1106,14 +1104,13 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

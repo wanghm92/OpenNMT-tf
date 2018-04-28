@@ -25,29 +25,19 @@
   
 
   
-  
     <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="../../../_static/banner.css" type="text/css" />
-  
-    <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="OpenNMT-tf 1.1.0 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/banner.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -64,7 +54,7 @@
 
           
             
-            <img src="../../../_static/logo-alpha.png" class="logo" />
+            <img src="../../../_static/logo-alpha.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -115,7 +105,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../index.html">OpenNMT-tf</a>
@@ -123,9 +113,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -154,8 +145,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -335,7 +324,8 @@
                      <span class="n">mode</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">PREDICT</span><span class="p">,</span>
                      <span class="n">memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                     <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                     <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">return_alignment_history</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Decodes dynamically from :obj:`start_tokens` with greedy search.</span>
 
 <span class="sd">    Usually used for inference.</span>
@@ -354,9 +344,14 @@
 <span class="sd">      memory: (optional) Memory values to query.</span>
 <span class="sd">      memory_sequence_length: (optional) Memory values length.</span>
 <span class="sd">      dtype: The data type. Required if :obj:`memory` is ``None``.</span>
+<span class="sd">      return_alignment_history: If ``True``, also returns the alignment</span>
+<span class="sd">        history from the attention layer (``None`` will be returned if</span>
+<span class="sd">        unsupported by the decoder).</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">      A tuple ``(predicted_ids, state, sequence_length, log_probs)``.</span>
+<span class="sd">      A tuple ``(predicted_ids, state, sequence_length, log_probs)`` or</span>
+<span class="sd">      ``(predicted_ids, state, sequence_length, log_probs, alignment_history)``</span>
+<span class="sd">      if :obj:`return_alignment_history` is ``True``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
@@ -374,7 +369,8 @@
                                 <span class="n">mode</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">PREDICT</span><span class="p">,</span>
                                 <span class="n">memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                                <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">return_alignment_history</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Decodes dynamically from :obj:`start_tokens` with beam search.</span>
 
 <span class="sd">    Usually used for inference.</span>
@@ -395,17 +391,20 @@
 <span class="sd">      memory: (optional) Memory values to query.</span>
 <span class="sd">      memory_sequence_length: (optional) Memory values length.</span>
 <span class="sd">      dtype: The data type. Required if :obj:`memory` is ``None``.</span>
+<span class="sd">      return_alignment_history: If ``True``, also returns the alignment</span>
+<span class="sd">        history from the attention layer (``None`` will be returned if</span>
+<span class="sd">        unsupported by the decoder).</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">      A tuple ``(predicted_ids, state, sequence_length, log_probs)``.</span>
+<span class="sd">      A tuple ``(predicted_ids, state, sequence_length, log_probs)`` or</span>
+<span class="sd">      ``(predicted_ids, state, sequence_length, log_probs, alignment_history)``</span>
+<span class="sd">      if :obj:`return_alignment_history` is ``True``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -436,6 +435,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../../../v1.2.0/index.html">v1.2.0</a></dd>
             <dd><a href="decoder.html">v1.1.0</a></dd>
             <dd><a href="../../../../v1.0.0/index.html">v1.0.0</a></dd>
         </dl>
@@ -449,6 +449,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'1.1.0',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -467,14 +468,13 @@
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

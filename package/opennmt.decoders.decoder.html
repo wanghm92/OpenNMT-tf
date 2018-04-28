@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.decoders.decoder module &mdash; OpenNMT-tf 1.1.0 documentation</title>
+  <title>opennmt.decoders.decoder module &mdash; OpenNMT-tf 1.2.0 documentation</title>
   
 
   
@@ -25,31 +25,21 @@
   
 
   
-  
     <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
-  
-    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="OpenNMT-tf 1.1.0 documentation" href="../index.html"/>
-        <link rel="up" title="opennmt.decoders package" href="opennmt.decoders.html"/>
-        <link rel="next" title="opennmt.decoders.rnn_decoder module" href="opennmt.decoders.rnn_decoder.html"/>
-        <link rel="prev" title="opennmt.decoders package" href="opennmt.decoders.html"/> 
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="opennmt.decoders.rnn_decoder module" href="opennmt.decoders.rnn_decoder.html" />
+    <link rel="prev" title="opennmt.decoders package" href="opennmt.decoders.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -66,7 +56,7 @@
 
           
             
-            <img src="../_static/logo-alpha.png" class="logo" />
+            <img src="../_static/logo-alpha.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -74,7 +64,7 @@
             
             
               <div class="version">
-                1.1
+                1.2
               </div>
             
           
@@ -133,7 +123,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">OpenNMT-tf</a>
@@ -141,9 +131,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -326,7 +317,7 @@ Must be set if <code class="xref py py-obj docutils literal"><span class="pre">v
 
 <dl class="method">
 <dt id="opennmt.decoders.decoder.Decoder.dynamic_decode">
-<code class="descname">dynamic_decode</code><span class="sig-paren">(</span><em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>vocab_size=None</em>, <em>initial_state=None</em>, <em>output_layer=None</em>, <em>maximum_iterations=250</em>, <em>mode='infer'</em>, <em>memory=None</em>, <em>memory_sequence_length=None</em>, <em>dtype=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/decoder.html#Decoder.dynamic_decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.decoder.Decoder.dynamic_decode" title="Permalink to this definition">¶</a></dt>
+<code class="descname">dynamic_decode</code><span class="sig-paren">(</span><em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>vocab_size=None</em>, <em>initial_state=None</em>, <em>output_layer=None</em>, <em>maximum_iterations=250</em>, <em>mode='infer'</em>, <em>memory=None</em>, <em>memory_sequence_length=None</em>, <em>dtype=None</em>, <em>return_alignment_history=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/decoder.html#Decoder.dynamic_decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.decoder.Decoder.dynamic_decode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decodes dynamically from <code class="xref py py-obj docutils literal"><span class="pre">start_tokens</span></code> with greedy search.</p>
 <p>Usually used for inference.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -347,10 +338,15 @@ Must be set if <code class="xref py py-obj docutils literal"><span class="pre">v
 <li><strong>memory</strong> – (optional) Memory values to query.</li>
 <li><strong>memory_sequence_length</strong> – (optional) Memory values length.</li>
 <li><strong>dtype</strong> – The data type. Required if <code class="xref py py-obj docutils literal"><span class="pre">memory</span></code> is <code class="docutils literal"><span class="pre">None</span></code>.</li>
+<li><strong>return_alignment_history</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, also returns the alignment
+history from the attention layer (<code class="docutils literal"><span class="pre">None</span></code> will be returned if
+unsupported by the decoder).</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple <code class="docutils literal"><span class="pre">(predicted_ids,</span> <span class="pre">state,</span> <span class="pre">sequence_length,</span> <span class="pre">log_probs)</span></code>.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple <code class="docutils literal"><span class="pre">(predicted_ids,</span> <span class="pre">state,</span> <span class="pre">sequence_length,</span> <span class="pre">log_probs)</span></code> or
+<code class="docutils literal"><span class="pre">(predicted_ids,</span> <span class="pre">state,</span> <span class="pre">sequence_length,</span> <span class="pre">log_probs,</span> <span class="pre">alignment_history)</span></code>
+if <code class="xref py py-obj docutils literal"><span class="pre">return_alignment_history</span></code> is <code class="docutils literal"><span class="pre">True</span></code>.</p>
 </td>
 </tr>
 </tbody>
@@ -359,7 +355,7 @@ Must be set if <code class="xref py py-obj docutils literal"><span class="pre">v
 
 <dl class="method">
 <dt id="opennmt.decoders.decoder.Decoder.dynamic_decode_and_search">
-<code class="descname">dynamic_decode_and_search</code><span class="sig-paren">(</span><em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>vocab_size=None</em>, <em>initial_state=None</em>, <em>output_layer=None</em>, <em>beam_width=5</em>, <em>length_penalty=0.0</em>, <em>maximum_iterations=250</em>, <em>mode='infer'</em>, <em>memory=None</em>, <em>memory_sequence_length=None</em>, <em>dtype=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/decoder.html#Decoder.dynamic_decode_and_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.decoder.Decoder.dynamic_decode_and_search" title="Permalink to this definition">¶</a></dt>
+<code class="descname">dynamic_decode_and_search</code><span class="sig-paren">(</span><em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>vocab_size=None</em>, <em>initial_state=None</em>, <em>output_layer=None</em>, <em>beam_width=5</em>, <em>length_penalty=0.0</em>, <em>maximum_iterations=250</em>, <em>mode='infer'</em>, <em>memory=None</em>, <em>memory_sequence_length=None</em>, <em>dtype=None</em>, <em>return_alignment_history=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/decoder.html#Decoder.dynamic_decode_and_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.decoder.Decoder.dynamic_decode_and_search" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decodes dynamically from <code class="xref py py-obj docutils literal"><span class="pre">start_tokens</span></code> with beam search.</p>
 <p>Usually used for inference.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -382,10 +378,15 @@ Must be set if <code class="xref py py-obj docutils literal"><span class="pre">v
 <li><strong>memory</strong> – (optional) Memory values to query.</li>
 <li><strong>memory_sequence_length</strong> – (optional) Memory values length.</li>
 <li><strong>dtype</strong> – The data type. Required if <code class="xref py py-obj docutils literal"><span class="pre">memory</span></code> is <code class="docutils literal"><span class="pre">None</span></code>.</li>
+<li><strong>return_alignment_history</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, also returns the alignment
+history from the attention layer (<code class="docutils literal"><span class="pre">None</span></code> will be returned if
+unsupported by the decoder).</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple <code class="docutils literal"><span class="pre">(predicted_ids,</span> <span class="pre">state,</span> <span class="pre">sequence_length,</span> <span class="pre">log_probs)</span></code>.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple <code class="docutils literal"><span class="pre">(predicted_ids,</span> <span class="pre">state,</span> <span class="pre">sequence_length,</span> <span class="pre">log_probs)</span></code> or
+<code class="docutils literal"><span class="pre">(predicted_ids,</span> <span class="pre">state,</span> <span class="pre">sequence_length,</span> <span class="pre">log_probs,</span> <span class="pre">alignment_history)</span></code>
+if <code class="xref py py-obj docutils literal"><span class="pre">return_alignment_history</span></code> is <code class="docutils literal"><span class="pre">True</span></code>.</p>
 </td>
 </tr>
 </tbody>
@@ -398,9 +399,7 @@ Must be set if <code class="xref py py-obj docutils literal"><span class="pre">v
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -434,12 +433,13 @@ Must be set if <code class="xref py py-obj docutils literal"><span class="pre">v
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.1.0
+        v: v1.2.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../v1.2.0/package/opennmt.decoders.decoder.html">v1.2.0</a></dd>
             <dd><a href="../v1.1.0/package/opennmt.decoders.decoder.html">v1.1.0</a></dd>
             <dd><a href="../v1.0.0/package/opennmt.decoders.decoder.html">v1.0.0</a></dd>
         </dl>
@@ -452,7 +452,8 @@ Must be set if <code class="xref py py-obj docutils literal"><span class="pre">v
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.1.0',
+            VERSION:'1.2.0',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -471,14 +472,13 @@ Must be set if <code class="xref py py-obj docutils literal"><span class="pre">v
     <script type="text/javascript" src="../_static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

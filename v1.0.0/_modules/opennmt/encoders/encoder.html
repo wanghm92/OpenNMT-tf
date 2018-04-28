@@ -25,29 +25,19 @@
   
 
   
-  
     <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="../../../_static/banner.css" type="text/css" />
-  
-    <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="OpenNMT-tf 0.1 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/banner.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -64,7 +54,7 @@
 
           
             
-            <img src="../../../_static/logo-alpha.png" class="logo" />
+            <img src="../../../_static/logo-alpha.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -115,7 +105,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../index.html">OpenNMT-tf</a>
@@ -123,9 +113,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -154,8 +145,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -198,24 +187,47 @@
 
 
 <div class="viewcode-block" id="SequentialEncoder"><a class="viewcode-back" href="../../../package/opennmt.encoders.encoder.html#opennmt.encoders.encoder.SequentialEncoder">[docs]</a><span class="k">class</span> <span class="nc">SequentialEncoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;An encoder that executes multiple encoders sequentially.&quot;&quot;&quot;</span>
+  <span class="sd">&quot;&quot;&quot;An encoder that executes multiple encoders sequentially with optional</span>
+<span class="sd">  transition layers.</span>
 
-<div class="viewcode-block" id="SequentialEncoder.__init__"><a class="viewcode-back" href="../../../package/opennmt.encoders.encoder.html#opennmt.encoders.encoder.SequentialEncoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoders</span><span class="p">,</span> <span class="n">states_reducer</span><span class="o">=</span><span class="n">JoinReducer</span><span class="p">()):</span>
+<span class="sd">  See for example &quot;Cascaded Encoder&quot; in https://arxiv.org/abs/1804.09849.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SequentialEncoder.__init__"><a class="viewcode-back" href="../../../package/opennmt.encoders.encoder.html#opennmt.encoders.encoder.SequentialEncoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoders</span><span class="p">,</span> <span class="n">states_reducer</span><span class="o">=</span><span class="n">JoinReducer</span><span class="p">(),</span> <span class="n">transition_layer_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Initializes the parameters of the encoder.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">      encoders: A list of :class:`opennmt.encoders.encoder.Encoder`.</span>
 <span class="sd">      states_reducer: A :class:`opennmt.layers.reducer.Reducer` to merge all</span>
 <span class="sd">        states.</span>
+<span class="sd">      transition_layer_fn: A callable or list of callables applied to the</span>
+<span class="sd">        output of an encoder before passing it as input to the next. If it is a</span>
+<span class="sd">        single callable, it is applied between every encoders. Otherwise, the</span>
+<span class="sd">        `i`-th callable will be applied between encoder `i` and `i + 1`.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">      ValueError: if :obj:`transition_layer_fn` is a list with a size not equal</span>
+<span class="sd">        to the number of encoder transitions `len(encoders) - 1`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">transition_layer_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transition_layer_fn</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">transition_layer_fn</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoders</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The number of transition layers must match the number of encoder &quot;</span>
+                       <span class="s2">&quot;transitions, expected </span><span class="si">%d</span><span class="s2"> layers but got </span><span class="si">%d</span><span class="s2">.&quot;</span>
+                       <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">encoders</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">transition_layer_fn</span><span class="p">)))</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">encoders</span> <span class="o">=</span> <span class="n">encoders</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">states_reducer</span> <span class="o">=</span> <span class="n">states_reducer</span></div>
+    <span class="bp">self</span><span class="o">.</span><span class="n">states_reducer</span> <span class="o">=</span> <span class="n">states_reducer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">transition_layer_fn</span> <span class="o">=</span> <span class="n">transition_layer_fn</span></div>
 
 <div class="viewcode-block" id="SequentialEncoder.encode"><a class="viewcode-back" href="../../../package/opennmt.encoders.encoder.html#opennmt.encoders.encoder.SequentialEncoder.encode">[docs]</a>  <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">TRAIN</span><span class="p">):</span>
     <span class="n">encoder_state</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">encoder</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encoders</span><span class="p">):</span>
       <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;encoder_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition_layer_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transition_layer_fn</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition_layer_fn</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">](</span><span class="n">inputs</span><span class="p">)</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition_layer_fn</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
         <span class="n">inputs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">sequence_length</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
             <span class="n">inputs</span><span class="p">,</span>
             <span class="n">sequence_length</span><span class="o">=</span><span class="n">sequence_length</span><span class="p">,</span>
@@ -229,9 +241,14 @@
 
 
 <div class="viewcode-block" id="ParallelEncoder"><a class="viewcode-back" href="../../../package/opennmt.encoders.encoder.html#opennmt.encoders.encoder.ParallelEncoder">[docs]</a><span class="k">class</span> <span class="nc">ParallelEncoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;An encoder that encodes inputs with several encoders. If the input</span>
-<span class="sd">  is a sequence, each encoder will encode its corresponding input in the</span>
-<span class="sd">  sequence. Otherwise, the same input will be encoded by every encoders.</span>
+  <span class="sd">&quot;&quot;&quot;An encoder that encodes its input with several encoders and reduces the</span>
+<span class="sd">  outputs and states together. If the input is a single ``tf.Tensor``, the same</span>
+<span class="sd">  input will be encoded by every encoders. Otherwise, when the input is a Python</span>
+<span class="sd">  sequence (e.g. the non reduced output of a</span>
+<span class="sd">  :class:`opennmt.inputters.inputter.ParallelInputter`), each encoder will encode</span>
+<span class="sd">  its corresponding input in the sequence.</span>
+
+<span class="sd">  See for example &quot;Multi-Columnn Encoder&quot; in https://arxiv.org/abs/1804.09849.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ParallelEncoder.__init__"><a class="viewcode-back" href="../../../package/opennmt.encoders.encoder.html#opennmt.encoders.encoder.ParallelEncoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -284,9 +301,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -317,6 +332,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../../../v1.2.0/index.html">v1.2.0</a></dd>
             <dd><a href="../../../../v1.1.0/index.html">v1.1.0</a></dd>
             <dd><a href="encoder.html">v1.0.0</a></dd>
         </dl>
@@ -330,6 +346,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'0.1',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -348,14 +365,13 @@
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

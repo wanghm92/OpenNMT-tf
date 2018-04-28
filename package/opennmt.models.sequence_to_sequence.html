@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.models.sequence_to_sequence module &mdash; OpenNMT-tf 1.1.0 documentation</title>
+  <title>opennmt.models.sequence_to_sequence module &mdash; OpenNMT-tf 1.2.0 documentation</title>
   
 
   
@@ -25,31 +25,21 @@
   
 
   
-  
     <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
-  
-    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="OpenNMT-tf 1.1.0 documentation" href="../index.html"/>
-        <link rel="up" title="opennmt.models package" href="opennmt.models.html"/>
-        <link rel="next" title="opennmt.models.transformer module" href="opennmt.models.transformer.html"/>
-        <link rel="prev" title="opennmt.models.sequence_tagger module" href="opennmt.models.sequence_tagger.html"/> 
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="opennmt.models.transformer module" href="opennmt.models.transformer.html" />
+    <link rel="prev" title="opennmt.models.sequence_tagger module" href="opennmt.models.sequence_tagger.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -66,7 +56,7 @@
 
           
             
-            <img src="../_static/logo-alpha.png" class="logo" />
+            <img src="../_static/logo-alpha.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -74,7 +64,7 @@
             
             
               <div class="version">
-                1.1
+                1.2
               </div>
             
           
@@ -133,7 +123,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">OpenNMT-tf</a>
@@ -141,9 +131,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -262,13 +253,59 @@ between devices for this model. Not compatible with RNN based models.</li>
 
 </dd></dl>
 
+<dl class="function">
+<dt id="opennmt.models.sequence_to_sequence.align_tokens_from_attention">
+<code class="descclassname">opennmt.models.sequence_to_sequence.</code><code class="descname">align_tokens_from_attention</code><span class="sig-paren">(</span><em>tokens</em>, <em>attention</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_to_sequence.html#align_tokens_from_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_to_sequence.align_tokens_from_attention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns aligned tokens from the attention.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tokens</strong> – The tokens on which the attention is applied as a string
+<code class="docutils literal"><span class="pre">tf.Tensor</span></code> of shape <span class="math">\([B, T_s]\)</span>.</li>
+<li><strong>attention</strong> – The attention vector of shape <span class="math">\([B, T_t, T_s]\)</span>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The aligned tokens as a string <code class="docutils literal"><span class="pre">tf.Tensor</span></code> of shape <span class="math">\([B, T_t]\)</span>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.models.sequence_to_sequence.replace_unknown_target">
+<code class="descclassname">opennmt.models.sequence_to_sequence.</code><code class="descname">replace_unknown_target</code><span class="sig-paren">(</span><em>target_tokens</em>, <em>source_tokens</em>, <em>attention</em>, <em>unknown_token='&lt;unk&gt;'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/models/sequence_to_sequence.html#replace_unknown_target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.models.sequence_to_sequence.replace_unknown_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces all target unknown tokens by the source token with the highest
+attention.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>target_tokens</strong> – A a string <code class="docutils literal"><span class="pre">tf.Tensor</span></code> of shape <span class="math">\([B, T_t]\)</span>.</li>
+<li><strong>source_tokens</strong> – A a string <code class="docutils literal"><span class="pre">tf.Tensor</span></code> of shape <span class="math">\([B, T_s]\)</span>.</li>
+<li><strong>attention</strong> – The attention vector of shape <span class="math">\([B, T_t, T_s]\)</span>.</li>
+<li><strong>unknown_token</strong> – The target token to replace.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A string <code class="docutils literal"><span class="pre">tf.Tensor</span></code> with the same shape and type as <code class="xref py py-obj docutils literal"><span class="pre">target_tokens</span></code>
+but will all instances of <code class="xref py py-obj docutils literal"><span class="pre">unknown_token</span></code> replaced by the aligned source
+token.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -302,12 +339,13 @@ between devices for this model. Not compatible with RNN based models.</li>
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.1.0
+        v: v1.2.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../v1.2.0/package/opennmt.models.sequence_to_sequence.html">v1.2.0</a></dd>
             <dd><a href="../v1.1.0/package/opennmt.models.sequence_to_sequence.html">v1.1.0</a></dd>
             <dd><a href="../v1.0.0/package/opennmt.models.sequence_to_sequence.html">v1.0.0</a></dd>
         </dl>
@@ -320,7 +358,8 @@ between devices for this model. Not compatible with RNN based models.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.1.0',
+            VERSION:'1.2.0',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -339,14 +378,13 @@ between devices for this model. Not compatible with RNN based models.</li>
     <script type="text/javascript" src="../_static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
