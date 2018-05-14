@@ -252,6 +252,34 @@
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="opennmt.utils.optim.regularization_penalty">
+<code class="descclassname">opennmt.utils.optim.</code><code class="descname">regularization_penalty</code><span class="sig-paren">(</span><em>regularization_type</em>, <em>scale</em>, <em>weights_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/optim.html#regularization_penalty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.optim.regularization_penalty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the weights regularization penalty.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>regularization_type</strong> – The regularization type: <code class="docutils literal"><span class="pre">l1</span></code>, <code class="docutils literal"><span class="pre">l2</span></code>, or <code class="docutils literal"><span class="pre">l1_l2</span></code>.</li>
+<li><strong>scale</strong> – The regularization multiplier. If <code class="xref py py-obj docutils literal"><span class="pre">regularization_type</span></code> is
+<code class="docutils literal"><span class="pre">l1_l2</span></code>, this should be a list or tuple containing the L1 regularization
+scale and the L2 regularization scale.</li>
+<li><strong>weights_list</strong> – The list of weights. Defaults to non bias variables.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The regularization penalty.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if <code class="xref py py-obj docutils literal"><span class="pre">regularization_type</span></code> is invalid or is <code class="docutils literal"><span class="pre">l1_l2</span></code> but
+<code class="xref py py-obj docutils literal"><span class="pre">scale</span></code> is not a sequence.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
@@ -296,6 +324,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../v1.3.0/package/opennmt.utils.optim.html">v1.3.0</a></dd>
             <dd><a href="../../v1.2.0/package/opennmt.utils.optim.html">v1.2.0</a></dd>
             <dd><a href="../../v1.1.0/package/opennmt.utils.optim.html">v1.1.0</a></dd>
             <dd><a href="opennmt.utils.optim.html">v1.0.0</a></dd>
@@ -331,9 +360,7 @@
 
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script> 
 

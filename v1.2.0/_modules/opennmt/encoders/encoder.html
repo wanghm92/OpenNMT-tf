@@ -203,11 +203,11 @@
 <span class="sd">      transition_layer_fn: A callable or list of callables applied to the</span>
 <span class="sd">        output of an encoder before passing it as input to the next. If it is a</span>
 <span class="sd">        single callable, it is applied between every encoders. Otherwise, the</span>
-<span class="sd">        `i`-th callable will be applied between encoder `i` and `i + 1`.</span>
+<span class="sd">        ``i`` th callable will be applied between encoders ``i`` and ``i + 1``.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">      ValueError: if :obj:`transition_layer_fn` is a list with a size not equal</span>
-<span class="sd">        to the number of encoder transitions `len(encoders) - 1`.</span>
+<span class="sd">        to the number of encoder transitions ``len(encoders) - 1``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">transition_layer_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transition_layer_fn</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
         <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">transition_layer_fn</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoders</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
@@ -242,11 +242,14 @@
 
 <div class="viewcode-block" id="ParallelEncoder"><a class="viewcode-back" href="../../../package/opennmt.encoders.encoder.html#opennmt.encoders.encoder.ParallelEncoder">[docs]</a><span class="k">class</span> <span class="nc">ParallelEncoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;An encoder that encodes its input with several encoders and reduces the</span>
-<span class="sd">  outputs and states together. If the input is a single ``tf.Tensor``, the same</span>
-<span class="sd">  input will be encoded by every encoders. Otherwise, when the input is a Python</span>
-<span class="sd">  sequence (e.g. the non reduced output of a</span>
-<span class="sd">  :class:`opennmt.inputters.inputter.ParallelInputter`), each encoder will encode</span>
-<span class="sd">  its corresponding input in the sequence.</span>
+<span class="sd">  outputs and states together. Additional layers can be applied on each encoder</span>
+<span class="sd">  output and on the combined output (e.g. to layer normalize each encoder</span>
+<span class="sd">  output).</span>
+
+<span class="sd">  If the input is a single ``tf.Tensor``, the same input will be encoded by</span>
+<span class="sd">  every encoders. Otherwise, when the input is a Python sequence (e.g. the non</span>
+<span class="sd">  reduced output of a :class:`opennmt.inputters.inputter.ParallelInputter`),</span>
+<span class="sd">  each encoder will encode its corresponding input in the sequence.</span>
 
 <span class="sd">  See for example &quot;Multi-Columnn Encoder&quot; in https://arxiv.org/abs/1804.09849.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
@@ -254,7 +257,9 @@
 <div class="viewcode-block" id="ParallelEncoder.__init__"><a class="viewcode-back" href="../../../package/opennmt.encoders.encoder.html#opennmt.encoders.encoder.ParallelEncoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                <span class="n">encoders</span><span class="p">,</span>
                <span class="n">outputs_reducer</span><span class="o">=</span><span class="n">ConcatReducer</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-               <span class="n">states_reducer</span><span class="o">=</span><span class="n">JoinReducer</span><span class="p">()):</span>
+               <span class="n">states_reducer</span><span class="o">=</span><span class="n">JoinReducer</span><span class="p">(),</span>
+               <span class="n">outputs_layer_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">combined_output_layer_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Initializes the parameters of the encoder.</span>
 
 <span class="sd">    Args:</span>
@@ -263,10 +268,27 @@
 <span class="sd">        outputs.</span>
 <span class="sd">      states_reducer: A :class:`opennmt.layers.reducer.Reducer` to merge all</span>
 <span class="sd">        states.</span>
+<span class="sd">      outputs_layer_fn: A callable or list of callables applied to the</span>
+<span class="sd">        encoders outputs If it is a single callable, it is on each encoder</span>
+<span class="sd">        output. Otherwise, the ``i`` th callable is applied on encoder ``i``</span>
+<span class="sd">        output.</span>
+<span class="sd">      combined_output_layer_fn: A callable to apply on the combined output</span>
+<span class="sd">        (i.e. the output of :obj:`outputs_reducer`).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">      ValueError: if :obj:`outputs_layer_fn` is a list with a size not equal</span>
+<span class="sd">        to the number of encoders.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">outputs_layer_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs_layer_fn</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">outputs_layer_fn</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoders</span><span class="p">)):</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The number of output layers must match the number of encoders; &quot;</span>
+                       <span class="s2">&quot;expected </span><span class="si">%d</span><span class="s2"> layers but got </span><span class="si">%d</span><span class="s2">.&quot;</span>
+                       <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">encoders</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">outputs_layer_fn</span><span class="p">)))</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">encoders</span> <span class="o">=</span> <span class="n">encoders</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">outputs_reducer</span> <span class="o">=</span> <span class="n">outputs_reducer</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">states_reducer</span> <span class="o">=</span> <span class="n">states_reducer</span></div>
+    <span class="bp">self</span><span class="o">.</span><span class="n">states_reducer</span> <span class="o">=</span> <span class="n">states_reducer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">outputs_layer_fn</span> <span class="o">=</span> <span class="n">outputs_layer_fn</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">combined_output_layer_fn</span> <span class="o">=</span> <span class="n">combined_output_layer_fn</span></div>
 
 <div class="viewcode-block" id="ParallelEncoder.encode"><a class="viewcode-back" href="../../../package/opennmt.encoders.encoder.html#opennmt.encoders.encoder.ParallelEncoder.encode">[docs]</a>  <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">TRAIN</span><span class="p">):</span>
     <span class="n">all_outputs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -290,12 +312,21 @@
             <span class="n">sequence_length</span><span class="o">=</span><span class="n">length</span><span class="p">,</span>
             <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs_layer_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs_layer_fn</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs_layer_fn</span><span class="p">[</span><span class="n">i</span><span class="p">](</span><span class="n">outputs</span><span class="p">)</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs_layer_fn</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
+
         <span class="n">all_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
         <span class="n">all_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
         <span class="n">all_sequence_lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
 
     <span class="n">outputs</span><span class="p">,</span> <span class="n">sequence_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs_reducer</span><span class="o">.</span><span class="n">reduce_sequence</span><span class="p">(</span>
         <span class="n">all_outputs</span><span class="p">,</span> <span class="n">all_sequence_lengths</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined_output_layer_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined_output_layer_fn</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">states_reducer</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">all_states</span><span class="p">),</span> <span class="n">sequence_length</span><span class="p">)</span></div></div>
 </pre></div>
@@ -332,6 +363,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../../../v1.3.0/index.html">v1.3.0</a></dd>
             <dd><a href="encoder.html">v1.2.0</a></dd>
             <dd><a href="../../../../v1.1.0/index.html">v1.1.0</a></dd>
             <dd><a href="../../../../v1.0.0/index.html">v1.0.0</a></dd>
@@ -367,9 +399,7 @@
 
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script> 
 

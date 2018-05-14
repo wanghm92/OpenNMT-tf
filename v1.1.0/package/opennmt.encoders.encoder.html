@@ -232,12 +232,12 @@ states.</li>
 <li><strong>transition_layer_fn</strong> – A callable or list of callables applied to the
 output of an encoder before passing it as input to the next. If it is a
 single callable, it is applied between every encoders. Otherwise, the
-<cite>i</cite>-th callable will be applied between encoder <cite>i</cite> and <cite>i + 1</cite>.</li>
+<code class="docutils literal"><span class="pre">i</span></code> th callable will be applied between encoders <code class="docutils literal"><span class="pre">i</span></code> and <code class="docutils literal"><span class="pre">i</span> <span class="pre">+</span> <span class="pre">1</span></code>.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if <code class="xref py py-obj docutils literal"><span class="pre">transition_layer_fn</span></code> is a list with a size not equal
-to the number of encoder transitions <cite>len(encoders) - 1</cite>.</p>
+to the number of encoder transitions <code class="docutils literal"><span class="pre">len(encoders)</span> <span class="pre">-</span> <span class="pre">1</span></code>.</p>
 </td>
 </tr>
 </tbody>
@@ -253,30 +253,42 @@ to the number of encoder transitions <cite>len(encoders) - 1</cite>.</p>
 
 <dl class="class">
 <dt id="opennmt.encoders.encoder.ParallelEncoder">
-<em class="property">class </em><code class="descclassname">opennmt.encoders.encoder.</code><code class="descname">ParallelEncoder</code><span class="sig-paren">(</span><em>encoders</em>, <em>outputs_reducer=&lt;opennmt.layers.reducer.ConcatReducer object&gt;</em>, <em>states_reducer=&lt;opennmt.layers.reducer.JoinReducer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#ParallelEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.ParallelEncoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.encoders.encoder.</code><code class="descname">ParallelEncoder</code><span class="sig-paren">(</span><em>encoders</em>, <em>outputs_reducer=&lt;opennmt.layers.reducer.ConcatReducer object&gt;</em>, <em>states_reducer=&lt;opennmt.layers.reducer.JoinReducer object&gt;</em>, <em>outputs_layer_fn=None</em>, <em>combined_output_layer_fn=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#ParallelEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.ParallelEncoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#opennmt.encoders.encoder.Encoder" title="opennmt.encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.encoder.Encoder</span></code></a></p>
 <p>An encoder that encodes its input with several encoders and reduces the
-outputs and states together. If the input is a single <code class="docutils literal"><span class="pre">tf.Tensor</span></code>, the same
-input will be encoded by every encoders. Otherwise, when the input is a Python
-sequence (e.g. the non reduced output of a
-<a class="reference internal" href="opennmt.inputters.inputter.html#opennmt.inputters.inputter.ParallelInputter" title="opennmt.inputters.inputter.ParallelInputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.ParallelInputter</span></code></a>), each encoder will encode
-its corresponding input in the sequence.</p>
+outputs and states together. Additional layers can be applied on each encoder
+output and on the combined output (e.g. to layer normalize each encoder
+output).</p>
+<p>If the input is a single <code class="docutils literal"><span class="pre">tf.Tensor</span></code>, the same input will be encoded by
+every encoders. Otherwise, when the input is a Python sequence (e.g. the non
+reduced output of a <a class="reference internal" href="opennmt.inputters.inputter.html#opennmt.inputters.inputter.ParallelInputter" title="opennmt.inputters.inputter.ParallelInputter"><code class="xref py py-class docutils literal"><span class="pre">opennmt.inputters.inputter.ParallelInputter</span></code></a>),
+each encoder will encode its corresponding input in the sequence.</p>
 <p>See for example “Multi-Columnn Encoder” in <a class="reference external" href="https://arxiv.org/abs/1804.09849">https://arxiv.org/abs/1804.09849</a>.</p>
 <dl class="method">
 <dt id="opennmt.encoders.encoder.ParallelEncoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>encoders</em>, <em>outputs_reducer=&lt;opennmt.layers.reducer.ConcatReducer object&gt;</em>, <em>states_reducer=&lt;opennmt.layers.reducer.JoinReducer object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#ParallelEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.ParallelEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>encoders</em>, <em>outputs_reducer=&lt;opennmt.layers.reducer.ConcatReducer object&gt;</em>, <em>states_reducer=&lt;opennmt.layers.reducer.JoinReducer object&gt;</em>, <em>outputs_layer_fn=None</em>, <em>combined_output_layer_fn=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/encoders/encoder.html#ParallelEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.encoders.encoder.ParallelEncoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the parameters of the encoder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>encoders</strong> – A list of <a class="reference internal" href="#opennmt.encoders.encoder.Encoder" title="opennmt.encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.encoders.encoder.Encoder</span></code></a>.</li>
 <li><strong>outputs_reducer</strong> – A <a class="reference internal" href="opennmt.layers.reducer.html#opennmt.layers.reducer.Reducer" title="opennmt.layers.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.reducer.Reducer</span></code></a> to merge all
 outputs.</li>
 <li><strong>states_reducer</strong> – A <a class="reference internal" href="opennmt.layers.reducer.html#opennmt.layers.reducer.Reducer" title="opennmt.layers.reducer.Reducer"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.reducer.Reducer</span></code></a> to merge all
 states.</li>
+<li><strong>outputs_layer_fn</strong> – A callable or list of callables applied to the
+encoders outputs If it is a single callable, it is on each encoder
+output. Otherwise, the <code class="docutils literal"><span class="pre">i</span></code> th callable is applied on encoder <code class="docutils literal"><span class="pre">i</span></code>
+output.</li>
+<li><strong>combined_output_layer_fn</strong> – A callable to apply on the combined output
+(i.e. the output of <code class="xref py py-obj docutils literal"><span class="pre">outputs_reducer</span></code>).</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if <code class="xref py py-obj docutils literal"><span class="pre">outputs_layer_fn</span></code> is a list with a size not equal
+to the number of encoders.</p>
 </td>
 </tr>
 </tbody>
@@ -334,6 +346,7 @@ states.</li>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../v1.3.0/package/opennmt.encoders.encoder.html">v1.3.0</a></dd>
             <dd><a href="../../v1.2.0/package/opennmt.encoders.encoder.html">v1.2.0</a></dd>
             <dd><a href="opennmt.encoders.encoder.html">v1.1.0</a></dd>
             <dd><a href="../../v1.0.0/package/opennmt.encoders.encoder.html">v1.0.0</a></dd>
@@ -369,9 +382,7 @@ states.</li>
 
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script> 
 

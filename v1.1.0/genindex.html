@@ -219,6 +219,8 @@
 </li>
         <li><a href="package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.PyramidalRNNEncoder.__init__">(opennmt.encoders.rnn_encoder.PyramidalRNNEncoder method)</a>
 </li>
+        <li><a href="package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.RNMTPlusEncoder.__init__">(opennmt.encoders.rnn_encoder.RNMTPlusEncoder method)</a>
+</li>
         <li><a href="package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.RNNEncoder.__init__">(opennmt.encoders.rnn_encoder.RNNEncoder method)</a>
 </li>
         <li><a href="package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.UnidirectionalRNNEncoder.__init__">(opennmt.encoders.rnn_encoder.UnidirectionalRNNEncoder method)</a>
@@ -455,6 +457,8 @@
 </li>
         <li><a href="package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.PyramidalRNNEncoder.encode">(opennmt.encoders.rnn_encoder.PyramidalRNNEncoder method)</a>
 </li>
+        <li><a href="package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.RNMTPlusEncoder.encode">(opennmt.encoders.rnn_encoder.RNMTPlusEncoder method)</a>
+</li>
         <li><a href="package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.RNNEncoder.encode">(opennmt.encoders.rnn_encoder.RNNEncoder method)</a>
 </li>
         <li><a href="package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.UnidirectionalRNNEncoder.encode">(opennmt.encoders.rnn_encoder.UnidirectionalRNNEncoder method)</a>
@@ -606,6 +610,8 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="package/opennmt.models.sequence_classifier.html#opennmt.models.sequence_classifier.last_encoding_from_state">last_encoding_from_state() (in module opennmt.models.sequence_classifier)</a>
+</li>
       <li><a href="package/opennmt.utils.optim.html#opennmt.utils.optim.learning_rate_decay_fn">learning_rate_decay_fn() (in module opennmt.utils.optim)</a>
 </li>
       <li><a href="package/opennmt.models.catalog.html#opennmt.models.catalog.ListenAttendSpell">ListenAttendSpell (class in opennmt.models.catalog)</a>
@@ -614,10 +620,10 @@
 </li>
       <li><a href="package/opennmt.config.html#opennmt.config.load_model">load_model() (in module opennmt.config)</a>
 </li>
-      <li><a href="package/opennmt.config.html#opennmt.config.load_model_from_catalog">load_model_from_catalog() (in module opennmt.config)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="package/opennmt.config.html#opennmt.config.load_model_from_catalog">load_model_from_catalog() (in module opennmt.config)</a>
+</li>
       <li><a href="package/opennmt.config.html#opennmt.config.load_model_module">load_model_module() (in module opennmt.config)</a>
 </li>
       <li><a href="package/opennmt.inputters.text_inputter.html#opennmt.inputters.text_inputter.load_pretrained_embeddings">load_pretrained_embeddings() (in module opennmt.inputters.text_inputter)</a>
@@ -876,11 +882,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="package/opennmt.layers.reducer.html#opennmt.layers.reducer.Reducer">Reducer (class in opennmt.layers.reducer)</a>
 </li>
+      <li><a href="package/opennmt.utils.optim.html#opennmt.utils.optim.regularization_penalty">regularization_penalty() (in module opennmt.utils.optim)</a>
+</li>
       <li><a href="package/opennmt.inputters.inputter.html#opennmt.inputters.inputter.Inputter.remove_data_field">remove_data_field() (opennmt.inputters.inputter.Inputter method)</a>
 </li>
       <li><a href="package/opennmt.utils.parallel.html#opennmt.utils.parallel.GraphDispatcher.repeat">repeat() (opennmt.utils.parallel.GraphDispatcher method)</a>
 </li>
       <li><a href="package/opennmt.models.sequence_to_sequence.html#opennmt.models.sequence_to_sequence.replace_unknown_target">replace_unknown_target() (in module opennmt.models.sequence_to_sequence)</a>
+</li>
+      <li><a href="package/opennmt.encoders.rnn_encoder.html#opennmt.encoders.rnn_encoder.RNMTPlusEncoder">RNMTPlusEncoder (class in opennmt.encoders.rnn_encoder)</a>
 </li>
       <li><a href="package/opennmt.decoders.rnn_decoder.html#opennmt.decoders.rnn_decoder.RNNDecoder">RNNDecoder (class in opennmt.decoders.rnn_decoder)</a>
 </li>
@@ -1089,6 +1099,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../v1.3.0/index.html">v1.3.0</a></dd>
             <dd><a href="../v1.2.0/index.html">v1.2.0</a></dd>
             <dd><a href="genindex.html">v1.1.0</a></dd>
             <dd><a href="../v1.0.0/index.html">v1.0.0</a></dd>
@@ -1124,9 +1135,7 @@
 
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script> 
 
