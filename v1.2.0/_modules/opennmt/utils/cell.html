@@ -159,6 +159,8 @@
   <h1>Source code for opennmt.utils.cell</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;RNN cells helpers.&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">collections</span>
+
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 
@@ -217,6 +219,24 @@
     <span class="k">return</span> <span class="n">cells</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="last_encoding_from_state"><a class="viewcode-back" href="../../../package/opennmt.utils.cell.html#opennmt.utils.cell.last_encoding_from_state">[docs]</a><span class="k">def</span> <span class="nf">last_encoding_from_state</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Returns the last encoding vector from the state.</span>
+
+<span class="sd">  For example, this is the last hidden states of the last LSTM layer for a</span>
+<span class="sd">  LSTM-based encoder.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    state: The encoder state.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    The last encoding vector.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Sequence</span><span class="p">):</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">LSTMStateTuple</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">state</span><span class="o">.</span><span class="n">h</span>
+  <span class="k">return</span> <span class="n">state</span></div>
 </pre></div>
 
            </div>
@@ -251,6 +271,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../../../v1.4.0/index.html">v1.4.0</a></dd>
             <dd><a href="../../../../v1.3.0/index.html">v1.3.0</a></dd>
             <dd><a href="cell.html">v1.2.0</a></dd>
             <dd><a href="../../../../v1.1.0/index.html">v1.1.0</a></dd>

@@ -376,7 +376,7 @@
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="JoinReducer.reduce_sequence"><a class="viewcode-back" href="../../../package/opennmt.layers.reducer.html#opennmt.layers.reducer.JoinReducer.reduce_sequence">[docs]</a>  <span class="k">def</span> <span class="nf">reduce_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">sequence_lengths</span><span class="p">):</span>
-    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;JoinReducer does not support sequence reduction&quot;</span><span class="p">)</span></div></div>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">sequence_lengths</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -411,6 +411,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../../../v1.4.0/index.html">v1.4.0</a></dd>
             <dd><a href="../../../../v1.3.0/index.html">v1.3.0</a></dd>
             <dd><a href="../../../../v1.2.0/index.html">v1.2.0</a></dd>
             <dd><a href="../../../../v1.1.0/index.html">v1.1.0</a></dd>

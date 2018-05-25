@@ -192,6 +192,21 @@
     <span class="k">else</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span> <span class="ow">or</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span>
 
+<div class="viewcode-block" id="Model.__call__"><a class="viewcode-back" href="../../../package/opennmt.models.model.html#opennmt.models.model.Model.__call__">[docs]</a>  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the model function.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      outputs: The model outputs (usually unscaled probabilities).</span>
+<span class="sd">        Optional if :obj:`mode` is ``tf.estimator.ModeKeys.PREDICT``.</span>
+<span class="sd">      predictions: The model predictions.</span>
+<span class="sd">        Optional if :obj:`mode` is ``tf.estimator.ModeKeys.TRAIN``.</span>
+
+<span class="sd">    See Also:</span>
+<span class="sd">      ``tf.estimator.Estimator`` &#39;s ``model_fn`` argument for more details about</span>
+<span class="sd">      the arguments of this function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Model.model_fn"><a class="viewcode-back" href="../../../package/opennmt.models.model.html#opennmt.models.model.Model.model_fn">[docs]</a>  <span class="k">def</span> <span class="nf">model_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_devices</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns the model function.</span>
 
@@ -478,43 +493,29 @@
           <span class="n">feat_process_fn</span><span class="p">(</span><span class="n">features</span><span class="p">),</span> <span class="n">labels_process_fn</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">ModeKeys</span><span class="o">.</span><span class="n">TRAIN</span><span class="p">:</span>
-      <span class="n">dataset_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dataset_size</span><span class="p">(</span><span class="n">features_file</span><span class="p">)</span>
-      <span class="k">if</span> <span class="n">sample_buffer_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sample_buffer_size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">sample_buffer_size</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-          <span class="n">sample_buffer_size</span> <span class="o">=</span> <span class="n">dataset_size</span>
-        <span class="k">elif</span> <span class="n">sample_buffer_size</span> <span class="o">&lt;</span> <span class="n">dataset_size</span><span class="p">:</span>
-          <span class="c1"># When the sample buffer size is smaller than the dataset size, shard</span>
-          <span class="c1"># the dataset in a random order. This ensures that all parts of the</span>
-          <span class="c1"># dataset can be seen when the evaluation frequency is high.</span>
-          <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">random_shard</span><span class="p">(</span><span class="n">sample_buffer_size</span><span class="p">,</span> <span class="n">dataset_size</span><span class="p">))</span>
-        <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">sample_buffer_size</span><span class="p">)</span>
-      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-          <span class="n">process_fn</span><span class="p">,</span>
-          <span class="n">num_parallel_calls</span><span class="o">=</span><span class="n">num_threads</span> <span class="ow">or</span> <span class="mi">4</span><span class="p">)</span>
-      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">filter_examples_by_length</span><span class="p">(</span>
-          <span class="n">maximum_features_length</span><span class="o">=</span><span class="n">maximum_features_length</span><span class="p">,</span>
-          <span class="n">maximum_labels_length</span><span class="o">=</span><span class="n">maximum_labels_length</span><span class="p">,</span>
-          <span class="n">features_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_features_length</span><span class="p">,</span>
-          <span class="n">labels_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_labels_length</span><span class="p">))</span>
-      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">batch_parallel_dataset</span><span class="p">(</span>
+      <span class="n">dataset</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">training_pipeline</span><span class="p">(</span>
+          <span class="n">dataset</span><span class="p">,</span>
           <span class="n">batch_size</span><span class="p">,</span>
           <span class="n">batch_type</span><span class="o">=</span><span class="n">batch_type</span><span class="p">,</span>
           <span class="n">batch_multiplier</span><span class="o">=</span><span class="n">batch_multiplier</span><span class="p">,</span>
           <span class="n">bucket_width</span><span class="o">=</span><span class="n">bucket_width</span><span class="p">,</span>
+          <span class="n">single_pass</span><span class="o">=</span><span class="n">single_pass</span><span class="p">,</span>
+          <span class="n">process_fn</span><span class="o">=</span><span class="n">process_fn</span><span class="p">,</span>
+          <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
+          <span class="n">shuffle_buffer_size</span><span class="o">=</span><span class="n">sample_buffer_size</span><span class="p">,</span>
+          <span class="n">prefetch_buffer_size</span><span class="o">=</span><span class="n">prefetch_buffer_size</span><span class="p">,</span>
+          <span class="n">dataset_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_dataset_size</span><span class="p">(</span><span class="n">features_file</span><span class="p">),</span>
+          <span class="n">maximum_features_length</span><span class="o">=</span><span class="n">maximum_features_length</span><span class="p">,</span>
+          <span class="n">maximum_labels_length</span><span class="o">=</span><span class="n">maximum_labels_length</span><span class="p">,</span>
           <span class="n">features_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_features_length</span><span class="p">,</span>
-          <span class="n">labels_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_labels_length</span><span class="p">))</span>
-      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">filter_irregular_batches</span><span class="p">(</span><span class="n">batch_multiplier</span><span class="p">))</span>
-      <span class="k">if</span> <span class="ow">not</span> <span class="n">single_pass</span><span class="p">:</span>
-        <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">()</span>
+          <span class="n">labels_length_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_labels_length</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-          <span class="n">process_fn</span><span class="p">,</span>
-          <span class="n">num_parallel_calls</span><span class="o">=</span><span class="n">num_threads</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
-      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">batch_parallel_dataset</span><span class="p">(</span><span class="n">batch_size</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;AUTOTUNE&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">prefetch_buffer_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-      <span class="n">prefetch_buffer_size</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">prefetch_buffer_size</span><span class="p">)</span>
+      <span class="n">dataset</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">inference_pipeline</span><span class="p">(</span>
+          <span class="n">dataset</span><span class="p">,</span>
+          <span class="n">batch_size</span><span class="p">,</span>
+          <span class="n">process_fn</span><span class="o">=</span><span class="n">process_fn</span><span class="p">,</span>
+          <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
+          <span class="n">prefetch_buffer_size</span><span class="o">=</span><span class="n">prefetch_buffer_size</span><span class="p">)</span>
 
     <span class="n">iterator</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">make_initializable_iterator</span><span class="p">()</span>
 
@@ -654,6 +655,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../../../v1.4.0/index.html">v1.4.0</a></dd>
             <dd><a href="model.html">v1.3.0</a></dd>
             <dd><a href="../../../../v1.2.0/index.html">v1.2.0</a></dd>
             <dd><a href="../../../../v1.1.0/index.html">v1.1.0</a></dd>

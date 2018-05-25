@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.utils.evaluator module &mdash; OpenNMT-tf 1.3.0 documentation</title>
+  <title>opennmt.utils.evaluator module &mdash; OpenNMT-tf 1.4.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.3
+                1.4
               </div>
             
           
@@ -102,6 +102,7 @@
 <li class="toctree-l3"><a class="reference internal" href="opennmt.inputters.html">opennmt.inputters package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.layers.html">opennmt.layers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.models.html">opennmt.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="opennmt.optimizers.html">opennmt.optimizers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.tokenizers.html">opennmt.tokenizers package</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="opennmt.utils.html">opennmt.utils package</a><ul class="current">
 <li class="toctree-l4 current"><a class="reference internal" href="opennmt.utils.html#submodules">Submodules</a></li>
@@ -219,6 +220,23 @@
 </dd></dl>
 
 <dl class="class">
+<dt id="opennmt.utils.evaluator.ROUGEEvaluator">
+<em class="property">class </em><code class="descclassname">opennmt.utils.evaluator.</code><code class="descname">ROUGEEvaluator</code><span class="sig-paren">(</span><em>labels_file=None</em>, <em>output_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/evaluator.html#ROUGEEvaluator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.evaluator.ROUGEEvaluator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#opennmt.utils.evaluator.ExternalEvaluator" title="opennmt.utils.evaluator.ExternalEvaluator"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.evaluator.ExternalEvaluator</span></code></a></p>
+<p>ROUGE evaluator based on <a class="reference external" href="https://github.com/pltrdy/rouge">https://github.com/pltrdy/rouge</a>.</p>
+<dl class="method">
+<dt id="opennmt.utils.evaluator.ROUGEEvaluator.name">
+<code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/evaluator.html#ROUGEEvaluator.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.evaluator.ROUGEEvaluator.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="opennmt.utils.evaluator.ROUGEEvaluator.score">
+<code class="descname">score</code><span class="sig-paren">(</span><em>labels_file</em>, <em>predictions_path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/evaluator.html#ROUGEEvaluator.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.evaluator.ROUGEEvaluator.score" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="opennmt.utils.evaluator.BLEUEvaluator">
 <em class="property">class </em><code class="descclassname">opennmt.utils.evaluator.</code><code class="descname">BLEUEvaluator</code><span class="sig-paren">(</span><em>labels_file=None</em>, <em>output_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/evaluator.html#BLEUEvaluator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.evaluator.BLEUEvaluator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#opennmt.utils.evaluator.ExternalEvaluator" title="opennmt.utils.evaluator.ExternalEvaluator"><code class="xref py py-class docutils literal"><span class="pre">opennmt.utils.evaluator.ExternalEvaluator</span></code></a></p>
@@ -312,12 +330,13 @@ more external evaluators.</p>
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.3.0
+        v: v1.4.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../v1.4.0/package/opennmt.utils.evaluator.html">v1.4.0</a></dd>
             <dd><a href="../v1.3.0/package/opennmt.utils.evaluator.html">v1.3.0</a></dd>
             <dd><a href="../v1.2.0/package/opennmt.utils.evaluator.html">v1.2.0</a></dd>
             <dd><a href="../v1.1.0/package/opennmt.utils.evaluator.html">v1.1.0</a></dd>
@@ -332,7 +351,7 @@ more external evaluators.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.3.0',
+            VERSION:'1.4.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

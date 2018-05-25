@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.utils.data module &mdash; OpenNMT-tf 1.3.0 documentation</title>
+  <title>opennmt.utils.data module &mdash; OpenNMT-tf 1.4.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.3
+                1.4
               </div>
             
           
@@ -102,6 +102,7 @@
 <li class="toctree-l3"><a class="reference internal" href="opennmt.inputters.html">opennmt.inputters package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.layers.html">opennmt.layers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.models.html">opennmt.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="opennmt.optimizers.html">opennmt.optimizers package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="opennmt.tokenizers.html">opennmt.tokenizers package</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="opennmt.utils.html">opennmt.utils package</a><ul class="current">
 <li class="toctree-l4 current"><a class="reference internal" href="opennmt.utils.html#submodules">Submodules</a></li>
@@ -215,6 +216,26 @@ shapes.</td>
 </dd></dl>
 
 <dl class="function">
+<dt id="opennmt.utils.data.prefetch_element">
+<code class="descclassname">opennmt.utils.data.</code><code class="descname">prefetch_element</code><span class="sig-paren">(</span><em>buffer_size=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/data.html#prefetch_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.data.prefetch_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation that prefetches elements from the dataset.</p>
+<p>This is a small wrapper around tf.data.Dataset.prefetch to customize the
+case <code class="xref py py-obj docutils literal"><span class="pre">buffer_size</span></code> is <code class="docutils literal"><span class="pre">None</span></code> for some TensorFlow versions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>buffer_size</strong> – The number of batches to prefetch asynchronously. If <code class="docutils literal"><span class="pre">None</span></code>,
+use an automatically tuned value on TensorFlow 1.8+ and 1 on older
+versions.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <code class="docutils literal"><span class="pre">tf.data.Dataset</span></code> transformation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="opennmt.utils.data.filter_examples_by_length">
 <code class="descclassname">opennmt.utils.data.</code><code class="descname">filter_examples_by_length</code><span class="sig-paren">(</span><em>maximum_features_length=None</em>, <em>maximum_labels_length=None</em>, <em>features_length_fn=None</em>, <em>labels_length_fn=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/data.html#filter_examples_by_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.data.filter_examples_by_length" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transformation that constrains examples length.</p>
@@ -300,6 +321,74 @@ are automatically inferred from the dataset output shapes.</li>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="opennmt.utils.data.training_pipeline">
+<code class="descclassname">opennmt.utils.data.</code><code class="descname">training_pipeline</code><span class="sig-paren">(</span><em>dataset</em>, <em>batch_size</em>, <em>batch_type='examples'</em>, <em>batch_multiplier=1</em>, <em>bucket_width=None</em>, <em>single_pass=False</em>, <em>process_fn=None</em>, <em>num_threads=None</em>, <em>shuffle_buffer_size=None</em>, <em>prefetch_buffer_size=None</em>, <em>dataset_size=None</em>, <em>maximum_features_length=None</em>, <em>maximum_labels_length=None</em>, <em>features_length_fn=None</em>, <em>labels_length_fn=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/data.html#training_pipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.data.training_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a complete training data pipeline.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dataset</strong> – The base dataset.</li>
+<li><strong>batch_size</strong> – The batch size to use.</li>
+<li><strong>batch_type</strong> – The training batching stragety to use: can be “examples” or
+“tokens”.</li>
+<li><strong>batch_multiplier</strong> – The batch size multiplier to prepare splitting accross
+replicated graph parts.</li>
+<li><strong>bucket_width</strong> – The width of the length buckets to select batch candidates
+from. <code class="docutils literal"><span class="pre">None</span></code> to not constrain batch formation.</li>
+<li><strong>single_pass</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, makes a single pass over the training data.</li>
+<li><strong>process_fn</strong> – The processing function to apply on each element.</li>
+<li><strong>num_threads</strong> – The number of elements processed in parallel.</li>
+<li><strong>shuffle_buffer_size</strong> – The number of elements from which to sample.</li>
+<li><strong>prefetch_buffer_size</strong> – The number of batches to prefetch asynchronously. If
+<code class="docutils literal"><span class="pre">None</span></code>, use an automatically tuned value on TensorFlow 1.8+ and 1 on
+older versions.</li>
+<li><strong>dataset_size</strong> – The total size of the dataset, if known. It is recommended to
+set it when <code class="xref py py-obj docutils literal"><span class="pre">shuffle_buffer_size</span></code> is smaller than the dataset size.</li>
+<li><strong>maximum_features_length</strong> – The maximum length or list of maximum lengths of
+the features sequence(s). <code class="docutils literal"><span class="pre">None</span></code> to not constrain the length.</li>
+<li><strong>maximum_labels_length</strong> – The maximum length of the labels sequence.
+<code class="docutils literal"><span class="pre">None</span></code> to not constrain the length.</li>
+<li><strong>features_length_fn</strong> – A callable mapping features to a sequence length.</li>
+<li><strong>labels_length_fn</strong> – A callable mapping labels to a sequence length.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="docutils literal"><span class="pre">tf.data.Dataset</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.utils.data.inference_pipeline">
+<code class="descclassname">opennmt.utils.data.</code><code class="descname">inference_pipeline</code><span class="sig-paren">(</span><em>dataset</em>, <em>batch_size</em>, <em>process_fn=None</em>, <em>num_threads=None</em>, <em>prefetch_buffer_size=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/data.html#inference_pipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.data.inference_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a complete inference data pipeline.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dataset</strong> – The base dataset.</li>
+<li><strong>batch_size</strong> – The batch size to use.</li>
+<li><strong>process_fn</strong> – The processing function to apply on each element.</li>
+<li><strong>num_threads</strong> – The number of elements processed in parallel.</li>
+<li><strong>prefetch_buffer_size</strong> – The number of batches to prefetch asynchronously. If
+<code class="docutils literal"><span class="pre">None</span></code>, use an automatically tuned value on TensorFlow 1.8+ and 1 on
+older versions.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="docutils literal"><span class="pre">tf.data.Dataset</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
@@ -338,12 +427,13 @@ are automatically inferred from the dataset output shapes.</li>
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.3.0
+        v: v1.4.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../v1.4.0/package/opennmt.utils.data.html">v1.4.0</a></dd>
             <dd><a href="../v1.3.0/package/opennmt.utils.data.html">v1.3.0</a></dd>
             <dd><a href="../v1.2.0/package/opennmt.utils.data.html">v1.2.0</a></dd>
             <dd><a href="../v1.1.0/package/opennmt.utils.data.html">v1.1.0</a></dd>
@@ -358,7 +448,7 @@ are automatically inferred from the dataset output shapes.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.3.0',
+            VERSION:'1.4.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

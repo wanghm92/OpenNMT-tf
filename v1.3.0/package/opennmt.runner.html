@@ -252,6 +252,30 @@ the latest is used.</li>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="opennmt.runner.Runner.score">
+<code class="descname">score</code><span class="sig-paren">(</span><em>features_file</em>, <em>predictions_file</em>, <em>checkpoint_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/runner.html#Runner.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.runner.Runner.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scores existing predictions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>features_file</strong> – The input file.</li>
+<li><strong>predictions_file</strong> – The predictions file to score.</li>
+<li><strong>checkpoint_path</strong> – Path of a specific checkpoint to use. If <code class="docutils literal"><span class="pre">None</span></code>,
+the latest is used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if no checkpoint are found or if the model is not a sequence to
+sequence model.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -296,6 +320,7 @@ the latest is used.</li>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../v1.4.0/package/opennmt.runner.html">v1.4.0</a></dd>
             <dd><a href="opennmt.runner.html">v1.3.0</a></dd>
             <dd><a href="../../v1.2.0/package/opennmt.runner.html">v1.2.0</a></dd>
             <dd><a href="../../v1.1.0/package/opennmt.runner.html">v1.1.0</a></dd>

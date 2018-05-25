@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.utils.data &mdash; OpenNMT-tf 1.3.0 documentation</title>
+  <title>opennmt.utils.data &mdash; OpenNMT-tf 1.4.0 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.3
+                1.4
               </div>
             
           
@@ -194,6 +194,24 @@
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">multiple</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
 
   <span class="k">return</span> <span class="k">lambda</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">_predicate</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="prefetch_element"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.prefetch_element">[docs]</a><span class="k">def</span> <span class="nf">prefetch_element</span><span class="p">(</span><span class="n">buffer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Transformation that prefetches elements from the dataset.</span>
+
+<span class="sd">  This is a small wrapper around tf.data.Dataset.prefetch to customize the</span>
+<span class="sd">  case :obj:`buffer_size` is ``None`` for some TensorFlow versions.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    buffer_size: The number of batches to prefetch asynchronously. If ``None``,</span>
+<span class="sd">      use an automatically tuned value on TensorFlow 1.8+ and 1 on older</span>
+<span class="sd">      versions.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A ``tf.data.Dataset`` transformation.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;AUTOTUNE&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">buffer_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">buffer_size</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="k">return</span> <span class="k">lambda</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">buffer_size</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="filter_examples_by_length"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.filter_examples_by_length">[docs]</a><span class="k">def</span> <span class="nf">filter_examples_by_length</span><span class="p">(</span><span class="n">maximum_features_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                               <span class="n">maximum_labels_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -347,6 +365,107 @@
   <span class="k">else</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
         <span class="s2">&quot;Invalid batch type: &#39;</span><span class="si">{}</span><span class="s2">&#39;; should be &#39;examples&#39; or &#39;tokens&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">batch_type</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="training_pipeline"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.training_pipeline">[docs]</a><span class="k">def</span> <span class="nf">training_pipeline</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span>
+                      <span class="n">batch_size</span><span class="p">,</span>
+                      <span class="n">batch_type</span><span class="o">=</span><span class="s2">&quot;examples&quot;</span><span class="p">,</span>
+                      <span class="n">batch_multiplier</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                      <span class="n">bucket_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">single_pass</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">process_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">shuffle_buffer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">prefetch_buffer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">dataset_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">maximum_features_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">maximum_labels_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">features_length_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">labels_length_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Defines a complete training data pipeline.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    dataset: The base dataset.</span>
+<span class="sd">    batch_size: The batch size to use.</span>
+<span class="sd">    batch_type: The training batching stragety to use: can be &quot;examples&quot; or</span>
+<span class="sd">      &quot;tokens&quot;.</span>
+<span class="sd">    batch_multiplier: The batch size multiplier to prepare splitting accross</span>
+<span class="sd">       replicated graph parts.</span>
+<span class="sd">    bucket_width: The width of the length buckets to select batch candidates</span>
+<span class="sd">      from. ``None`` to not constrain batch formation.</span>
+<span class="sd">    single_pass: If ``True``, makes a single pass over the training data.</span>
+<span class="sd">    process_fn: The processing function to apply on each element.</span>
+<span class="sd">    num_threads: The number of elements processed in parallel.</span>
+<span class="sd">    shuffle_buffer_size: The number of elements from which to sample.</span>
+<span class="sd">    prefetch_buffer_size: The number of batches to prefetch asynchronously. If</span>
+<span class="sd">      ``None``, use an automatically tuned value on TensorFlow 1.8+ and 1 on</span>
+<span class="sd">      older versions.</span>
+<span class="sd">    dataset_size: The total size of the dataset, if known. It is recommended to</span>
+<span class="sd">      set it when :obj:`shuffle_buffer_size` is smaller than the dataset size.</span>
+<span class="sd">    maximum_features_length: The maximum length or list of maximum lengths of</span>
+<span class="sd">      the features sequence(s). ``None`` to not constrain the length.</span>
+<span class="sd">    maximum_labels_length: The maximum length of the labels sequence.</span>
+<span class="sd">      ``None`` to not constrain the length.</span>
+<span class="sd">    features_length_fn: A callable mapping features to a sequence length.</span>
+<span class="sd">    labels_length_fn: A callable mapping labels to a sequence length.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A ``tf.data.Dataset``.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">shuffle_buffer_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shuffle_buffer_size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">dataset_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">shuffle_buffer_size</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">shuffle_buffer_size</span> <span class="o">=</span> <span class="n">dataset_size</span>
+      <span class="k">elif</span> <span class="n">shuffle_buffer_size</span> <span class="o">&lt;</span> <span class="n">dataset_size</span><span class="p">:</span>
+        <span class="c1"># When the sample buffer size is smaller than the dataset size, shard</span>
+        <span class="c1"># the dataset in a random order. This ensures that all parts of the</span>
+        <span class="c1"># dataset can be seen when the evaluation frequency is high.</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">random_shard</span><span class="p">(</span><span class="n">shuffle_buffer_size</span><span class="p">,</span> <span class="n">dataset_size</span><span class="p">))</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">shuffle_buffer_size</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">process_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">process_fn</span><span class="p">,</span> <span class="n">num_parallel_calls</span><span class="o">=</span><span class="n">num_threads</span> <span class="ow">or</span> <span class="mi">4</span><span class="p">)</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">filter_examples_by_length</span><span class="p">(</span>
+      <span class="n">maximum_features_length</span><span class="o">=</span><span class="n">maximum_features_length</span><span class="p">,</span>
+      <span class="n">maximum_labels_length</span><span class="o">=</span><span class="n">maximum_labels_length</span><span class="p">,</span>
+      <span class="n">features_length_fn</span><span class="o">=</span><span class="n">features_length_fn</span><span class="p">,</span>
+      <span class="n">labels_length_fn</span><span class="o">=</span><span class="n">labels_length_fn</span><span class="p">))</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">batch_parallel_dataset</span><span class="p">(</span>
+      <span class="n">batch_size</span><span class="p">,</span>
+      <span class="n">batch_type</span><span class="o">=</span><span class="n">batch_type</span><span class="p">,</span>
+      <span class="n">batch_multiplier</span><span class="o">=</span><span class="n">batch_multiplier</span><span class="p">,</span>
+      <span class="n">bucket_width</span><span class="o">=</span><span class="n">bucket_width</span><span class="p">,</span>
+      <span class="n">features_length_fn</span><span class="o">=</span><span class="n">features_length_fn</span><span class="p">,</span>
+      <span class="n">labels_length_fn</span><span class="o">=</span><span class="n">labels_length_fn</span><span class="p">))</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">filter_irregular_batches</span><span class="p">(</span><span class="n">batch_multiplier</span><span class="p">))</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">single_pass</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">()</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">prefetch_element</span><span class="p">(</span><span class="n">buffer_size</span><span class="o">=</span><span class="n">prefetch_buffer_size</span><span class="p">))</span>
+  <span class="k">return</span> <span class="n">dataset</span></div>
+
+<div class="viewcode-block" id="inference_pipeline"><a class="viewcode-back" href="../../../package/opennmt.utils.data.html#opennmt.utils.data.inference_pipeline">[docs]</a><span class="k">def</span> <span class="nf">inference_pipeline</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span>
+                       <span class="n">batch_size</span><span class="p">,</span>
+                       <span class="n">process_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">prefetch_buffer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Defines a complete inference data pipeline.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    dataset: The base dataset.</span>
+<span class="sd">    batch_size: The batch size to use.</span>
+<span class="sd">    process_fn: The processing function to apply on each element.</span>
+<span class="sd">    num_threads: The number of elements processed in parallel.</span>
+<span class="sd">    prefetch_buffer_size: The number of batches to prefetch asynchronously. If</span>
+<span class="sd">      ``None``, use an automatically tuned value on TensorFlow 1.8+ and 1 on</span>
+<span class="sd">      older versions.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A ``tf.data.Dataset``.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">process_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">process_fn</span><span class="p">,</span> <span class="n">num_parallel_calls</span><span class="o">=</span><span class="n">num_threads</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">batch_parallel_dataset</span><span class="p">(</span><span class="n">batch_size</span><span class="p">))</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">prefetch_element</span><span class="p">(</span><span class="n">buffer_size</span><span class="o">=</span><span class="n">prefetch_buffer_size</span><span class="p">))</span>
+  <span class="k">return</span> <span class="n">dataset</span></div>
 </pre></div>
 
            </div>
@@ -375,13 +494,14 @@
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.3.0
+        v: v1.4.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../../../v1.3.0/_modules/opennmt/utils/data.html">v1.3.0</a></dd>
+            <dd><a href="../../../v1.4.0/_modules/opennmt/utils/data.html">v1.4.0</a></dd>
+            <dd><a href="../../../v1.3.0/index.html">v1.3.0</a></dd>
             <dd><a href="../../../v1.2.0/index.html">v1.2.0</a></dd>
             <dd><a href="../../../v1.1.0/index.html">v1.1.0</a></dd>
             <dd><a href="../../../v1.0.0/index.html">v1.0.0</a></dd>
@@ -395,7 +515,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.3.0',
+            VERSION:'1.4.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
