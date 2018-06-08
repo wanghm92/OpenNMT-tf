@@ -24,8 +24,7 @@
 
   
 
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -183,19 +182,19 @@
 <p>Define self-attention decoder.</p>
 <dl class="class">
 <dt id="opennmt.decoders.self_attention_decoder.SelfAttentionDecoder">
-<em class="property">class </em><code class="descclassname">opennmt.decoders.self_attention_decoder.</code><code class="descname">SelfAttentionDecoder</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units=512</em>, <em>num_heads=8</em>, <em>ffn_inner_dim=2048</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.layers.position.SinusoidalPositionEncoder object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/self_attention_decoder.html#SelfAttentionDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.self_attention_decoder.SelfAttentionDecoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.decoders.self_attention_decoder.</code><code class="descname">SelfAttentionDecoder</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units=512</em>, <em>num_heads=8</em>, <em>ffn_inner_dim=2048</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.layers.position.SinusoidalPositionEncoder object&gt;</em>, <em>self_attention_type='scaled_dot'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/self_attention_decoder.html#SelfAttentionDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.self_attention_decoder.SelfAttentionDecoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="opennmt.decoders.decoder.html#opennmt.decoders.decoder.Decoder" title="opennmt.decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.decoders.decoder.Decoder</span></code></a></p>
 <p>Decoder using self-attention as described in
 <a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a>.</p>
 <dl class="method">
 <dt id="opennmt.decoders.self_attention_decoder.SelfAttentionDecoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units=512</em>, <em>num_heads=8</em>, <em>ffn_inner_dim=2048</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.layers.position.SinusoidalPositionEncoder object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/self_attention_decoder.html#SelfAttentionDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.self_attention_decoder.SelfAttentionDecoder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_layers</em>, <em>num_units=512</em>, <em>num_heads=8</em>, <em>ffn_inner_dim=2048</em>, <em>dropout=0.1</em>, <em>attention_dropout=0.1</em>, <em>relu_dropout=0.1</em>, <em>position_encoder=&lt;opennmt.layers.position.SinusoidalPositionEncoder object&gt;</em>, <em>self_attention_type='scaled_dot'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/self_attention_decoder.html#SelfAttentionDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.self_attention_decoder.SelfAttentionDecoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the parameters of the decoder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>num_layers</strong> – The number of layers.</li>
 <li><strong>num_units</strong> – The number of hidden units.</li>
 <li><strong>num_heads</strong> – The number of heads in the multi-head attention.</li>
@@ -207,7 +206,12 @@ in the feed forward layer.</li>
 the feed forward layer.</li>
 <li><strong>position_encoder</strong> – A <a class="reference internal" href="opennmt.layers.position.html#opennmt.layers.position.PositionEncoder" title="opennmt.layers.position.PositionEncoder"><code class="xref py py-class docutils literal"><span class="pre">opennmt.layers.position.PositionEncoder</span></code></a> to
 apply on inputs or <code class="docutils literal"><span class="pre">None</span></code>.</li>
+<li><strong>self_attention_type</strong> – Type of self attention, “scaled_dot” or “average” (case
+insensitive).</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if <code class="xref py py-obj docutils literal"><span class="pre">self_attention_type</span></code> is invalid.</p>
 </td>
 </tr>
 </tbody>
@@ -275,6 +279,7 @@ apply on inputs or <code class="docutils literal"><span class="pre">None</span><
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../v1.5.0/package/opennmt.decoders.self_attention_decoder.html">v1.5.0</a></dd>
             <dd><a href="../../v1.4.0/package/opennmt.decoders.self_attention_decoder.html">v1.4.0</a></dd>
             <dd><a href="../../v1.3.0/package/opennmt.decoders.self_attention_decoder.html">v1.3.0</a></dd>
             <dd><a href="../../v1.2.0/package/opennmt.decoders.self_attention_decoder.html">v1.2.0</a></dd>
@@ -305,10 +310,7 @@ apply on inputs or <code class="docutils literal"><span class="pre">None</span><
 
   
 
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {

@@ -24,8 +24,7 @@
 
   
 
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -173,13 +172,13 @@
 <p>Main library entrypoint.</p>
 <dl class="class">
 <dt id="opennmt.runner.Runner">
-<em class="property">class </em><code class="descclassname">opennmt.runner.</code><code class="descname">Runner</code><span class="sig-paren">(</span><em>model</em>, <em>config</em>, <em>seed=None</em>, <em>num_devices=1</em>, <em>gpu_allow_growth=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/runner.html#Runner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.runner.Runner" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.runner.</code><code class="descname">Runner</code><span class="sig-paren">(</span><em>model</em>, <em>config</em>, <em>seed=None</em>, <em>num_devices=1</em>, <em>gpu_allow_growth=False</em>, <em>session_config=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/runner.html#Runner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.runner.Runner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Class for managing training, inference, and export. It is mostly a
 wrapper around <code class="docutils literal"><span class="pre">tf.estimator.Estimator</span></code>.</p>
 <dl class="method">
 <dt id="opennmt.runner.Runner.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>model</em>, <em>config</em>, <em>seed=None</em>, <em>num_devices=1</em>, <em>gpu_allow_growth=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/runner.html#Runner.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.runner.Runner.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>model</em>, <em>config</em>, <em>seed=None</em>, <em>num_devices=1</em>, <em>gpu_allow_growth=False</em>, <em>session_config=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/runner.html#Runner.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.runner.Runner.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the runner parameters.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -191,6 +190,7 @@ wrapper around <code class="docutils literal"><span class="pre">tf.estimator.Est
 <li><strong>seed</strong> – The random seed to set.</li>
 <li><strong>num_devices</strong> – The number of devices (GPUs) to use for training.</li>
 <li><strong>gpu_allow_growth</strong> – Allow GPU memory to grow dynamically.</li>
+<li><strong>session_config</strong> – <code class="docutils literal"><span class="pre">tf.ConfigProto</span></code> overrides.</li>
 </ul>
 </td>
 </tr>
@@ -217,8 +217,29 @@ wrapper around <code class="docutils literal"><span class="pre">tf.estimator.Est
 </dd></dl>
 
 <dl class="method">
+<dt id="opennmt.runner.Runner.average_checkpoints">
+<code class="descname">average_checkpoints</code><span class="sig-paren">(</span><em>output_dir</em>, <em>max_count=8</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/runner.html#Runner.average_checkpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.runner.Runner.average_checkpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Averages checkpoints.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>output_dir</strong> – The directory that will contain the averaged checkpoint.</li>
+<li><strong>max_count</strong> – The maximum number of checkpoints to average.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The path to the directory containing the averaged checkpoint.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="opennmt.runner.Runner.infer">
-<code class="descname">infer</code><span class="sig-paren">(</span><em>features_file</em>, <em>predictions_file=None</em>, <em>checkpoint_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/runner.html#Runner.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.runner.Runner.infer" title="Permalink to this definition">¶</a></dt>
+<code class="descname">infer</code><span class="sig-paren">(</span><em>features_file</em>, <em>predictions_file=None</em>, <em>checkpoint_path=None</em>, <em>log_time=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/runner.html#Runner.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.runner.Runner.infer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Runs inference.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -229,6 +250,8 @@ wrapper around <code class="docutils literal"><span class="pre">tf.estimator.Est
 <li><strong>predictions_file</strong> – If set, predictions are saved in this file.</li>
 <li><strong>checkpoint_path</strong> – Path of a specific checkpoint to predict. If <code class="docutils literal"><span class="pre">None</span></code>,
 the latest is used.</li>
+<li><strong>log_time</strong> – If <code class="docutils literal"><span class="pre">True</span></code>, several time metrics will be printed in the logs at
+the end of the inference loop.</li>
 </ul>
 </td>
 </tr>
@@ -320,6 +343,7 @@ sequence model.</p>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../v1.5.0/package/opennmt.runner.html">v1.5.0</a></dd>
             <dd><a href="opennmt.runner.html">v1.4.0</a></dd>
             <dd><a href="../../v1.3.0/package/opennmt.runner.html">v1.3.0</a></dd>
             <dd><a href="../../v1.2.0/package/opennmt.runner.html">v1.2.0</a></dd>
@@ -350,10 +374,7 @@ sequence model.</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.inputters.text_inputter &mdash; OpenNMT-tf 1.4.0 documentation</title>
+  <title>opennmt.inputters.text_inputter &mdash; OpenNMT-tf 1.5.0 documentation</title>
   
 
   
@@ -24,8 +24,7 @@
 
   
 
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/banner.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
@@ -62,7 +61,7 @@
             
             
               <div class="version">
-                1.4
+                1.5
               </div>
             
           
@@ -197,7 +196,8 @@
   <span class="c1"># Copy vocabulary file to log_dir.</span>
   <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">vocabulary_file</span><span class="p">)</span>
   <span class="n">destination</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
-  <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">vocabulary_file</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">vocabulary_file</span> <span class="o">!=</span> <span class="n">destination</span><span class="p">:</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">vocabulary_file</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
 
   <span class="c1"># Append &lt;unk&gt; tokens.</span>
   <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;ab&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">vocab</span><span class="p">:</span>
@@ -804,13 +804,14 @@
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.4.0
+        v: v1.5.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../../../v1.4.0/_modules/opennmt/inputters/text_inputter.html">v1.4.0</a></dd>
+            <dd><a href="../../../v1.5.0/_modules/opennmt/inputters/text_inputter.html">v1.5.0</a></dd>
+            <dd><a href="../../../v1.4.0/index.html">v1.4.0</a></dd>
             <dd><a href="../../../v1.3.0/index.html">v1.3.0</a></dd>
             <dd><a href="../../../v1.2.0/index.html">v1.2.0</a></dd>
             <dd><a href="../../../v1.1.0/index.html">v1.1.0</a></dd>
@@ -825,7 +826,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.0',
+            VERSION:'1.5.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
@@ -840,10 +841,7 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {

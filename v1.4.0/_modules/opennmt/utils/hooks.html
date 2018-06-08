@@ -24,8 +24,7 @@
 
   
 
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/banner.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
@@ -160,7 +159,10 @@
 <span></span><span class="sd">&quot;&quot;&quot;Custom hooks.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+
 <span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">six</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
@@ -258,6 +260,37 @@
           <span class="bp">self</span><span class="o">.</span><span class="n">_last_count</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">counters</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div></div>
 
 
+<div class="viewcode-block" id="LogPredictionTimeHook"><a class="viewcode-back" href="../../../package/opennmt.utils.hooks.html#opennmt.utils.hooks.LogPredictionTimeHook">[docs]</a><span class="k">class</span> <span class="nc">LogPredictionTimeHook</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">SessionRunHook</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Hooks that gathers and logs prediction times.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LogPredictionTimeHook.begin"><a class="viewcode-back" href="../../../package/opennmt.utils.hooks.html#opennmt.utils.hooks.LogPredictionTimeHook.begin">[docs]</a>  <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_total_time</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_total_tokens</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_total_examples</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="LogPredictionTimeHook.before_run"><a class="viewcode-back" href="../../../package/opennmt.utils.hooks.html#opennmt.utils.hooks.LogPredictionTimeHook.before_run">[docs]</a>  <span class="k">def</span> <span class="nf">before_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_context</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_run_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">run_context</span><span class="o">.</span><span class="n">original_args</span><span class="o">.</span><span class="n">fetches</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">SessionRunArgs</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LogPredictionTimeHook.after_run"><a class="viewcode-back" href="../../../package/opennmt.utils.hooks.html#opennmt.utils.hooks.LogPredictionTimeHook.after_run">[docs]</a>  <span class="k">def</span> <span class="nf">after_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_context</span><span class="p">,</span> <span class="n">run_values</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_total_time</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_start_time</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">run_values</span><span class="o">.</span><span class="n">results</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">predictions</span><span class="p">))</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_total_examples</span> <span class="o">+=</span> <span class="n">batch_size</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;length&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">length</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="n">length</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_total_tokens</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">length</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LogPredictionTimeHook.end"><a class="viewcode-back" href="../../../package/opennmt.utils.hooks.html#opennmt.utils.hooks.LogPredictionTimeHook.end">[docs]</a>  <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Total prediction time (s): </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_time</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Average prediction time (s): </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_time</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_examples</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_tokens</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Tokens per second: </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_tokens</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_time</span><span class="p">)</span></div></div>
+
+
 <div class="viewcode-block" id="SaveEvaluationPredictionHook"><a class="viewcode-back" href="../../../package/opennmt.utils.hooks.html#opennmt.utils.hooks.SaveEvaluationPredictionHook">[docs]</a><span class="k">class</span> <span class="nc">SaveEvaluationPredictionHook</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">SessionRunHook</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Hook that saves the evaluation predictions.&quot;&quot;&quot;</span>
 
@@ -331,6 +364,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../../../v1.5.0/index.html">v1.5.0</a></dd>
             <dd><a href="hooks.html">v1.4.0</a></dd>
             <dd><a href="../../../../v1.3.0/index.html">v1.3.0</a></dd>
             <dd><a href="../../../../v1.2.0/index.html">v1.2.0</a></dd>
@@ -361,10 +395,7 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {

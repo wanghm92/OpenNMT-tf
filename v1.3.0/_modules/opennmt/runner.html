@@ -24,8 +24,7 @@
 
   
 
-  
-    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/banner.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
@@ -169,7 +168,7 @@
 
 <span class="kn">from</span> <span class="nn">tensorflow.python.estimator.util</span> <span class="k">import</span> <span class="n">fn_args</span>
 
-<span class="kn">from</span> <span class="nn">opennmt.utils</span> <span class="k">import</span> <span class="n">hooks</span>
+<span class="kn">from</span> <span class="nn">opennmt.utils</span> <span class="k">import</span> <span class="n">hooks</span><span class="p">,</span> <span class="n">checkpoint</span>
 <span class="kn">from</span> <span class="nn">opennmt.utils.evaluator</span> <span class="k">import</span> <span class="n">external_evaluation_fn</span>
 <span class="kn">from</span> <span class="nn">opennmt.utils.misc</span> <span class="k">import</span> <span class="n">extract_batches</span><span class="p">,</span> <span class="n">print_bytes</span>
 
@@ -184,7 +183,8 @@
                <span class="n">config</span><span class="p">,</span>
                <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">num_devices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-               <span class="n">gpu_allow_growth</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+               <span class="n">gpu_allow_growth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">session_config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Initializes the runner parameters.</span>
 
 <span class="sd">    Args:</span>
@@ -193,16 +193,20 @@
 <span class="sd">      seed: The random seed to set.</span>
 <span class="sd">      num_devices: The number of devices (GPUs) to use for training.</span>
 <span class="sd">      gpu_allow_growth: Allow GPU memory to grow dynamically.</span>
+<span class="sd">      session_config: ``tf.ConfigProto`` overrides.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_num_devices</span> <span class="o">=</span> <span class="n">num_devices</span>
 
-    <span class="n">session_config</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ConfigProto</span><span class="p">(</span>
+    <span class="n">session_config_base</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ConfigProto</span><span class="p">(</span>
         <span class="n">allow_soft_placement</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">log_device_placement</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">gpu_options</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">GPUOptions</span><span class="p">(</span>
             <span class="n">allow_growth</span><span class="o">=</span><span class="n">gpu_allow_growth</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">session_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">session_config_base</span><span class="o">.</span><span class="n">MergeFrom</span><span class="p">(</span><span class="n">session_config</span><span class="p">)</span>
+    <span class="n">session_config</span> <span class="o">=</span> <span class="n">session_config_base</span>
     <span class="n">run_config</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">RunConfig</span><span class="p">(</span>
         <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;model_dir&quot;</span><span class="p">],</span>
         <span class="n">session_config</span><span class="o">=</span><span class="n">session_config</span><span class="p">,</span>
@@ -299,13 +303,15 @@
     <span class="sd">&quot;&quot;&quot;Runs the training and evaluation loop.&quot;&quot;&quot;</span>
     <span class="n">train_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_train_spec</span><span class="p">()</span>
     <span class="n">eval_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_eval_spec</span><span class="p">()</span>
-    <span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">train_and_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_estimator</span><span class="p">,</span> <span class="n">train_spec</span><span class="p">,</span> <span class="n">eval_spec</span><span class="p">)</span></div>
+    <span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">train_and_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_estimator</span><span class="p">,</span> <span class="n">train_spec</span><span class="p">,</span> <span class="n">eval_spec</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_maybe_average_checkpoints</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Runner.train"><a class="viewcode-back" href="../../package/opennmt.runner.html#opennmt.runner.Runner.train">[docs]</a>  <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Runs the training loop.&quot;&quot;&quot;</span>
     <span class="n">train_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_train_spec</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_estimator</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
-        <span class="n">train_spec</span><span class="o">.</span><span class="n">input_fn</span><span class="p">,</span> <span class="n">hooks</span><span class="o">=</span><span class="n">train_spec</span><span class="o">.</span><span class="n">hooks</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="n">train_spec</span><span class="o">.</span><span class="n">max_steps</span><span class="p">)</span></div>
+        <span class="n">train_spec</span><span class="o">.</span><span class="n">input_fn</span><span class="p">,</span> <span class="n">hooks</span><span class="o">=</span><span class="n">train_spec</span><span class="o">.</span><span class="n">hooks</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="n">train_spec</span><span class="o">.</span><span class="n">max_steps</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_maybe_average_checkpoints</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Runner.evaluate"><a class="viewcode-back" href="../../package/opennmt.runner.html#opennmt.runner.Runner.evaluate">[docs]</a>  <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Runs evaluation.&quot;&quot;&quot;</span>
@@ -315,7 +321,46 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_estimator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
         <span class="n">eval_spec</span><span class="o">.</span><span class="n">input_fn</span><span class="p">,</span> <span class="n">hooks</span><span class="o">=</span><span class="n">eval_spec</span><span class="o">.</span><span class="n">hooks</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="o">=</span><span class="n">checkpoint_path</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Runner.infer"><a class="viewcode-back" href="../../package/opennmt.runner.html#opennmt.runner.Runner.infer">[docs]</a>  <span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features_file</span><span class="p">,</span> <span class="n">predictions_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="k">def</span> <span class="nf">_maybe_average_checkpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">avg_subdirectory</span><span class="o">=</span><span class="s2">&quot;avg&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Averages checkpoints if enabled in the training configuration and if the</span>
+<span class="sd">    current training instance is the chief.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      avg_subdirectory: The directory within the model directory that will</span>
+<span class="sd">        contain the averaged checkpoint.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      The path to the directory containing the averaged checkpoint or ``None``</span>
+<span class="sd">      if no checkpoints were averaged.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">average_last_checkpoints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;average_last_checkpoints&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">average_last_checkpoints</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimator</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">is_chief</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_checkpoints</span><span class="p">(</span>
+          <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_estimator</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span> <span class="n">avg_subdirectory</span><span class="p">),</span>
+          <span class="n">max_count</span><span class="o">=</span><span class="n">average_last_checkpoints</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Runner.average_checkpoints"><a class="viewcode-back" href="../../package/opennmt.runner.html#opennmt.runner.Runner.average_checkpoints">[docs]</a>  <span class="k">def</span> <span class="nf">average_checkpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">max_count</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Averages checkpoints.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      output_dir: The directory that will contain the averaged checkpoint.</span>
+<span class="sd">      max_count: The maximum number of checkpoints to average.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      The path to the directory containing the averaged checkpoint.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">average_checkpoints</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_estimator</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="p">,</span>
+        <span class="n">max_count</span><span class="o">=</span><span class="n">max_count</span><span class="p">,</span>
+        <span class="n">session_config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_estimator</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">session_config</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Runner.infer"><a class="viewcode-back" href="../../package/opennmt.runner.html#opennmt.runner.Runner.infer">[docs]</a>  <span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">features_file</span><span class="p">,</span>
+            <span class="n">predictions_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">checkpoint_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">log_time</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Runs inference.</span>
 
 <span class="sd">    Args:</span>
@@ -323,6 +368,8 @@
 <span class="sd">      predictions_file: If set, predictions are saved in this file.</span>
 <span class="sd">      checkpoint_path: Path of a specific checkpoint to predict. If ``None``,</span>
 <span class="sd">        the latest is used.</span>
+<span class="sd">      log_time: If ``True``, several time metrics will be printed in the logs at</span>
+<span class="sd">        the end of the inference loop.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="s2">&quot;infer&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;infer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -343,7 +390,14 @@
     <span class="k">else</span><span class="p">:</span>
       <span class="n">stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
 
-    <span class="k">for</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimator</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">input_fn</span><span class="o">=</span><span class="n">input_fn</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="o">=</span><span class="n">checkpoint_path</span><span class="p">):</span>
+    <span class="n">infer_hooks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">log_time</span><span class="p">:</span>
+      <span class="n">infer_hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hooks</span><span class="o">.</span><span class="n">LogPredictionTimeHook</span><span class="p">())</span>
+
+    <span class="k">for</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimator</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+        <span class="n">input_fn</span><span class="o">=</span><span class="n">input_fn</span><span class="p">,</span>
+        <span class="n">checkpoint_path</span><span class="o">=</span><span class="n">checkpoint_path</span><span class="p">,</span>
+        <span class="n">hooks</span><span class="o">=</span><span class="n">infer_hooks</span><span class="p">):</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">print_prediction</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;infer&quot;</span><span class="p">],</span> <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">predictions_file</span><span class="p">:</span>
@@ -495,6 +549,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../../v1.5.0/index.html">v1.5.0</a></dd>
             <dd><a href="../../../v1.4.0/index.html">v1.4.0</a></dd>
             <dd><a href="runner.html">v1.3.0</a></dd>
             <dd><a href="../../../v1.2.0/index.html">v1.2.0</a></dd>
@@ -525,10 +580,7 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {

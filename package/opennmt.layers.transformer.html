@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.layers.transformer module &mdash; OpenNMT-tf 1.4.0 documentation</title>
+  <title>opennmt.layers.transformer module &mdash; OpenNMT-tf 1.5.0 documentation</title>
   
 
   
@@ -24,8 +24,7 @@
 
   
 
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -64,7 +63,7 @@
             
             
               <div class="version">
-                1.4
+                1.5
               </div>
             
           
@@ -247,6 +246,56 @@ it is the maximum of <code class="xref py py-obj docutils literal"><span class="
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="docutils literal"><span class="pre">tf.Tensor</span></code> of type <code class="xref py py-obj docutils literal"><span class="pre">dtype</span></code> and shape
 <code class="docutils literal"><span class="pre">[batch_size,</span> <span class="pre">num_heads,</span> <span class="pre">max_length,</span> <span class="pre">max_length]</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.layers.transformer.cumulative_average_mask">
+<code class="descclassname">opennmt.layers.transformer.</code><code class="descname">cumulative_average_mask</code><span class="sig-paren">(</span><em>sequence_length</em>, <em>maximum_length=None</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/layers/transformer.html#cumulative_average_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.layers.transformer.cumulative_average_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds the mask to compute the cumulative average as described in
+<a class="reference external" href="https://arxiv.org/abs/1805.00631">https://arxiv.org/abs/1805.00631</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sequence_length</strong> – The sequence length.</li>
+<li><strong>maximum_length</strong> – Optional size of the returned time dimension. Otherwise
+it is the maximum of <code class="xref py py-obj docutils literal"><span class="pre">sequence_length</span></code>.</li>
+<li><strong>dtype</strong> – The type of the mask tensor.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <code class="docutils literal"><span class="pre">tf.Tensor</span></code> of type <code class="xref py py-obj docutils literal"><span class="pre">dtype</span></code> and shape
+<code class="docutils literal"><span class="pre">[batch_size,</span> <span class="pre">max_length,</span> <span class="pre">max_length]</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="opennmt.layers.transformer.cumulative_average">
+<code class="descclassname">opennmt.layers.transformer.</code><code class="descname">cumulative_average</code><span class="sig-paren">(</span><em>inputs</em>, <em>mask_or_step</em>, <em>cache=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/layers/transformer.html#cumulative_average"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.layers.transformer.cumulative_average" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the cumulative average as described in
+<a class="reference external" href="https://arxiv.org/abs/1805.00631">https://arxiv.org/abs/1805.00631</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputs</strong> – The sequence to average. A tensor of shape <span class="math">\([B, T, D]\)</span>.</li>
+<li><strong>mask_or_step</strong> – If <code class="xref py py-obj docutils literal"><span class="pre">cache</span></code> is set, this is assumed to be the current step
+of the dynamic decoding. Otherwise, it is the mask matrix used to compute
+the cumulative average.</li>
+<li><strong>cache</strong> – A dictionnary containing the cumulative average of the previous step.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The cumulative average, a tensor of the same shape and type as <code class="xref py py-obj docutils literal"><span class="pre">inputs</span></code>.</p>
 </td>
 </tr>
 </tbody>
@@ -460,12 +509,13 @@ dimension.</li>
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.4.0
+        v: v1.5.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../v1.5.0/package/opennmt.layers.transformer.html">v1.5.0</a></dd>
             <dd><a href="../v1.4.0/package/opennmt.layers.transformer.html">v1.4.0</a></dd>
             <dd><a href="../v1.3.0/package/opennmt.layers.transformer.html">v1.3.0</a></dd>
             <dd><a href="../v1.2.0/package/opennmt.layers.transformer.html">v1.2.0</a></dd>
@@ -481,7 +531,7 @@ dimension.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.4.0',
+            VERSION:'1.5.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
@@ -496,10 +546,7 @@ dimension.</li>
 
   
 
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {

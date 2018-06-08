@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.utils.hooks module &mdash; OpenNMT-tf 1.4.0 documentation</title>
+  <title>opennmt.utils.hooks module &mdash; OpenNMT-tf 1.5.0 documentation</title>
   
 
   
@@ -24,8 +24,7 @@
 
   
 
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -64,7 +63,7 @@
             
             
               <div class="version">
-                1.4
+                1.5
               </div>
             
           
@@ -241,6 +240,33 @@ to log their value in TensorBoard.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="opennmt.utils.hooks.LogPredictionTimeHook">
+<em class="property">class </em><code class="descclassname">opennmt.utils.hooks.</code><code class="descname">LogPredictionTimeHook</code><a class="reference internal" href="../_modules/opennmt/utils/hooks.html#LogPredictionTimeHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.hooks.LogPredictionTimeHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<p>Hooks that gathers and logs prediction times.</p>
+<dl class="method">
+<dt id="opennmt.utils.hooks.LogPredictionTimeHook.begin">
+<code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/hooks.html#LogPredictionTimeHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.hooks.LogPredictionTimeHook.begin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="opennmt.utils.hooks.LogPredictionTimeHook.before_run">
+<code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/hooks.html#LogPredictionTimeHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.hooks.LogPredictionTimeHook.before_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="opennmt.utils.hooks.LogPredictionTimeHook.after_run">
+<code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/hooks.html#LogPredictionTimeHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.hooks.LogPredictionTimeHook.after_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="opennmt.utils.hooks.LogPredictionTimeHook.end">
+<code class="descname">end</code><span class="sig-paren">(</span><em>session</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/hooks.html#LogPredictionTimeHook.end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.hooks.LogPredictionTimeHook.end" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="opennmt.utils.hooks.SaveEvaluationPredictionHook">
 <em class="property">class </em><code class="descclassname">opennmt.utils.hooks.</code><code class="descname">SaveEvaluationPredictionHook</code><span class="sig-paren">(</span><em>model</em>, <em>output_file</em>, <em>post_evaluation_fn=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/hooks.html#SaveEvaluationPredictionHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.hooks.SaveEvaluationPredictionHook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
@@ -326,12 +352,13 @@ current step and the file with the saved predictions.</li>
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.4.0
+        v: v1.5.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../v1.5.0/package/opennmt.utils.hooks.html">v1.5.0</a></dd>
             <dd><a href="../v1.4.0/package/opennmt.utils.hooks.html">v1.4.0</a></dd>
             <dd><a href="../v1.3.0/package/opennmt.utils.hooks.html">v1.3.0</a></dd>
             <dd><a href="../v1.2.0/package/opennmt.utils.hooks.html">v1.2.0</a></dd>
@@ -347,7 +374,7 @@ current step and the file with the saved predictions.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.4.0',
+            VERSION:'1.5.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
@@ -362,10 +389,7 @@ current step and the file with the saved predictions.</li>
 
   
 
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {
