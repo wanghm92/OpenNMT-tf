@@ -199,13 +199,13 @@
   <span class="k">if</span> <span class="n">vocabulary_file</span> <span class="o">!=</span> <span class="n">destination</span><span class="p">:</span>
     <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">vocabulary_file</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
 
-  <span class="c1"># Append &lt;unk&gt; tokens.</span>
-  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;ab&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">vocab</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">num_oov_buckets</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-      <span class="n">vocab</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&lt;unk&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_oov_buckets</span><span class="p">):</span>
-        <span class="n">vocab</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">as_bytes</span><span class="p">(</span><span class="s2">&quot;&lt;unk</span><span class="si">%d</span><span class="s2">&gt;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">))</span>
+    <span class="c1"># Append &lt;unk&gt; tokens.</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;ab&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">vocab</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">num_oov_buckets</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">vocab</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&lt;unk&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_oov_buckets</span><span class="p">):</span>
+          <span class="n">vocab</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">as_bytes</span><span class="p">(</span><span class="s2">&quot;&lt;unk</span><span class="si">%d</span><span class="s2">&gt;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">))</span>
 
   <span class="n">config</span> <span class="o">=</span> <span class="n">projector</span><span class="o">.</span><span class="n">ProjectorConfig</span><span class="p">()</span>
 
@@ -534,12 +534,12 @@
             <span class="n">case_insensitive_embeddings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">case_insensitive_embeddings</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">embedding_size</span> <span class="o">=</span> <span class="n">pretrained</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-        <span class="n">shape</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">initializer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">pretrained</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()))</span>
+        <span class="n">initializer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span>
+            <span class="n">pretrained</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()),</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
-        <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vocabulary_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_size</span><span class="p">]</span>
         <span class="n">initializer</span> <span class="o">=</span> <span class="kc">None</span>
 
+      <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vocabulary_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_size</span><span class="p">]</span>
       <span class="n">embeddings</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
           <span class="s2">&quot;w_embs&quot;</span><span class="p">,</span>
           <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
@@ -810,6 +810,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../../../v1.6.0/index.html">v1.6.0</a></dd>
             <dd><a href="../../../../v1.5.0/index.html">v1.5.0</a></dd>
             <dd><a href="../../../../v1.4.0/index.html">v1.4.0</a></dd>
             <dd><a href="../../../../v1.3.0/index.html">v1.3.0</a></dd>

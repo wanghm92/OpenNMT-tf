@@ -395,6 +395,32 @@ if <code class="xref py py-obj docutils literal"><span class="pre">return_alignm
 
 </dd></dl>
 
+<dl class="function">
+<dt id="opennmt.decoders.decoder.greedy_decode">
+<code class="descclassname">opennmt.decoders.decoder.</code><code class="descname">greedy_decode</code><span class="sig-paren">(</span><em>symbols_to_logits_fn</em>, <em>initial_ids</em>, <em>end_id</em>, <em>decode_length=None</em>, <em>state=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/decoders/decoder.html#greedy_decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.decoders.decoder.greedy_decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greedily decodes from <code class="xref py py-obj docutils literal"><span class="pre">initial_ids</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>symbols_to_logits_fn</strong> – Interface to the model, to provide logits.
+Shoud take [batch_size, decoded_ids] and return [batch_size, vocab_size].</li>
+<li><strong>initial_ids</strong> – Ids to start off the decoding, this will be the first thing
+handed to symbols_to_logits_fn.</li>
+<li><strong>eos_id</strong> – ID for end of sentence.</li>
+<li><strong>decode_length</strong> – Maximum number of steps to decode for.</li>
+<li><strong>states</strong> – A dictionnary of (possibly nested) decoding states.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple with the decoded output, the decoded lengths, and the log probabilities.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
@@ -439,6 +465,7 @@ if <code class="xref py py-obj docutils literal"><span class="pre">return_alignm
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../v1.6.0/package/opennmt.decoders.decoder.html">v1.6.0</a></dd>
             <dd><a href="opennmt.decoders.decoder.html">v1.5.0</a></dd>
             <dd><a href="../../v1.4.0/package/opennmt.decoders.decoder.html">v1.4.0</a></dd>
             <dd><a href="../../v1.3.0/package/opennmt.decoders.decoder.html">v1.3.0</a></dd>

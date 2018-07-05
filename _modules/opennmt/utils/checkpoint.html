@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.utils.checkpoint &mdash; OpenNMT-tf 1.5.0 documentation</title>
+  <title>opennmt.utils.checkpoint &mdash; OpenNMT-tf 1.6.0 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -164,6 +164,143 @@
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">opennmt.utils.vocab</span> <span class="k">import</span> <span class="n">Vocab</span>
+<span class="kn">from</span> <span class="nn">opennmt.utils.misc</span> <span class="k">import</span> <span class="n">count_lines</span>
+
+
+<span class="k">def</span> <span class="nf">_get_vocabulary_mapping</span><span class="p">(</span><span class="n">current_vocab_path</span><span class="p">,</span> <span class="n">new_vocab_path</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Maps vocabulary new indices to old ones. -1 means that the entry is new.&quot;&quot;&quot;</span>
+  <span class="n">current_vocab</span> <span class="o">=</span> <span class="n">Vocab</span><span class="p">(</span><span class="n">from_file</span><span class="o">=</span><span class="n">current_vocab_path</span><span class="p">)</span>
+  <span class="n">new_vocab</span> <span class="o">=</span> <span class="n">Vocab</span><span class="p">(</span><span class="n">from_file</span><span class="o">=</span><span class="n">new_vocab_path</span><span class="p">)</span>
+  <span class="n">mapping</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;merge&quot;</span><span class="p">:</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">current_vocab</span><span class="o">.</span><span class="n">size</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">new_word</span> <span class="ow">in</span> <span class="n">new_vocab</span><span class="o">.</span><span class="n">words</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">current_vocab</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">new_word</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mapping</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+  <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;replace&quot;</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">new_word</span> <span class="ow">in</span> <span class="n">new_vocab</span><span class="o">.</span><span class="n">words</span><span class="p">:</span>
+      <span class="n">idx</span> <span class="o">=</span> <span class="n">current_vocab</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">new_word</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mapping</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">mapping</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">mapping</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_vocab</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>  <span class="c1"># &lt;unk&gt; token is always the last entry.</span>
+  <span class="k">return</span> <span class="n">mapping</span>
+
+<span class="k">def</span> <span class="nf">_update_vocabulary_variable</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">mapping</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Creates a new variable, possibly copying previous entries based on mapping.&quot;&quot;&quot;</span>
+  <span class="n">dim</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">)</span>
+  <span class="c1"># Make the dimension to index the first.</span>
+  <span class="n">perm</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">)))</span>
+  <span class="n">perm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">perm</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">perm</span><span class="p">[</span><span class="n">dim</span><span class="p">],</span> <span class="n">perm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">variable_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">perm</span><span class="p">)</span>
+  <span class="n">new_shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">variable_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+  <span class="n">new_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span>
+  <span class="n">new_variable_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">new_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">variable</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mapping</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">new_variable_t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">variable_t</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+  <span class="n">new_variable</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">new_variable_t</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">perm</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">new_variable</span>
+
+<span class="k">def</span> <span class="nf">_update_vocabulary_variables</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">current_vocab_path</span><span class="p">,</span> <span class="n">new_vocab_path</span><span class="p">,</span> <span class="n">scope_name</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+  <span class="n">current_size</span> <span class="o">=</span> <span class="n">count_lines</span><span class="p">(</span><span class="n">current_vocab_path</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="n">mapping</span> <span class="o">=</span> <span class="n">_get_vocabulary_mapping</span><span class="p">(</span><span class="n">current_vocab_path</span><span class="p">,</span> <span class="n">new_vocab_path</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">variables</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">scope_name</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">d</span> <span class="o">==</span> <span class="n">current_size</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+      <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Updating variable </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+      <span class="n">variables</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_update_vocabulary_variable</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">current_size</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_save_new_variables</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">base_checkpoint_path</span><span class="p">,</span> <span class="n">session_config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="k">if</span> <span class="s2">&quot;global_step&quot;</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
+    <span class="k">del</span> <span class="n">variables</span><span class="p">[</span><span class="s2">&quot;global_step&quot;</span><span class="p">]</span>
+  <span class="n">tf_vars</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">variables</span><span class="p">):</span>
+    <span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">as_dtype</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;words_per_sec&quot;</span><span class="p">):</span>
+      <span class="n">trainable</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="n">dtype</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">int64</span>  <span class="c1"># TODO: why is the dtype not correct for these variables?</span>
+    <span class="n">tf_vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">trainable</span><span class="o">=</span><span class="n">trainable</span><span class="p">))</span>
+  <span class="n">placeholders</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tf_vars</span><span class="p">]</span>
+  <span class="n">assign_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tf_vars</span><span class="p">,</span> <span class="n">placeholders</span><span class="p">)]</span>
+
+  <span class="n">latest_step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">base_checkpoint_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+  <span class="n">out_base_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;model.ckpt&quot;</span><span class="p">)</span>
+  <span class="n">global_step</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+      <span class="s2">&quot;global_step&quot;</span><span class="p">,</span>
+      <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">latest_step</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+      <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+  <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables</span><span class="p">())</span>
+
+  <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">session_config</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+    <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">assign_op</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">placeholders</span><span class="p">,</span> <span class="n">assign_ops</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">variables</span><span class="p">)):</span>
+      <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">assign_op</span><span class="p">,</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saving new checkpoint to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">out_base_file</span><span class="p">,</span> <span class="n">global_step</span><span class="o">=</span><span class="n">global_step</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">output_dir</span>
+
+<div class="viewcode-block" id="update_vocab"><a class="viewcode-back" href="../../../package/opennmt.utils.checkpoint.html#opennmt.utils.checkpoint.update_vocab">[docs]</a><span class="k">def</span> <span class="nf">update_vocab</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span>
+                 <span class="n">output_dir</span><span class="p">,</span>
+                 <span class="n">current_src_vocab</span><span class="p">,</span>
+                 <span class="n">current_tgt_vocab</span><span class="p">,</span>
+                 <span class="n">new_src_vocab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">new_tgt_vocab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;merge&quot;</span><span class="p">,</span>
+                 <span class="n">session_config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Updates the last checkpoint to support new vocabularies.</span>
+
+<span class="sd">  This allows to add new words to a model while keeping the previously learned</span>
+<span class="sd">  weights.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    model_dir: The directory containing checkpoints (the most recent will be loaded).</span>
+<span class="sd">    output_dir: The directory that will contain the converted checkpoint.</span>
+<span class="sd">    current_src_vocab: Path to the source vocabulary currently use in the model.</span>
+<span class="sd">    current_tgt_vocab: Path to the target vocabulary currently use in the model.</span>
+<span class="sd">    new_src_vocab: Path to the new source vocabulary to support.</span>
+<span class="sd">    new_tgt_vocab: Path to the new target vocabulary to support.</span>
+<span class="sd">    mode: Update mode: &quot;merge&quot; keeps all existing words and adds new words,</span>
+<span class="sd">      &quot;replace&quot; makes the new vocabulary file the active one. In all modes,</span>
+<span class="sd">      if an existing word appears in the new vocabulary, its learned weights</span>
+<span class="sd">      are kept in the converted checkpoint.</span>
+<span class="sd">    session_config: Optional configuration to use when creating the session.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    The path to the directory containing the converted checkpoint.</span>
+
+<span class="sd">  Raises:</span>
+<span class="sd">    ValueError: if :obj:`output_dir` is the same as :obj:`model_dir` or if</span>
+<span class="sd">      :obj:`mode` is invalid.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">model_dir</span> <span class="o">==</span> <span class="n">output_dir</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model and output directory must be different&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;merge&quot;</span><span class="p">,</span> <span class="s2">&quot;replace&quot;</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid vocab update mode: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">new_src_vocab</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">new_tgt_vocab</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">model_dir</span>
+  <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">model_dir</span><span class="p">)</span>
+  <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Updating vocabulary related variables in checkpoint </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">checkpoint_path</span><span class="p">)</span>
+  <span class="n">reader</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">load_checkpoint</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">)</span>
+  <span class="n">variable_map</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_variable_to_shape_map</span><span class="p">()</span>
+  <span class="n">variable_value</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span><span class="n">reader</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">variable_map</span><span class="p">)}</span>
+  <span class="k">if</span> <span class="n">new_src_vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_update_vocabulary_variables</span><span class="p">(</span><span class="n">variable_value</span><span class="p">,</span> <span class="n">current_src_vocab</span><span class="p">,</span> <span class="n">new_src_vocab</span><span class="p">,</span> <span class="s2">&quot;encoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">new_tgt_vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_update_vocabulary_variables</span><span class="p">(</span><span class="n">variable_value</span><span class="p">,</span> <span class="n">current_tgt_vocab</span><span class="p">,</span> <span class="n">new_tgt_vocab</span><span class="p">,</span> <span class="s2">&quot;decoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">_save_new_variables</span><span class="p">(</span>
+      <span class="n">variable_value</span><span class="p">,</span>
+      <span class="n">output_dir</span><span class="p">,</span>
+      <span class="n">checkpoint_path</span><span class="p">,</span>
+      <span class="n">session_config</span><span class="o">=</span><span class="n">session_config</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="average_checkpoints"><a class="viewcode-back" href="../../../package/opennmt.utils.checkpoint.html#opennmt.utils.checkpoint.average_checkpoints">[docs]</a><span class="k">def</span> <span class="nf">average_checkpoints</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">max_count</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">session_config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Averages checkpoints.</span>
@@ -220,31 +357,11 @@
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">avg_values</span><span class="p">:</span>
       <span class="n">avg_values</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">/</span> <span class="n">num_checkpoints</span>
 
-  <span class="n">tf_vars</span> <span class="o">=</span> <span class="p">[]</span>
-  <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">avg_values</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;words_per_sec&quot;</span><span class="p">):</span>
-      <span class="n">tf_vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">tf_vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-  <span class="n">placeholders</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tf_vars</span><span class="p">]</span>
-  <span class="n">assign_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tf_vars</span><span class="p">,</span> <span class="n">placeholders</span><span class="p">)]</span>
-
-  <span class="n">latest_step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">checkpoints_path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-  <span class="n">out_base_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;model.ckpt&quot;</span><span class="p">)</span>
-  <span class="n">global_step</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
-      <span class="s2">&quot;global_step&quot;</span><span class="p">,</span>
-      <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">latest_step</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
-      <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-  <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables</span><span class="p">())</span>
-
-  <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">session_config</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
-    <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">())</span>
-    <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">assign_op</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">placeholders</span><span class="p">,</span> <span class="n">assign_ops</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">avg_values</span><span class="p">)):</span>
-      <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">assign_op</span><span class="p">,</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
-    <span class="n">tf</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saving averaged checkpoint to </span><span class="si">%s</span><span class="s2">-</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out_base_file</span><span class="p">,</span> <span class="n">latest_step</span><span class="p">))</span>
-    <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">out_base_file</span><span class="p">,</span> <span class="n">global_step</span><span class="o">=</span><span class="n">global_step</span><span class="p">)</span>
-
-  <span class="k">return</span> <span class="n">output_dir</span></div>
+  <span class="k">return</span> <span class="n">_save_new_variables</span><span class="p">(</span>
+      <span class="n">avg_values</span><span class="p">,</span>
+      <span class="n">output_dir</span><span class="p">,</span>
+      <span class="n">checkpoints_path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+      <span class="n">session_config</span><span class="o">=</span><span class="n">session_config</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -273,13 +390,14 @@
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.5.0
+        v: v1.6.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../../../v1.5.0/_modules/opennmt/utils/checkpoint.html">v1.5.0</a></dd>
+            <dd><a href="../../../v1.6.0/_modules/opennmt/utils/checkpoint.html">v1.6.0</a></dd>
+            <dd><a href="../../../v1.5.0/index.html">v1.5.0</a></dd>
             <dd><a href="../../../v1.4.0/index.html">v1.4.0</a></dd>
             <dd><a href="../../../v1.3.0/index.html">v1.3.0</a></dd>
             <dd><a href="../../../v1.2.0/index.html">v1.2.0</a></dd>
@@ -295,7 +413,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.6.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

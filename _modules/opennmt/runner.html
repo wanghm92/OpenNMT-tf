@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.runner &mdash; OpenNMT-tf 1.5.0 documentation</title>
+  <title>opennmt.runner &mdash; OpenNMT-tf 1.6.0 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -510,6 +510,13 @@
     <span class="n">exporter_type</span> <span class="o">=</span> <span class="n">exporter_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">exporter_type</span> <span class="o">==</span> <span class="s2">&quot;last&quot;</span><span class="p">:</span>
       <span class="n">exporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">LatestExporter</span><span class="p">(</span><span class="s2">&quot;latest&quot;</span><span class="p">,</span> <span class="n">serving_input_fn</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">exporter_type</span> <span class="o">==</span> <span class="s2">&quot;final&quot;</span><span class="p">:</span>
+      <span class="n">exporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">FinalExporter</span><span class="p">(</span><span class="s2">&quot;final&quot;</span><span class="p">,</span> <span class="n">serving_input_fn</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">exporter_type</span> <span class="o">==</span> <span class="s2">&quot;best&quot;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="p">,</span> <span class="s2">&quot;BestExporter&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;BestExporter is only available starting from TensorFlow 1.9&quot;</span><span class="p">)</span>
+      <span class="n">exporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">BestExporter</span><span class="p">(</span>
+          <span class="n">name</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">serving_input_receiver_fn</span><span class="o">=</span><span class="n">serving_input_fn</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid exporter type: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">exporter_type</span><span class="p">)</span>
   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exporters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -543,13 +550,14 @@
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.5.0
+        v: v1.6.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
-            <dd><a href="../../v1.5.0/_modules/opennmt/runner.html">v1.5.0</a></dd>
+            <dd><a href="../../v1.6.0/_modules/opennmt/runner.html">v1.6.0</a></dd>
+            <dd><a href="../../v1.5.0/index.html">v1.5.0</a></dd>
             <dd><a href="../../v1.4.0/index.html">v1.4.0</a></dd>
             <dd><a href="../../v1.3.0/index.html">v1.3.0</a></dd>
             <dd><a href="../../v1.2.0/index.html">v1.2.0</a></dd>
@@ -565,7 +573,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.0',
+            VERSION:'1.6.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

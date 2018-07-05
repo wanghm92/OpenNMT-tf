@@ -182,18 +182,22 @@
 <p>Vocabulary utilities for Python scripts.</p>
 <dl class="class">
 <dt id="opennmt.utils.vocab.Vocab">
-<em class="property">class </em><code class="descclassname">opennmt.utils.vocab.</code><code class="descname">Vocab</code><span class="sig-paren">(</span><em>special_tokens=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/vocab.html#Vocab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.vocab.Vocab" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">opennmt.utils.vocab.</code><code class="descname">Vocab</code><span class="sig-paren">(</span><em>special_tokens=None</em>, <em>from_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/vocab.html#Vocab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.vocab.Vocab" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Vocabulary class.</p>
 <dl class="method">
 <dt id="opennmt.utils.vocab.Vocab.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>special_tokens=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/vocab.html#Vocab.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.vocab.Vocab.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>special_tokens=None</em>, <em>from_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/vocab.html#Vocab.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.vocab.Vocab.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a vocabulary.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>special_tokens</strong> – A list of special tokens (e.g. start of sentence).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>special_tokens</strong> – A list of special tokens (e.g. start of sentence).</li>
+<li><strong>from_file</strong> – Optionally initialize from an existing saved vocabulary.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -203,6 +207,12 @@
 <dt id="opennmt.utils.vocab.Vocab.size">
 <code class="descname">size</code><a class="headerlink" href="#opennmt.utils.vocab.Vocab.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the number of entries of the vocabulary.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="opennmt.utils.vocab.Vocab.words">
+<code class="descname">words</code><a class="headerlink" href="#opennmt.utils.vocab.Vocab.words" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the list of words.</p>
 </dd></dl>
 
 <dl class="method">
@@ -232,6 +242,20 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> – The path where the vocabulary will be saved.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="opennmt.utils.vocab.Vocab.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/vocab.html#Vocab.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.vocab.Vocab.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a serialized vocabulary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> – The path to the vocabulary to load.</td>
 </tr>
 </tbody>
 </table>
@@ -339,6 +363,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../v1.6.0/package/opennmt.utils.vocab.html">v1.6.0</a></dd>
             <dd><a href="../../v1.5.0/package/opennmt.utils.vocab.html">v1.5.0</a></dd>
             <dd><a href="../../v1.4.0/package/opennmt.utils.vocab.html">v1.4.0</a></dd>
             <dd><a href="opennmt.utils.vocab.html">v1.3.0</a></dd>

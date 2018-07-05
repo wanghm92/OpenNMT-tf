@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Training &mdash; OpenNMT-tf 1.5.0 documentation</title>
+  <title>Training &mdash; OpenNMT-tf 1.6.0 documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -193,14 +193,19 @@
 <div class="section" id="distributed-training">
 <span id="distributed-training"></span><h2>Distributed training<a class="headerlink" href="#distributed-training" title="Permalink to this headline">¶</a></h2>
 <p>OpenNMT-tf also supports asynchronous distributed training with <em>between-graph replication</em>. In this mode, each graph replica processes a batch independently, compute the gradients, and asynchronously update a shared set of parameters.</p>
-<p>To enable distributed training, the user should set on the command line:</p>
+<p>To enable distributed training, the user should use the <code class="docutils literal"><span class="pre">train_and_eval</span></code> run type and set on the command line:</p>
 <ul class="simple">
 <li>a <strong>chief worker</strong> host that runs a training loop and manages checkpoints, summaries, etc.</li>
 <li>a list of <strong>worker</strong> hosts that run a training loop</li>
 <li>a list of <strong>parameter server</strong> hosts that synchronize the parameters</li>
 </ul>
 <p>Then a training instance should be started on each host with a selected task, e.g.:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span> onmt-main train <span class="o">[</span>...<span class="o">]</span> --ps_hosts localhost:2222 --chief_host localhost:2223 --worker_hosts localhost:2224,localhost:2225 --task_type worker --task_index <span class="m">1</span>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span> onmt-main train_and_eval <span class="o">[</span>...<span class="o">]</span> <span class="se">\</span>
+    --ps_hosts localhost:2222 <span class="se">\</span>
+    --chief_host localhost:2223 <span class="se">\</span>
+    --worker_hosts localhost:2224,localhost:2225 <span class="se">\</span>
+    --task_type worker <span class="se">\</span>
+    --task_index <span class="m">1</span>
 </pre></div>
 </div>
 <p>will start the worker 1 on the current machine and first GPU. By setting <code class="docutils literal"><span class="pre">CUDA_VISIBLE_DEVICES</span></code> correctly, asynchronous distributed training can be run on a single multi-GPU machine.</p>
@@ -244,12 +249,13 @@
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.5.0
+        v: v1.6.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="v1.6.0/training.html">v1.6.0</a></dd>
             <dd><a href="v1.5.0/training.html">v1.5.0</a></dd>
             <dd><a href="v1.4.0/training.html">v1.4.0</a></dd>
             <dd><a href="v1.3.0/training.html">v1.3.0</a></dd>
@@ -266,7 +272,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.0',
+            VERSION:'1.6.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

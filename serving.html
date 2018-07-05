@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Serving &mdash; OpenNMT-tf 1.5.0 documentation</title>
+  <title>Serving &mdash; OpenNMT-tf 1.6.0 documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -93,7 +93,11 @@
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training.html">Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference.html">Inference</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Serving</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Serving</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#exporting-savedmodel">Exporting SavedModel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-savedmodel">Running SavedModel</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="package/opennmt.html">opennmt package</a></li>
 </ul>
 
@@ -159,6 +163,8 @@
             
   <div class="section" id="serving">
 <span id="serving"></span><h1>Serving<a class="headerlink" href="#serving" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="exporting-savedmodel">
+<span id="exporting-savedmodel"></span><h2>Exporting SavedModel<a class="headerlink" href="#exporting-savedmodel" title="Permalink to this headline">¶</a></h2>
 <p>OpenNMT-tf periodically exports models for inference in other environments, for example with <a class="reference external" href="https://www.tensorflow.org/serving/">TensorFlow Serving</a>. A model export contains all information required for inference: the graph definition, the weights, and external assets such as vocabulary files. It typically looks like this on disk:</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>toy-ende/export/latest/1507109306/
 ├── assets
@@ -170,15 +176,20 @@
     └── variables.index
 </pre></div>
 </div>
-<p>Multiple run types are exporting models inside the model directory:</p>
+<p>In the <code class="docutils literal"><span class="pre">train_and_eval</span></code> run type, models can be automatically exported following one or several export schedules:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">train_and_eval</span></code> exports a new model in <code class="docutils literal"><span class="pre">export/latest/</span></code> after each evaluation</li>
-<li><code class="docutils literal"><span class="pre">eval</span></code> exports the evaluated checkpoint to <code class="docutils literal"><span class="pre">export/latest/</span></code></li>
-<li><code class="docutils literal"><span class="pre">export</span></code> exports the targeted checkpoint to <code class="docutils literal"><span class="pre">export/manual/</span></code></li>
+<li><code class="docutils literal"><span class="pre">last</span></code>: a model is exported to <code class="docutils literal"><span class="pre">export/latest</span></code> after each evaluation (default);</li>
+<li><code class="docutils literal"><span class="pre">final</span></code>: a model is exported to <code class="docutils literal"><span class="pre">export/final</span></code> at the end of the training;</li>
+<li><code class="docutils literal"><span class="pre">best</span></code>: a model is exported to <code class="docutils literal"><span class="pre">export/best</span></code> only if it achieves the best evaluation loss so far.</li>
 </ul>
-<p>Each export creates a directory whose name contains the current timestamp.</p>
+<p>Export schedules are set by the <code class="docutils literal"><span class="pre">exporters</span></code> field in the <code class="docutils literal"><span class="pre">eval</span></code> section of the configuration file.</p>
+<p>Additionally, models can be manually exported using the <code class="docutils literal"><span class="pre">export</span></code> run type. Manually exported models are located in <code class="docutils literal"><span class="pre">export/manual/</span></code> within the model directory.</p>
+</div>
+<div class="section" id="running-savedmodel">
+<span id="running-savedmodel"></span><h2>Running SavedModel<a class="headerlink" href="#running-savedmodel" title="Permalink to this headline">¶</a></h2>
 <p>When using an exported model, you need to know the input and output nodes of your model. You can use the <a class="reference external" href="https://www.tensorflow.org/programmers_guide/saved_model#cli_to_inspect_and_execute_savedmodel"><code class="docutils literal"><span class="pre">saved_model_cli</span></code></a> script provided by TensorFlow for inspection, e.g.:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>saved_model_cli show --dir toy-ende/export/latest/1507109306/ --tag_set serve --signature_def serving_default
+<div class="highlight-bash"><div class="highlight"><pre><span></span>saved_model_cli show --dir toy-ende/export/latest/1507109306/ <span class="se">\</span>
+    --tag_set serve --signature_def serving_default
 </pre></div>
 </div>
 <p>Some examples using exported models are available in the <code class="docutils literal"><span class="pre">examples/</span></code> directory:</p>
@@ -187,6 +198,7 @@
 <li><code class="docutils literal"><span class="pre">examples/cpp</span></code> to run inference with the TensorFlow C++ API</li>
 </ul>
 <p><strong>Note:</strong> because the Python function used in <code class="docutils literal"><span class="pre">tf.py_func</span></code> is not serialized in the graph, model exports do not support in-graph tokenization and text inputs are expected to be tokenized.</p>
+</div>
 </div>
 
 
@@ -225,12 +237,13 @@
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.5.0
+        v: v1.6.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="v1.6.0/serving.html">v1.6.0</a></dd>
             <dd><a href="v1.5.0/serving.html">v1.5.0</a></dd>
             <dd><a href="v1.4.0/serving.html">v1.4.0</a></dd>
             <dd><a href="v1.3.0/serving.html">v1.3.0</a></dd>
@@ -247,7 +260,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.0',
+            VERSION:'1.6.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

@@ -160,7 +160,7 @@
   <h1>Source code for opennmt.tokenizers.opennmt_tokenizer</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Define the OpenNMT tokenizer.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
@@ -178,28 +178,12 @@
 <span class="sd">  Returns:</span>
 <span class="sd">    A ``pyonmttok.Tokenizer``.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">def</span> <span class="nf">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
-      <span class="n">value</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">as_bytes</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-      <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-
-  <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;bpe_model_path&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;sp_model_path&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;joiner&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;joiner_annotate&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;joiner_new&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;spacer_annotate&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;case_feature&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;no_substitution&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;segment_case&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;segment_numbers&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;segment_alphabet_change&quot;</span><span class="p">)</span>
-  <span class="n">_set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;segment_alphabet&quot;</span><span class="p">)</span>
-
-  <span class="k">return</span> <span class="n">pyonmttok</span><span class="o">.</span><span class="n">Tokenizer</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mode&quot;</span><span class="p">,</span> <span class="s2">&quot;conservative&quot;</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+  <span class="n">kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+  <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;conservative&quot;</span>
+  <span class="k">if</span> <span class="s2">&quot;mode&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mode&quot;</span><span class="p">]</span>
+    <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mode&quot;</span><span class="p">]</span>
+  <span class="k">return</span> <span class="n">pyonmttok</span><span class="o">.</span><span class="n">Tokenizer</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="OpenNMTTokenizer"><a class="viewcode-back" href="../../../package/opennmt.tokenizers.opennmt_tokenizer.html#opennmt.tokenizers.opennmt_tokenizer.OpenNMTTokenizer">[docs]</a><span class="k">class</span> <span class="nc">OpenNMTTokenizer</span><span class="p">(</span><span class="n">Tokenizer</span><span class="p">):</span>
@@ -214,13 +198,13 @@
       <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span> <span class="o">=</span> <span class="n">create_tokenizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">as_bytes</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
     <span class="n">tokens</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">tokens</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">as_text</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
 
   <span class="k">def</span> <span class="nf">_detokenize_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">):</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span> <span class="o">=</span> <span class="n">create_tokenizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
     <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">as_bytes</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">detokenize</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">as_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">detokenize</span><span class="p">(</span><span class="n">tokens</span><span class="p">))</span></div>
 </pre></div>
 
            </div>
@@ -255,6 +239,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../../../../v1.6.0/index.html">v1.6.0</a></dd>
             <dd><a href="../../../../v1.5.0/index.html">v1.5.0</a></dd>
             <dd><a href="opennmt_tokenizer.html">v1.4.0</a></dd>
             <dd><a href="../../../../v1.3.0/index.html">v1.3.0</a></dd>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>opennmt.utils.checkpoint module &mdash; OpenNMT-tf 1.5.0 documentation</title>
+  <title>opennmt.utils.checkpoint module &mdash; OpenNMT-tf 1.6.0 documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                1.5
+                1.6
               </div>
             
           
@@ -182,6 +182,42 @@
 <span id="opennmt-utils-checkpoint-module"></span><h1>opennmt.utils.checkpoint module<a class="headerlink" href="#module-opennmt.utils.checkpoint" title="Permalink to this headline">¶</a></h1>
 <p>Checkpoint utilities.</p>
 <dl class="function">
+<dt id="opennmt.utils.checkpoint.update_vocab">
+<code class="descclassname">opennmt.utils.checkpoint.</code><code class="descname">update_vocab</code><span class="sig-paren">(</span><em>model_dir</em>, <em>output_dir</em>, <em>current_src_vocab</em>, <em>current_tgt_vocab</em>, <em>new_src_vocab=None</em>, <em>new_tgt_vocab=None</em>, <em>mode='merge'</em>, <em>session_config=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/checkpoint.html#update_vocab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.checkpoint.update_vocab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the last checkpoint to support new vocabularies.</p>
+<p>This allows to add new words to a model while keeping the previously learned
+weights.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>model_dir</strong> – The directory containing checkpoints (the most recent will be loaded).</li>
+<li><strong>output_dir</strong> – The directory that will contain the converted checkpoint.</li>
+<li><strong>current_src_vocab</strong> – Path to the source vocabulary currently use in the model.</li>
+<li><strong>current_tgt_vocab</strong> – Path to the target vocabulary currently use in the model.</li>
+<li><strong>new_src_vocab</strong> – Path to the new source vocabulary to support.</li>
+<li><strong>new_tgt_vocab</strong> – Path to the new target vocabulary to support.</li>
+<li><strong>mode</strong> – Update mode: “merge” keeps all existing words and adds new words,
+“replace” makes the new vocabulary file the active one. In all modes,
+if an existing word appears in the new vocabulary, its learned weights
+are kept in the converted checkpoint.</li>
+<li><strong>session_config</strong> – Optional configuration to use when creating the session.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The path to the directory containing the converted checkpoint.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if <code class="xref py py-obj docutils literal"><span class="pre">output_dir</span></code> is the same as <code class="xref py py-obj docutils literal"><span class="pre">model_dir</span></code> or if
+<code class="xref py py-obj docutils literal"><span class="pre">mode</span></code> is invalid.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="opennmt.utils.checkpoint.average_checkpoints">
 <code class="descclassname">opennmt.utils.checkpoint.</code><code class="descname">average_checkpoints</code><span class="sig-paren">(</span><em>model_dir</em>, <em>output_dir</em>, <em>max_count=8</em>, <em>session_config=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/opennmt/utils/checkpoint.html#average_checkpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#opennmt.utils.checkpoint.average_checkpoints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Averages checkpoints.</p>
@@ -245,12 +281,13 @@
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v1.5.0
+        v: v1.6.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
         <dl>
             <dt>Tags</dt>
+            <dd><a href="../v1.6.0/package/opennmt.utils.checkpoint.html">v1.6.0</a></dd>
             <dd><a href="../v1.5.0/package/opennmt.utils.checkpoint.html">v1.5.0</a></dd>
             <dd><a href="../v1.4.0/index.html">v1.4.0</a></dd>
             <dd><a href="../v1.3.0/index.html">v1.3.0</a></dd>
@@ -267,7 +304,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.5.0',
+            VERSION:'1.6.0',
             LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
