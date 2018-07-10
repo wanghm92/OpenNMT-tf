@@ -106,7 +106,7 @@ def main():
         }
     })
 
-  # Load and merge run configurations.
+  # Load and merge run configurations written in yaml files
   config = load_config(args.config)
   if args.run_dir:
     config["model_dir"] = os.path.join(args.run_dir, config["model_dir"])
