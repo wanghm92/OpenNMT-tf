@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import abc
 import six
+import sys
 
 import tensorflow as tf
 
@@ -338,9 +339,11 @@ class Model(object):
                      prefetch_buffer_size=None,
                      maximum_features_length=None,
                      maximum_labels_length=None):
-    # TODO: Read Later
+    # tf.logging.info(" >> Building input_fn ... ")
+    # tf.logging.info(" >> Initializing with metadata ... ")
     self._initialize(metadata)
 
+    # tf.logging.info(" >> Building features ... ")
     feat_dataset, feat_process_fn = self._get_features_builder(features_file)
 
     if labels_file is None:

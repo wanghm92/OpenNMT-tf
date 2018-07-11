@@ -168,13 +168,16 @@ class Runner(object):
     All training related specification is held in train_spec, including training input_fn and training max steps, etc.
     All evaluation and export related specification is held in eval_spec, including evaluation input_fn, steps, etc.
     '''
+    tf.logging.info(" >> Building train_spec ...")
     train_spec = self._build_train_spec()
+    # tf.logging.info(" >> Building eval_spec ...")
     eval_spec = self._build_eval_spec()
     tf.estimator.train_and_evaluate(self._estimator, train_spec, eval_spec)
     self._maybe_average_checkpoints()
 
   def train(self):
     """Runs the training loop. Trains a model given training data input_fn"""
+    # tf.logging.info("Building train_spec")
     train_spec = self._build_train_spec()
     self._estimator.train(
         train_spec.input_fn, hooks=train_spec.hooks, max_steps=train_spec.max_steps)
@@ -184,6 +187,7 @@ class Runner(object):
     """Runs evaluation."""
     if checkpoint_path is not None and os.path.isdir(checkpoint_path):
       checkpoint_path = tf.train.latest_checkpoint(checkpoint_path)
+    # tf.logging.info("Building eval_spec")
     eval_spec = self._build_eval_spec()
     self._estimator.evaluate(
         eval_spec.input_fn, hooks=eval_spec.hooks, checkpoint_path=checkpoint_path)

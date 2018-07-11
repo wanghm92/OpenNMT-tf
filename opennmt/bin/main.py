@@ -4,6 +4,8 @@ import argparse
 import json
 import os
 import six
+import sys
+sys.path.append(os.getcwd())
 
 import tensorflow as tf
 
@@ -119,6 +121,7 @@ def main():
 
   # Create the model from the catalog or a file, load pre-trained model parameters if exist
   model = load_model(config["model_dir"], model_file=args.model, model_name=args.model_type)
+  tf.logging.info(" >> Model = %s"%model)
   session_config = tf.ConfigProto(
       intra_op_parallelism_threads=args.intra_op_parallelism_threads,
       inter_op_parallelism_threads=args.inter_op_parallelism_threads)
@@ -131,13 +134,19 @@ def main():
       num_devices=args.num_gpus,
       gpu_allow_growth=args.gpu_allow_growth,
       session_config=session_config)
+  tf.logging.info(" >> runner = %s"%runner)
+  tf.logging.info(" >> features_inputter = %s" % model.features_inputter)
+  tf.logging.info(" >> labels_inputter = %s" % model.labels_inputter)
 
   # Start Training/Evaluation
   if args.run == "train_and_eval":
+    tf.logging.info(" >> Start Training and Evaluation ...")
     runner.train_and_evaluate()
   elif args.run == "train":
+    tf.logging.info(" >> Start Training ...")
     runner.train()
   elif args.run == "eval":
+    tf.logging.info(" >> Start Evaluation ...")
     runner.evaluate(checkpoint_path=args.checkpoint_path)
   elif args.run == "infer":
     if not args.features_file:
