@@ -117,10 +117,13 @@ def main():
     tf.logging.info("Creating model directory %s", config["model_dir"])
     os.makedirs(config["model_dir"])
 
+  # Create the model from the catalog or a file, load pre-trained model parameters if exist
   model = load_model(config["model_dir"], model_file=args.model, model_name=args.model_type)
   session_config = tf.ConfigProto(
       intra_op_parallelism_threads=args.intra_op_parallelism_threads,
       inter_op_parallelism_threads=args.inter_op_parallelism_threads)
+
+  # Initializes the runner parameters
   runner = Runner(
       model,
       config,
@@ -129,6 +132,7 @@ def main():
       gpu_allow_growth=args.gpu_allow_growth,
       session_config=session_config)
 
+  # Start Training/Evaluation
   if args.run == "train_and_eval":
     runner.train_and_evaluate()
   elif args.run == "train":

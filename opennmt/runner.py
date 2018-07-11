@@ -41,6 +41,7 @@ class Runner(object):
     self._config = config
     self._num_devices = num_devices
 
+    # Create a default run_config object
     session_config_base = tf.ConfigProto(
         allow_soft_placement=True,
         log_device_placement=False,
@@ -49,6 +50,8 @@ class Runner(object):
     if session_config is not None:
       session_config_base.MergeFrom(session_config)
     session_config = session_config_base
+    # specifies the configurations for an Estimator run
+    # See https://www.tensorflow.org/api_docs/python/tf/estimator/RunConfig
     run_config = tf.estimator.RunConfig(
         model_dir=self._config["model_dir"],
         session_config=session_config,
@@ -61,6 +64,7 @@ class Runner(object):
     np.random.seed(seed)
     random.seed(seed)
 
+    # Set run_config parameters for training mode from yaml config file
     if "train" in self._config:
       if "save_summary_steps" in self._config["train"]:
         run_config = run_config.replace(
@@ -74,18 +78,33 @@ class Runner(object):
         run_config = run_config.replace(
             keep_checkpoint_max=self._config["train"]["keep_checkpoint_max"])
 
+    '''
+    The Estimator object wraps a model which is specified by a model_fn, 
+        which, given inputs and a number of other parameters, 
+        returns the ops necessary to perform training, evaluation, or predictions
+        All outputs (checkpoints, event files, etc.) are written to model_dir
+    config: RunConfig (execution environment) passed to the "config" in model_fn
+    params: hyperparameters passed to the "params" in model_fn 
+    '''
     self._estimator = tf.estimator.Estimator(
         self._model.model_fn(num_devices=self._num_devices),
         config=run_config,
         params=self._config["params"])
 
   def _build_train_spec(self):
+    """
+    :return: Configuration for the "train" part for the train_and_evaluate call
+    tf.estimator.TrainSpec: input data for the training, as well as the duration
+    """
     train_hooks = [
         hooks.LogParametersCountHook(),
         hooks.CountersHook(
             every_n_steps=self._estimator.config.save_summary_steps,
             output_dir=self._estimator.model_dir)]
 
+    '''
+    input_fn: A function that provides input data for training as minibatches.
+    '''
     train_spec = tf.estimator.TrainSpec(
         input_fn=self._model.input_fn(
             tf.estimator.ModeKeys.TRAIN,
@@ -143,13 +162,19 @@ class Runner(object):
 
   def train_and_evaluate(self):
     """Runs the training and evaluation loop."""
+    '''
+    https://www.tensorflow.org/api_docs/python/tf/estimator/Estimator
+    This utility function trains, evaluates, and (optionally) exports the model by using the given estimator. 
+    All training related specification is held in train_spec, including training input_fn and training max steps, etc.
+    All evaluation and export related specification is held in eval_spec, including evaluation input_fn, steps, etc.
+    '''
     train_spec = self._build_train_spec()
     eval_spec = self._build_eval_spec()
     tf.estimator.train_and_evaluate(self._estimator, train_spec, eval_spec)
     self._maybe_average_checkpoints()
 
   def train(self):
-    """Runs the training loop."""
+    """Runs the training loop. Trains a model given training data input_fn"""
     train_spec = self._build_train_spec()
     self._estimator.train(
         train_spec.input_fn, hooks=train_spec.hooks, max_steps=train_spec.max_steps)

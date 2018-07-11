@@ -91,7 +91,19 @@ class Model(object):
       return actual_loss
 
     def _model_fn(features, labels, params, mode, config):
-      """model_fn implementation."""
+      """
+      https://www.tensorflow.org/api_docs/python/tf/estimator/Estimator
+      :param features : first item returned from the input_fn (below), a single Tensor or dict of same
+      :param labels   : second item returned from the input_fn
+      :param params   : Optional dict of hyperparameters. Will receive what is passed to Estimator in params parameter
+      :param mode     : ModeKeys (TRAIN, EVAL, PREDICT)
+      :param config   : Optional configuration object. Will receive what is passed to Estimator in config parameter,
+                        or the default config. Allows updating things in your model_fn based on configuration
+                        such as num_ps_replicas, or model_dir
+      :return: ops necessary to perform training, evaluation, or predictions.
+      """
+
+      # ------------------ Train ----------------- #
       if mode == tf.estimator.ModeKeys.TRAIN:
         self._register_word_counters(features, labels)
 
@@ -99,8 +111,8 @@ class Model(object):
         labels_shards = dispatcher.shard(labels)
 
         with tf.variable_scope(self.name, initializer=self._initializer(params)):
-          losses_shards = dispatcher(
-              _loss_op, features_shards, labels_shards, params, mode, config)
+          # TODO: Read
+          losses_shards = dispatcher(_loss_op, features_shards, labels_shards, params, mode, config)
 
         loss = _extract_loss(losses_shards)
         train_op = optimize(loss, params)
@@ -108,6 +120,8 @@ class Model(object):
             mode,
             loss=loss,
             train_op=train_op)
+
+      # ------------------ Eval ----------------- #
       elif mode == tf.estimator.ModeKeys.EVAL:
         with tf.variable_scope(self.name):
           logits, predictions = self._build(features, labels, params, mode, config=config)
@@ -123,6 +137,8 @@ class Model(object):
             mode,
             loss=loss,
             eval_metric_ops=eval_metric_ops)
+
+      # ------------------ Pred ----------------- #
       elif mode == tf.estimator.ModeKeys.PREDICT:
         with tf.variable_scope(self.name):
           _, predictions = self._build(features, labels, params, mode, config=config)
@@ -165,6 +181,11 @@ class Model(object):
       predictions: The model predictions.
         Optional if :obj:`mode` is ``tf.estimator.ModeKeys.TRAIN``.
     """
+    '''
+    An abstract method is a method that is declared, but contains no implementation. 
+    Abstract classes may not be instantiated, 
+    and require subclasses to provide implementations for the abstract methods
+    '''
     raise NotImplementedError()
 
   @abc.abstractmethod
@@ -317,7 +338,7 @@ class Model(object):
                      prefetch_buffer_size=None,
                      maximum_features_length=None,
                      maximum_labels_length=None):
-    """See ``input_fn``."""
+    # TODO: Read Later
     self._initialize(metadata)
 
     feat_dataset, feat_process_fn = self._get_features_builder(features_file)
@@ -383,28 +404,23 @@ class Model(object):
     """Returns an input function.
 
     Args:
-      mode: A ``tf.estimator.ModeKeys`` mode.
-      batch_size: The batch size to use.
-      metadata: A dictionary containing additional metadata set
-        by the user.
-      features_file: The file containing input features.
-      labels_file: The file containing output labels.
-      batch_type: The training batching stragety to use: can be "examples" or
-        "tokens".
-      batch_multiplier: The batch size multiplier to prepare splitting accross
-         replicated graph parts.
-      bucket_width: The width of the length buckets to select batch candidates
-        from. ``None`` to not constrain batch formation.
-      single_pass: If ``True``, makes a single pass over the training data.
-      num_threads: The number of elements processed in parallel.
-      sample_buffer_size: The number of elements from which to sample.
-      prefetch_buffer_size: The number of batches to prefetch asynchronously. If
-        ``None``, use an automatically tuned value on TensorFlow 1.8+ and 1 on
-        older versions.
-      maximum_features_length: The maximum length or list of maximum lengths of
-        the features sequence(s). ``None`` to not constrain the length.
-      maximum_labels_length: The maximum length of the labels sequence.
-        ``None`` to not constrain the length.
+      mode                  : A ``tf.estimator.ModeKeys`` mode.
+      batch_size            : The batch size to use.
+      metadata              : A dictionary containing additional metadata set by the user.
+      features_file         : The file containing input features.
+      labels_file           : The file containing output labels.
+      batch_type            : The training batching strategy to use: can be "examples" or "tokens".
+      batch_multiplier      : The batch size multiplier to prepare splitting across replicated graph parts.
+      bucket_width          : The width of the length buckets to select batch candidates from.
+                              ``None`` to not constrain batch formation.
+      single_pass           : If ``True``, makes a single pass over the training data.
+      num_threads           : The number of elements processed in parallel.
+      sample_buffer_size    : The number of elements from which to sample.
+      prefetch_buffer_size  : The number of batches to prefetch asynchronously.
+                              If "None", use an automatically tuned value on TensorFlow 1.8+ and 1 on older versions.
+      maximum_features_length: The maximum length or list of maximum lengths of the features sequence(s).
+                              ``None`` to not constrain the length.
+      maximum_labels_length : The maximum length of the labels sequence. ``None`` to not constrain the length.
 
     Returns:
       A callable that returns the next element.
@@ -416,6 +432,23 @@ class Model(object):
     See Also:
       ``tf.estimator.Estimator``.
     """
+    '''
+        tf.estimator.ModeKeys.TRAIN,
+        self._config["train"]["batch_size"],
+        self._config["data"],
+        self._config["data"]["train_features_file"],
+        labels_file=self._config["data"]["train_labels_file"],
+        batch_type=self._config["train"].get("batch_type", "examples"),
+        batch_multiplier=self._num_devices,
+        bucket_width=self._config["train"].get("bucket_width", 5),
+        single_pass=self._config["train"].get("single_pass", False),
+        num_threads=self._config["train"].get("num_threads"),
+        sample_buffer_size=self._config["train"].get("sample_buffer_size", 500000),
+        prefetch_buffer_size=self._config["train"].get("prefetch_buffer_size"),
+        maximum_features_length=self._config["train"].get("maximum_features_length"),
+        maximum_labels_length=self._config["train"].get("maximum_labels_length")),
+    '''
+
     if mode != tf.estimator.ModeKeys.PREDICT and labels_file is None:
       raise ValueError("Labels file is required for training and evaluation")
 

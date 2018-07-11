@@ -57,15 +57,13 @@ class SequenceToSequence(Model):
     """Initializes a sequence-to-sequence model.
 
     Args:
-      source_inputter: A :class:`opennmt.inputters.inputter.Inputter` to process
-        the source data.
-      target_inputter: A :class:`opennmt.inputters.inputter.Inputter` to process
-        the target data. Currently, only the
-        :class:`opennmt.inputters.text_inputter.WordEmbedder` is supported.
+      source_inputter: A :class:`opennmt.inputters.inputter.Inputter` to process the source data.
+      target_inputter: A :class:`opennmt.inputters.inputter.Inputter` to process the target data.
+                        Currently, only the :class:`opennmt.inputters.text_inputter.WordEmbedder` is supported.
       encoder: A :class:`opennmt.encoders.encoder.Encoder` to encode the source.
       decoder: A :class:`opennmt.decoders.decoder.Decoder` to decode the target.
-      daisy_chain_variables: If ``True``, copy variables in a daisy chain
-        between devices for this model. Not compatible with RNN based models.
+      daisy_chain_variables: If ``True``, copy variables in a daisy chain between devices for this model.
+                                Not compatible with RNN based models.
       name: The name of this model.
 
     Raises:
