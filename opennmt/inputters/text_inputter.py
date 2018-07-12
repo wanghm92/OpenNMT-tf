@@ -228,18 +228,24 @@ class TextInputter(Inputter):
     return data["length"]
 
   def make_dataset(self, data_file):
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter] make_dataset")
+    '''
+    A Dataset comprising lines from one or more text files
+    '''
     return tf.data.TextLineDataset(data_file)
 
   def get_dataset_size(self, data_file):
     return count_lines(data_file)
 
   def initialize(self, metadata):
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter initialize]")
     self.tokenizer.initialize(metadata)
 
   def _process(self, data):
     """Tokenizes raw text."""
-    data = super(TextInputter, self)._process(data)
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process]")
 
+    data = super(TextInputter, self)._process(data)
     if "tokens" not in data:
       text = data["raw"]
       tokens = self.tokenizer.tokenize(text)
@@ -317,11 +323,15 @@ class WordEmbedder(TextInputter):
       raise ValueError("Must either provide embedding_size or embedding_file_key")
 
   def initialize(self, metadata):
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder initialize] initialize tokenizer")
     super(WordEmbedder, self).initialize(metadata)
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder initialize] assigning vocab and emb files")
     self.vocabulary_file = metadata[self.vocabulary_file_key]
     self.embedding_file = metadata[self.embedding_file_key] if self.embedding_file_key else None
 
     self.vocabulary_size = count_lines(self.vocabulary_file) + self.num_oov_buckets
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder initialize] Building lookup table from vocab")
+    # Returns a lookup table that converts a string tensor into int64 IDs
     self.vocabulary = tf.contrib.lookup.index_table_from_file(
         self.vocabulary_file,
         vocab_size=self.vocabulary_size - self.num_oov_buckets,
@@ -340,6 +350,7 @@ class WordEmbedder(TextInputter):
 
   def _process(self, data):
     """Converts words tokens to ids."""
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process]")
     data = super(WordEmbedder, self)._process(data)
 
     if "ids" not in data:

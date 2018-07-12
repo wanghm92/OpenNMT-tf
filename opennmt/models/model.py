@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import abc
 import six
-import sys
+import sys, pprint
 
 import tensorflow as tf
 
@@ -14,6 +14,7 @@ from opennmt.utils.hooks import add_counter
 from opennmt.utils.misc import add_dict_to_collection, item_or_tuple
 from opennmt.utils.parallel import GraphDispatcher
 
+pp = pprint.PrettyPrinter(indent=4)
 
 @six.add_metaclass(abc.ABCMeta)
 class Model(object):
@@ -59,12 +60,15 @@ class Model(object):
       ``tf.estimator.Estimator`` 's ``model_fn`` argument for more details about
       arguments and the returned value.
     """
+    tf.logging.info(" >> [model.py model_fn] Creating GraphDispatcher ...")
     dispatcher = GraphDispatcher(
         num_devices, daisy_chain_variables=self.daisy_chain_variables)
 
     def _loss_op(features, labels, params, mode, config):
       """Single callable to compute the loss."""
-      logits, _ = self._build(features, labels, params, mode, config=config)
+      tf.logging.info(" >> [model.py model_fn _loss_op] <TRAIN> Building Graph ... ")
+      logits, _ = self._build(features, labels, params, mode, config=config) # logits, predictions
+      tf.logging.info(" >> [model.py model_fn _loss_op] <TRAIN> Computing loss ... ... ")
       return self._compute_loss(features, labels, logits, params, mode)
 
     def _normalize_loss(num, den=None):
@@ -82,6 +86,7 @@ class Model(object):
 
     def _extract_loss(loss):
       """Extracts and summarizes the loss."""
+      tf.logging.info(" >> [model.py model_fn _extract_loss] Extracts and summarizes the loss ...")
       if not isinstance(loss, tuple):
         actual_loss = _normalize_loss(loss)
         tboard_loss = actual_loss
@@ -103,20 +108,28 @@ class Model(object):
                         such as num_ps_replicas, or model_dir
       :return: ops necessary to perform training, evaluation, or predictions.
       """
-
+      tf.logging.info(" >> [model.py model_fn _model_fn]")
       # ------------------ Train ----------------- #
       if mode == tf.estimator.ModeKeys.TRAIN:
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> _register_word_counters")
         self._register_word_counters(features, labels)
 
         features_shards = dispatcher.shard(features)
         labels_shards = dispatcher.shard(labels)
 
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Creating loss_ops ...")
         with tf.variable_scope(self.name, initializer=self._initializer(params)):
-          # TODO: Read
           losses_shards = dispatcher(_loss_op, features_shards, labels_shards, params, mode, config)
 
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Extracts and summarizes the loss ...")
         loss = _extract_loss(losses_shards)
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Creating train_op (optimizer) ...")
         train_op = optimize(loss, params)
+
+        '''
+        Ops and objects returned from a model_fn and passed to an Estimator.
+        EstimatorSpec fully defines the model to be run by an Estimator.
+        '''
         return tf.estimator.EstimatorSpec(
             mode,
             loss=loss,
@@ -124,11 +137,14 @@ class Model(object):
 
       # ------------------ Eval ----------------- #
       elif mode == tf.estimator.ModeKeys.EVAL:
+        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Building Graph ...")
         with tf.variable_scope(self.name):
           logits, predictions = self._build(features, labels, params, mode, config=config)
+          tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing loss ...")
           loss = self._compute_loss(features, labels, logits, params, mode)
 
         loss = _extract_loss(loss)
+        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing Metrics ...")
         eval_metric_ops = self._compute_metrics(features, labels, predictions)
         if predictions is not None:
           # Register predictions in a collection so that hooks can easily fetch them.
@@ -141,6 +157,7 @@ class Model(object):
 
       # ------------------ Pred ----------------- #
       elif mode == tf.estimator.ModeKeys.PREDICT:
+        tf.logging.info(" >> [model.py model_fn _model_fn] <PREDICT> Building Graph ...")
         with tf.variable_scope(self.name):
           _, predictions = self._build(features, labels, params, mode, config=config)
 
@@ -239,9 +256,12 @@ class Model(object):
       metadata: A dictionary containing additional metadata set
         by the user.
     """
+    tf.logging.info(" >> [model.py _initialize] Initializing with metadata ... ")
     if self.features_inputter is not None:
+      tf.logging.info(" >> [model.py _initialize] Initializing features_inputter %s"%self.features_inputter)
       self.features_inputter.initialize(metadata)
     if self.labels_inputter is not None:
+      tf.logging.info(" >> [model.py _initialize] Initializing labels_inputter %s"%self.labels_inputter)
       self.labels_inputter.initialize(metadata)
 
   def _get_serving_input_receiver(self):
@@ -303,6 +323,7 @@ class Model(object):
     Returns:
       A tuple ``(tf.data.Dataset, process_fn)``.
     """
+    tf.logging.info(" >> [model.py _get_features_builder]")
     if self.features_inputter is None:
       raise NotImplementedError()
     dataset = self.features_inputter.make_dataset(features_file)
@@ -318,6 +339,7 @@ class Model(object):
     Returns:
       A tuple ``(tf.data.Dataset, process_fn)``.
     """
+    tf.logging.info(" >> [model.py _get_labels_builder]")
     if self.labels_inputter is None:
       raise NotImplementedError()
     dataset = self.labels_inputter.make_dataset(labels_file)
@@ -339,11 +361,13 @@ class Model(object):
                      prefetch_buffer_size=None,
                      maximum_features_length=None,
                      maximum_labels_length=None):
-    # tf.logging.info(" >> Building input_fn ... ")
-    # tf.logging.info(" >> Initializing with metadata ... ")
+    tf.logging.info(" >> [model.py _input_fn_impl] Building input_fn ... ")
+    tf.logging.info(" >> [model.py _input_fn_impl] Metadata")
+    pp.pprint(metadata)
     self._initialize(metadata)
 
-    # tf.logging.info(" >> Building features ... ")
+    # features_file: self._config["data"]["train_features_file"]
+    tf.logging.info(" >> [model.py _input_fn_impl] Building features ... ")
     feat_dataset, feat_process_fn = self._get_features_builder(features_file)
 
     if labels_file is None:
@@ -351,12 +375,14 @@ class Model(object):
       # Parallel inputs must be catched in a single tuple and not considered as multiple arguments.
       process_fn = lambda *arg: feat_process_fn(item_or_tuple(arg))
     else:
+      tf.logging.info(" >> [model.py _input_fn_impl] Building labels ... ")
       labels_dataset, labels_process_fn = self._get_labels_builder(labels_file)
 
       dataset = tf.data.Dataset.zip((feat_dataset, labels_dataset))
       process_fn = lambda features, labels: (
           feat_process_fn(features), labels_process_fn(labels))
 
+    tf.logging.info(" >> [model.py _input_fn_impl] Building dataset ... ")
     if mode == tf.estimator.ModeKeys.TRAIN:
       dataset = data.training_pipeline(
           dataset,
@@ -438,7 +464,7 @@ class Model(object):
     '''
         tf.estimator.ModeKeys.TRAIN,
         self._config["train"]["batch_size"],
-        self._config["data"],
+        self._config["data"], #metadata
         self._config["data"]["train_features_file"],
         labels_file=self._config["data"]["train_labels_file"],
         batch_type=self._config["train"].get("batch_type", "examples"),

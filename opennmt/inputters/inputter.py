@@ -133,6 +133,7 @@ class Inputter(object):
     See Also:
       :meth:`opennmt.inputters.inputter.Inputter.transform_data`
     """
+    tf.logging.info(" >> [inputter.py process]")
     data = self._process(data)
     for hook in self.process_hooks:
       data = hook(self, data)
@@ -161,6 +162,7 @@ class Inputter(object):
       ValueError: if :obj:`data` is a dictionary but does not contain the
         ``raw`` key.
     """
+    tf.logging.info(" >> [inputter.py _process]")
     if not isinstance(data, dict):
       data = self.set_data_field({}, "raw", data, volatile=True)
     elif "raw" not in data:

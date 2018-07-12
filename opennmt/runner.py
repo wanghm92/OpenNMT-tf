@@ -65,7 +65,7 @@ class Runner(object):
         session_config_base.MergeFrom(rewrite_options)
     except text_format.ParseError:
         pass
-    
+
     if session_config is not None:
       session_config_base.MergeFrom(session_config)
     session_config = session_config_base
@@ -115,6 +115,8 @@ class Runner(object):
     :return: Configuration for the "train" part for the train_and_evaluate call
     tf.estimator.TrainSpec: input data for the training, as well as the duration
     """
+    tf.logging.info(" >> [runner.py _build_train_spec] Building train_spec ...")
+
     train_hooks = [
         hooks.LogParametersCountHook(),
         hooks.CountersHook(
@@ -124,6 +126,7 @@ class Runner(object):
     '''
     input_fn: A function that provides input data for training as minibatches.
     '''
+    tf.logging.info(" >> [runner.py _build_train_spec] Creating model.input_fn ...")
     train_spec = tf.estimator.TrainSpec(
         input_fn=self._model.input_fn(
             tf.estimator.ModeKeys.TRAIN,
@@ -145,6 +148,7 @@ class Runner(object):
     return train_spec
 
   def _build_eval_spec(self):
+    tf.logging.info(" >> [runner.py _build_eval_spec] Building eval_spec ...")
     if "eval" not in self._config:
       self._config["eval"] = {}
 
@@ -187,10 +191,9 @@ class Runner(object):
     All training related specification is held in train_spec, including training input_fn and training max steps, etc.
     All evaluation and export related specification is held in eval_spec, including evaluation input_fn, steps, etc.
     '''
-    tf.logging.info(" >> Building train_spec ...")
     train_spec = self._build_train_spec()
-    # tf.logging.info(" >> Building eval_spec ...")
     eval_spec = self._build_eval_spec()
+    tf.logging.info(" >> Start train_and_evaluate...")
     tf.estimator.train_and_evaluate(self._estimator, train_spec, eval_spec)
     self._maybe_average_checkpoints()
 

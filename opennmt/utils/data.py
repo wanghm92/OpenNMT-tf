@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 import numpy as np
-
+import sys
 
 def get_padded_shapes(dataset):
   """Returns the padded shapes for ``tf.data.Dataset.padded_batch``.
@@ -97,6 +97,7 @@ def filter_examples_by_length(maximum_features_length=None,
       cond.extend(_length_constraints(features_length, maximum_features_length))
     if labels_length is not None:
       cond.extend(_length_constraints(labels_length, maximum_labels_length))
+    # "logical and" of elements across dimensions of a tensor
     return tf.reduce_all(cond)
 
   return lambda dataset: dataset.filter(_predicate)
@@ -165,6 +166,8 @@ def batch_parallel_dataset(batch_size,
   batch_size = batch_size * batch_multiplier
 
   def _batch_func(dataset):
+    # Combines consecutive elements of this dataset into padded batches.
+    tf.logging.info(" >>>> [utils/data.py batch_parallel_dataset] Padding and making batches")
     return dataset.padded_batch(
         batch_size,
         padded_shapes=padded_shapes or get_padded_shapes(dataset))
@@ -230,7 +233,7 @@ def training_pipeline(dataset,
     batch_size: The batch size to use.
     batch_type: The training batching stragety to use: can be "examples" or
       "tokens".
-    batch_multiplier: The batch size multiplier to prepare splitting accross
+    batch_multiplier: The batch size multiplier to prepare splitting across
        replicated graph parts.
     bucket_width: The width of the length buckets to select batch candidates
       from. ``None`` to not constrain batch formation.
@@ -253,6 +256,8 @@ def training_pipeline(dataset,
   Returns:
     A ``tf.data.Dataset``.
   """
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] ")
+  # shuffle_buffer_size = sample_buffer_size
   if shuffle_buffer_size is not None and shuffle_buffer_size != 0:
     if dataset_size is not None:
       if shuffle_buffer_size < 0:
@@ -262,14 +267,18 @@ def training_pipeline(dataset,
         # the dataset in a random order. This ensures that all parts of the
         # dataset can be seen when the evaluation frequency is high.
         dataset = dataset.apply(random_shard(shuffle_buffer_size, dataset_size))
+    tf.logging.info(" >>>> [utils/data.py training_pipeline] Shuffling dataset ...")
     dataset = dataset.shuffle(shuffle_buffer_size)
   if process_fn is not None:
+    tf.logging.info(" >>>> [utils/data.py training_pipeline] Applying process_fn ...")
     dataset = dataset.map(process_fn, num_parallel_calls=num_threads or 4)
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] filter_examples_by_length ...")
   dataset = dataset.apply(filter_examples_by_length(
       maximum_features_length=maximum_features_length,
       maximum_labels_length=maximum_labels_length,
       features_length_fn=features_length_fn,
       labels_length_fn=labels_length_fn))
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] batch_parallel_dataset ...")
   dataset = dataset.apply(batch_parallel_dataset(
       batch_size,
       batch_type=batch_type,
@@ -277,6 +286,7 @@ def training_pipeline(dataset,
       bucket_width=bucket_width,
       features_length_fn=features_length_fn,
       labels_length_fn=labels_length_fn))
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] filter_irregular_batches ...")
   dataset = dataset.apply(filter_irregular_batches(batch_multiplier))
   if not single_pass:
     dataset = dataset.repeat()

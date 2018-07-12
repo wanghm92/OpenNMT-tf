@@ -102,6 +102,9 @@ class SequenceToSequence(Model):
     return _target_embedding_fn
 
   def _build(self, features, labels, params, mode, config=None):
+
+    tf.logging.info(" >> [sequence_to_sequence.py _build]")
+
     features_length = self._get_features_length(features)
     log_dir = config.model_dir if config is not None else None
 
@@ -218,6 +221,7 @@ class SequenceToSequence(Model):
     return logits, predictions
 
   def _compute_loss(self, features, labels, outputs, params, mode):
+    tf.logging.info(" >> [sequence_to_sequence.py _compute_loss]")
     return cross_entropy_sequence_loss(
         outputs,
         labels["ids_out"],
