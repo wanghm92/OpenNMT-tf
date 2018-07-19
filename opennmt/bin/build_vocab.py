@@ -1,11 +1,11 @@
 """Standalone script to generate word vocabularies from monolingual corpus."""
 
-import argparse
+import argparse, sys, os
+sys.path.append(os.getcwd())
 
 from opennmt import constants
 from opennmt import tokenizers
 from opennmt import utils
-
 
 def main():
   parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)

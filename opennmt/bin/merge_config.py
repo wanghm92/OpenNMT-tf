@@ -4,6 +4,8 @@ from __future__ import print_function
 
 import argparse
 import yaml
+import os, sys
+sys.path.append(os.getcwd())
 
 from opennmt.config import load_config
 
