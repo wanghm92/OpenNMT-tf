@@ -118,7 +118,7 @@ class Model(object):
         labels_shards = dispatcher.shard(labels)
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Creating loss_ops ...")
-        with tf.variable_scope(self.name, initializer=self._initializer(params)):
+        with tf.variable_scope(self.name, initializer=self._initializer(params), reuse=tf.AUTO_REUSE):
           losses_shards = dispatcher(_loss_op, features_shards, labels_shards, params, mode, config)
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Extracts and summarizes the loss ...")
@@ -138,7 +138,7 @@ class Model(object):
       # ------------------ Eval ----------------- #
       elif mode == tf.estimator.ModeKeys.EVAL:
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Building Graph ...")
-        with tf.variable_scope(self.name):
+        with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
           logits, predictions = self._build(features, labels, params, mode, config=config)
           tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing loss ...")
           loss = self._compute_loss(features, labels, logits, params, mode)
@@ -158,7 +158,7 @@ class Model(object):
       # ------------------ Pred ----------------- #
       elif mode == tf.estimator.ModeKeys.PREDICT:
         tf.logging.info(" >> [model.py model_fn _model_fn] <PREDICT> Building Graph ...")
-        with tf.variable_scope(self.name):
+        with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
           _, predictions = self._build(features, labels, params, mode, config=config)
 
         export_outputs = {}
