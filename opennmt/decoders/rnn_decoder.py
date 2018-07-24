@@ -90,6 +90,8 @@ class RNNDecoder(Decoder):
     _ = memory
     _ = memory_sequence_length
 
+    tf.logging.info(" >> [rnn_decoder.py decode]")
+
     batch_size = tf.shape(inputs)[0]
 
     if (sampling_probability is not None
@@ -243,6 +245,7 @@ class RNNDecoder(Decoder):
     if output_layer is None:
       output_layer = build_output_layer(self.num_units, vocab_size, dtype=dtype or memory.dtype)
 
+    tf.logging.info(" >> [sequence_to_sequence.py _build] tf.contrib.seq2seq.BeamSearchDecoder ...")
     decoder = tf.contrib.seq2seq.BeamSearchDecoder(
         cell,
         embedding,
@@ -253,6 +256,7 @@ class RNNDecoder(Decoder):
         output_layer=output_layer,
         length_penalty_weight=length_penalty)
 
+    tf.logging.info(" >> [sequence_to_sequence.py _build] tf.contrib.seq2seq.dynamic_decode ...")
     outputs, beam_state, length = tf.contrib.seq2seq.dynamic_decode(
         decoder, maximum_iterations=maximum_iterations)
 

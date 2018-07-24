@@ -35,6 +35,8 @@ def visualize_embeddings(log_dir, embedding_var, vocabulary_file, num_oov_bucket
     vocabulary_file: The associated vocabulary file.
     num_oov_buckets: The number of additional unknown tokens.
   """
+  tf.logging.info(" >>>> [text_inputter.py visualize_embeddings] embedding_var.name = %s"%embedding_var.name)
+
   # Copy vocabulary file to log_dir.
   basename = os.path.basename(vocabulary_file)
   destination = os.path.join(log_dir, basename)
@@ -362,6 +364,7 @@ class WordEmbedder(TextInputter):
     return data
 
   def visualize(self, log_dir):
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder visualize] variable_scope=%s"%tf.get_variable_scope().name)
     with tf.variable_scope(tf.get_variable_scope(), reuse=True):
       embeddings = tf.get_variable("w_embs", dtype=self.dtype)
       visualize_embeddings(
@@ -371,13 +374,17 @@ class WordEmbedder(TextInputter):
           num_oov_buckets=self.num_oov_buckets)
 
   def _transform_data(self, data, mode):
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _transform_data]")
     return self.transform(data["ids"], mode)
 
   def transform(self, inputs, mode):
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform]")
     try:
       embeddings = tf.get_variable("w_embs", dtype=self.dtype, trainable=self.trainable)
+      tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] embeddings reused")
     except ValueError:
       # Variable does not exist yet.
+      tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] embeddings does not exist yet")
       if self.embedding_file:
         pretrained = load_pretrained_embeddings(
             self.embedding_file,
