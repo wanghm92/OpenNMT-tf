@@ -11,6 +11,7 @@ params:
   start_decay_steps: 500000
   beam_width: 5
   maximum_iterations: 250
+  decoder_share_embedding: false
 
 train:
   batch_size: 64

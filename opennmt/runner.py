@@ -199,14 +199,15 @@ class Runner(object):
 
   def train(self):
     """Runs the training loop. Trains a model given training data input_fn"""
-    # tf.logging.info("Building train_spec")
+    tf.logging.info(">> [runner.py train] Runs the training loop. Trains a model given training data input_fn")
     train_spec = self._build_train_spec()
     self._estimator.train(
         train_spec.input_fn, hooks=train_spec.hooks, max_steps=train_spec.max_steps)
     self._maybe_average_checkpoints()
-
+    tf.logging.info(">> [runner.py train] printing parameters ...")
     for x in sorted([i.name for i in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)]):
         print(x)
+    tf.logging.info(">> [runner.py train] training done")
 
   def evaluate(self, checkpoint_path=None):
     """Runs evaluation."""

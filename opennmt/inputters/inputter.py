@@ -162,7 +162,7 @@ class Inputter(object):
       ValueError: if :obj:`data` is a dictionary but does not contain the
         ``raw`` key.
     """
-    tf.logging.info(" >> [inputter.py _process]")
+    tf.logging.info(" >> [inputter.py class Inputter _process]")
     if not isinstance(data, dict):
       data = self.set_data_field({}, "raw", data, volatile=True)
     elif "raw" not in data:
@@ -193,6 +193,7 @@ class Inputter(object):
     Returns:
       The transformed input.
     """
+    tf.logging.info(" >> [inputter.py class Inputter transform_data]")
     inputs = self._transform_data(data, mode)
     if log_dir:
       self.visualize(log_dir)
@@ -245,9 +246,11 @@ class MultiInputter(Inputter):
       inputter.initialize(metadata)
 
   def visualize(self, log_dir):
-    for i, inputter in enumerate(self.inputters):
-      with tf.variable_scope("inputter_{}".format(i)):
-        inputter.visualize(log_dir)
+    tf.logging.info(" >>>> [text_inputter.py Class MultiInputter visualize]")
+    self.inputters[0].visualize(log_dir)
+    for i, inputter in enumerate(self.inputters[1:]):
+        with tf.variable_scope("inputter_{}".format(i+1)):
+          inputter.visualize(log_dir)
 
   @abc.abstractmethod
   def _get_serving_input(self):
@@ -256,8 +259,8 @@ class MultiInputter(Inputter):
   def transform(self, inputs, mode):
     transformed = []
     for i, inputter in enumerate(self.inputters):
-      with tf.variable_scope("inputter_{}".format(i)):
-        transformed.append(inputter.transform(inputs[i], mode))
+      with tf.variable_scope("inputter_{}".format(i+1)):
+        transformed.append(inputter.transform(inputs[i+1], mode))
     return transformed
 
 
@@ -330,11 +333,18 @@ class ParallelInputter(MultiInputter):
     return processed_data
 
   def _transform_data(self, data, mode):
+    tf.logging.info(" >> [inputter.py class ParallelInputter _transform_data] for i, inputter in enumerate(self.inputters) ...")
     transformed = []
-    for i, inputter in enumerate(self.inputters):
-      with tf.variable_scope("inputter_{}".format(i)):
-        sub_data = extract_prefixed_keys(data, "inputter_{}_".format(i))
-        transformed.append(inputter._transform_data(sub_data, mode))  # pylint: disable=protected-access
+
+    inputter = self.inputters[0]
+    sub_data = extract_prefixed_keys(data, "inputter_{}_".format(0))
+    transformed.append(inputter._transform_data(sub_data, mode))  # pylint: disable=protected-access
+
+    for i, inputter in enumerate(self.inputters[1:]):
+        with tf.variable_scope("inputter_{}".format(i+1)):
+          sub_data = extract_prefixed_keys(data, "inputter_{}_".format(i+1))
+          transformed.append(inputter._transform_data(sub_data, mode))  # pylint: disable=protected-access
+
     if self.reducer is not None:
       transformed = self.reducer.reduce(transformed)
     return transformed
@@ -389,6 +399,7 @@ class MixedInputter(MultiInputter):
     return data
 
   def _transform_data(self, data, mode):
+    tf.logging.info(" >> [inputter.py class MixedInputter _transform_data]")
     transformed = []
     for i, inputter in enumerate(self.inputters):
       with tf.variable_scope("inputter_{}".format(i)):

@@ -76,6 +76,8 @@ params:
   # (optional) Replace unknown target tokens by the original source token with the
   # highest attention (default: false).
   replace_unknown_target: false
+  # (optional) share word embedding between the encoder and decoder (default: false).
+  decoder_share_embedding: true
 
 # Training options.
 train:
