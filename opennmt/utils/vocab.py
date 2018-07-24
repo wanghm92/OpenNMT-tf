@@ -70,6 +70,11 @@ class Vocab(object):
         vocab.write(tf.compat.as_bytes(token))
         vocab.write(b"\n")
 
+    with open(path+'.cnt', "wb") as fout:
+      for token in self._id_to_token:
+        freq = self._frequency[self._token_to_id[token]]
+        fout.write(b"%s: %s\n"%(tf.compat.as_bytes(token), str(freq)))
+
   def load(self, path):
     """Loads a serialized vocabulary.
 
@@ -153,5 +158,4 @@ class Vocab(object):
       new_vocab._token_to_id[token] = i  # pylint: disable=protected-access
       new_vocab._id_to_token.append(token)  # pylint: disable=protected-access
       new_vocab._frequency.append(frequency)  # pylint: disable=protected-access
-
     return new_vocab
