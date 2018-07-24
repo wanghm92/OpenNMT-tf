@@ -205,6 +205,9 @@ class Runner(object):
         train_spec.input_fn, hooks=train_spec.hooks, max_steps=train_spec.max_steps)
     self._maybe_average_checkpoints()
 
+    for x in sorted([i.name for i in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)]):
+        print(x)
+
   def evaluate(self, checkpoint_path=None):
     """Runs evaluation."""
     if checkpoint_path is not None and os.path.isdir(checkpoint_path):
