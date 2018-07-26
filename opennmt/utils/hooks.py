@@ -50,7 +50,10 @@ class CountersHook(tf.train.SessionRunHook):
 
   Implementation is mostly copied from StepCounterHook.
   """
-
+  '''
+  The run_values argument contains results of requested ops/tensors by before_run().
+  The run_context argument is the same one send to before_run call. run_context.request_stop() can be called to stop the iteration.
+  '''
   def __init__(self,
                every_n_steps=100,
                every_n_secs=None,

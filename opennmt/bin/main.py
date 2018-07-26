@@ -82,7 +82,7 @@ def main():
                         help="Logs verbosity.")
     parser.add_argument("--seed", type=int, default=None,
                         help="Random seed.")
-    parser.add_argument("--gpu_allow_growth", default=False, action="store_true",
+    parser.add_argument("--gpu_allow_growth", default=True, action="store_true",
                         help="Allocate GPU memory dynamically.")
     parser.add_argument("--intra_op_parallelism_threads", type=int, default=0,
                         help=("Number of intra op threads (0 means the system picks "
@@ -93,7 +93,7 @@ def main():
     args = parser.parse_args()
 
     tf.logging.set_verbosity(getattr(tf.logging, args.log_level))
-    tf.logging.info("********** Running %s **********" % ' '.join(sys.argv))
+    tf.logging.info("**** Running %s ****" % ' '.join(sys.argv))
 
     # Setup cluster if defined.
     if args.chief_host:
@@ -154,6 +154,7 @@ def main():
         tf.logging.info(" >> Start Evaluation ...")
         runner.evaluate(checkpoint_path=args.checkpoint_path)
     elif args.run == "infer":
+        tf.logging.info(" >> Start Inference ...")
         if not args.features_file:
             parser.error("--features_file is required for inference.")
         elif len(args.features_file) == 1:
@@ -164,6 +165,7 @@ def main():
             checkpoint_path=args.checkpoint_path,
             log_time=args.log_prediction_time)
     elif args.run == "export":
+        tf.logging.info(" >> Start Exporting ...")
         runner.export(checkpoint_path=args.checkpoint_path)
     elif args.run == "score":
         if not args.features_file:

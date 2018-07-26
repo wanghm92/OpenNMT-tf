@@ -117,13 +117,13 @@ class SequenceToSequence(Model):
                   features,
                   mode=mode,
                   log_dir=log_dir)
-          with tf.variable_scope("encoder"):
+          with tf.variable_scope("encoder", reuse=tf.AUTO_REUSE):
               encoder_outputs, encoder_state, encoder_sequence_length = self.encoder.encode(
                   source_inputs,
                   sequence_length=features_length,
                   mode=mode)
       else:
-          with tf.variable_scope("encoder"):
+          with tf.variable_scope("encoder", reuse=tf.AUTO_REUSE):
               source_inputs = self.source_inputter.transform_data(
                   features,
                   mode=mode,

@@ -266,6 +266,7 @@ def training_pipeline(dataset,
         # When the sample buffer size is smaller than the dataset size, shard
         # the dataset in a random order. This ensures that all parts of the
         # dataset can be seen when the evaluation frequency is high.
+        tf.logging.info(" >>>> [utils/data.py training_pipeline] random_shard dataset ...")
         dataset = dataset.apply(random_shard(shuffle_buffer_size, dataset_size))
     tf.logging.info(" >>>> [utils/data.py training_pipeline] Shuffling dataset ...")
     dataset = dataset.shuffle(shuffle_buffer_size)
@@ -290,6 +291,7 @@ def training_pipeline(dataset,
   dataset = dataset.apply(filter_irregular_batches(batch_multiplier))
   if not single_pass:
     dataset = dataset.repeat()
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] prefetch_element ...")
   dataset = dataset.apply(prefetch_element(buffer_size=prefetch_buffer_size))
   return dataset
 
@@ -312,8 +314,12 @@ def inference_pipeline(dataset,
   Returns:
     A ``tf.data.Dataset``.
   """
+  tf.logging.info(" >>>> [utils/data.py inference_pipeline] ")
   if process_fn is not None:
+    tf.logging.info(" >>>> [utils/data.py inference_pipeline] Applying process_fn ...")
     dataset = dataset.map(process_fn, num_parallel_calls=num_threads or 1)
+  tf.logging.info(" >>>> [utils/data.py inference_pipeline] batch_parallel_dataset ...")
   dataset = dataset.apply(batch_parallel_dataset(batch_size))
+  tf.logging.info(" >>>> [utils/data.py inference_pipeline] prefetch_element ...")
   dataset = dataset.apply(prefetch_element(buffer_size=prefetch_buffer_size))
   return dataset

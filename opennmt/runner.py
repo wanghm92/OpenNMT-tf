@@ -47,8 +47,7 @@ class Runner(object):
     session_config_base = tf.ConfigProto(
         allow_soft_placement=True,
         log_device_placement=False,
-        gpu_options=tf.GPUOptions(
-            allow_growth=gpu_allow_growth))
+        gpu_options=tf.GPUOptions(allow_growth=gpu_allow_growth))
 
     # Disable layout optimizer for better conv1d performance, see:
     # https://github.com/tensorflow/tensorflow/issues/20309
@@ -103,7 +102,8 @@ class Runner(object):
         returns the ops necessary to perform training, evaluation, or predictions
         All outputs (checkpoints, event files, etc.) are written to model_dir
     config: RunConfig (execution environment) passed to the "config" in model_fn
-    params: hyperparameters passed to the "params" in model_fn 
+    params: dict of hyperparameters passed to the "params" in model_fn,  
+            keys are names of parameters, values are basic python types
     '''
     self._estimator = tf.estimator.Estimator(
         self._model.model_fn(num_devices=self._num_devices),
@@ -186,10 +186,13 @@ class Runner(object):
   def train_and_evaluate(self):
     """Runs the training and evaluation loop."""
     '''
-    https://www.tensorflow.org/api_docs/python/tf/estimator/Estimator
+    https://www.tensorflow.org/api_docs/python/tf/estimator/train_and_evaluate
     This utility function trains, evaluates, and (optionally) exports the model by using the given estimator. 
     All training related specification is held in train_spec, including training input_fn and training max steps, etc.
     All evaluation and export related specification is held in eval_spec, including evaluation input_fn, steps, etc.
+    Remarks:
+        In order to avoid overfitting, it is recommended to set up the training input_fn to shuffle the training data properly
+        The training input_fn is configured to throw OutOfRangeError after going through one epoch, which stops the Estimator.train
     '''
     train_spec = self._build_train_spec()
     eval_spec = self._build_eval_spec()
@@ -201,8 +204,7 @@ class Runner(object):
     """Runs the training loop. Trains a model given training data input_fn"""
     tf.logging.info(">> [runner.py train] Runs the training loop. Trains a model given training data input_fn")
     train_spec = self._build_train_spec()
-    self._estimator.train(
-        train_spec.input_fn, hooks=train_spec.hooks, max_steps=train_spec.max_steps)
+    self._estimator.train(train_spec.input_fn, hooks=train_spec.hooks, max_steps=train_spec.max_steps)
     self._maybe_average_checkpoints()
     tf.logging.info(">> [runner.py train] printing parameters ...")
     for x in sorted([i.name for i in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)]):
@@ -213,10 +215,9 @@ class Runner(object):
     """Runs evaluation."""
     if checkpoint_path is not None and os.path.isdir(checkpoint_path):
       checkpoint_path = tf.train.latest_checkpoint(checkpoint_path)
-    # tf.logging.info("Building eval_spec")
+    tf.logging.info(">> [runner.py evaluate] Runs evaluation ...")
     eval_spec = self._build_eval_spec()
-    self._estimator.evaluate(
-        eval_spec.input_fn, hooks=eval_spec.hooks, checkpoint_path=checkpoint_path)
+    self._estimator.evaluate(eval_spec.input_fn, hooks=eval_spec.hooks, checkpoint_path=checkpoint_path)
 
   def _maybe_average_checkpoints(self, avg_subdirectory="avg"):
     """Averages checkpoints if enabled in the training configuration and if the
@@ -406,10 +407,13 @@ def _make_exporters(exporters_type, serving_input_fn):
   for exporter_type in exporters_type:
     exporter_type = exporter_type.lower()
     if exporter_type == "last":
+      # regularly exports the serving graph and checkpoints
       exporters.append(tf.estimator.LatestExporter("latest", serving_input_fn))
     elif exporter_type == "final":
+      # exports the serving graph and checkpoints in the end
       exporters.append(tf.estimator.FinalExporter("final", serving_input_fn))
     elif exporter_type == "best":
+        # performs a model export everytime when the new model is better than any exsiting model
       if not hasattr(tf.estimator, "BestExporter"):
         raise ValueError("BestExporter is only available starting from TensorFlow 1.9")
       exporters.append(tf.estimator.BestExporter(

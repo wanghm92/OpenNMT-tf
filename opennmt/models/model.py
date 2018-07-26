@@ -123,6 +123,7 @@ class Model(object):
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Extracts and summarizes the loss ...")
         loss = _extract_loss(losses_shards)
+
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Creating train_op (optimizer) ...")
         train_op = optimize(loss, params)
 
@@ -138,14 +139,19 @@ class Model(object):
       # ------------------ Eval ----------------- #
       elif mode == tf.estimator.ModeKeys.EVAL:
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Building Graph ...")
+
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
           logits, predictions = self._build(features, labels, params, mode, config=config)
+
           tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing loss ...")
           loss = self._compute_loss(features, labels, logits, params, mode)
 
+        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Extracts and summarizes the loss ...")
         loss = _extract_loss(loss)
+
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing Metrics ...")
         eval_metric_ops = self._compute_metrics(features, labels, predictions)
+
         if predictions is not None:
           # Register predictions in a collection so that hooks can easily fetch them.
           add_dict_to_collection("predictions", predictions)
@@ -258,10 +264,10 @@ class Model(object):
     """
     tf.logging.info(" >> [model.py _initialize] Initializing with metadata ... ")
     if self.features_inputter is not None:
-      tf.logging.info(" >> [model.py _initialize] Initializing features_inputter %s"%self.features_inputter)
+      tf.logging.info(" >> [model.py _initialize] self.features_inputter.initialize(metadata) --- features_inputter %s"%self.features_inputter)
       self.features_inputter.initialize(metadata)
     if self.labels_inputter is not None:
-      tf.logging.info(" >> [model.py _initialize] Initializing labels_inputter %s"%self.labels_inputter)
+      tf.logging.info(" >> [model.py _initialize] self.labels_inputter.initialize(metadata) --- labels_inputter %s"%self.labels_inputter)
       self.labels_inputter.initialize(metadata)
 
   def _get_serving_input_receiver(self):
@@ -323,9 +329,9 @@ class Model(object):
     Returns:
       A tuple ``(tf.data.Dataset, process_fn)``.
     """
-    tf.logging.info(" >> [model.py _get_features_builder]")
     if self.features_inputter is None:
       raise NotImplementedError()
+    tf.logging.info(" >> [model.py _get_features_builder] self.features_inputter.make_dataset(features_file)")
     dataset = self.features_inputter.make_dataset(features_file)
     process_fn = self.features_inputter.process
     return dataset, process_fn
@@ -339,9 +345,9 @@ class Model(object):
     Returns:
       A tuple ``(tf.data.Dataset, process_fn)``.
     """
-    tf.logging.info(" >> [model.py _get_labels_builder]")
     if self.labels_inputter is None:
       raise NotImplementedError()
+    tf.logging.info(" >> [model.py _get_labels_builder] self.labels_inputter.make_dataset(labels_file)")
     dataset = self.labels_inputter.make_dataset(labels_file)
     process_fn = self.labels_inputter.process
     return dataset, process_fn
@@ -362,8 +368,9 @@ class Model(object):
                      maximum_features_length=None,
                      maximum_labels_length=None):
     tf.logging.info(" >> [model.py _input_fn_impl] Building input_fn ... ")
-    tf.logging.info(" >> [model.py _input_fn_impl] Metadata")
+    tf.logging.info(" >> [model.py _input_fn_impl] Metadata: ")
     pp.pprint(metadata)
+    tf.logging.info(" >> [model.py _input_fn_impl] self._initialize ... ")
     self._initialize(metadata)
 
     # features_file: self._config["data"]["train_features_file"]
@@ -372,7 +379,7 @@ class Model(object):
 
     if labels_file is None:
       dataset = feat_dataset
-      # Parallel inputs must be catched in a single tuple and not considered as multiple arguments.
+      # Parallel inputs must be caught in a single tuple and not considered as multiple arguments.
       process_fn = lambda *arg: feat_process_fn(item_or_tuple(arg))
     else:
       tf.logging.info(" >> [model.py _input_fn_impl] Building labels ... ")

@@ -88,7 +88,7 @@ train:
   # (optional) Save a checkpoint every this many steps. 5000
   save_checkpoints_steps: 1000
   # (optional) How many checkpoints to keep on disk.
-  keep_checkpoint_max: 3
+  keep_checkpoint_max: 5
   # (optional) Save summaries every this many steps.
   save_summary_steps: 100
   # (optional) Train for this many steps. If not set, train forever.

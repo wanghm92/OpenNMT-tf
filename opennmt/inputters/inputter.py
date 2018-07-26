@@ -133,7 +133,7 @@ class Inputter(object):
     See Also:
       :meth:`opennmt.inputters.inputter.Inputter.transform_data`
     """
-    tf.logging.info(" >> [inputter.py process]")
+    tf.logging.info(" >> [inputter.py process] data = self._process(data)")
     data = self._process(data)
     for hook in self.process_hooks:
       data = hook(self, data)

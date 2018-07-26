@@ -230,7 +230,7 @@ class TextInputter(Inputter):
     return data["length"]
 
   def make_dataset(self, data_file):
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter] make_dataset")
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter] make_dataset: return tf.data.TextLineDataset(data_file)")
     '''
     A Dataset comprising lines from one or more text files
     '''
@@ -245,7 +245,7 @@ class TextInputter(Inputter):
 
   def _process(self, data):
     """Tokenizes raw text."""
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process]")
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] Tokenizes raw text (default: split by space)")
 
     data = super(TextInputter, self)._process(data)
     if "tokens" not in data:
@@ -352,11 +352,12 @@ class WordEmbedder(TextInputter):
 
   def _process(self, data):
     """Converts words tokens to ids."""
-    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process]")
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] Converts words tokens to ids")
     data = super(WordEmbedder, self)._process(data)
 
     if "ids" not in data:
       tokens = data["tokens"]
+      tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] ids = self.vocabulary.lookup(tokens)")
       ids = self.vocabulary.lookup(tokens)
 
       data = self.set_data_field(data, "ids", ids)
