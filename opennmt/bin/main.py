@@ -1,10 +1,6 @@
 """Main script."""
 
-import argparse
-import json
-import os
-import six
-import sys
+import argparse, json, os, six, sys, shutil
 sys.path.append(os.getcwd())
 
 import tensorflow as tf
@@ -119,6 +115,12 @@ def main():
     if not os.path.isdir(config["model_dir"]):
         tf.logging.info("Creating model directory %s", config["model_dir"])
         os.makedirs(config["model_dir"])
+
+    config_save = os.path.join(config['model_dir'], 'args')
+    if not os.path.exists(config_save):
+      os.mkdir(config_save)
+    shutil.copy(args.model, config_save)
+    for c in args.config: shutil.copy(c, config_save)
 
     # Save argparse flags
     with open(os.path.join(config['model_dir'], 'args.json'),'w+') as fout:

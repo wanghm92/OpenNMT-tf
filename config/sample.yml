@@ -118,7 +118,7 @@ eval:
   # (optional) The number of batches to prefetch asynchronously (default: 1).
   prefetch_buffer_size: 1
   # (optional) Evaluate every this many seconds (default: 18000).
-  eval_delay: 7200
+  eval_delay: 5
   # (optional) Save evaluation predictions in model_dir/eval/.
   save_eval_predictions: false
   # (optional) Evalutator or list of evaluators that are called on the saved evaluation predictions.

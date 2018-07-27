@@ -150,6 +150,11 @@ def external_evaluation_fn(evaluators_name, labels_file, output_dir=None):
   Raises:
     ValueError: if an evaluator name is invalid.
   """
+  '''
+  BLEU supports multiple references. 
+  In that case, if an n-gram in the MT output is confirmed by any of the reference translations, it is counted as correct. 
+  If an n-gram occurs multiple times, it has to be seen in one of the references multiple times as well.
+  '''
   if evaluators_name is None:
     return None
   if not isinstance(evaluators_name, list):
