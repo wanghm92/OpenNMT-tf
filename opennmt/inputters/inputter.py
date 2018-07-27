@@ -193,7 +193,7 @@ class Inputter(object):
     Returns:
       The transformed input.
     """
-    tf.logging.info(" >> [inputter.py class Inputter transform_data]")
+    tf.logging.info(" >> [inputter.py class Inputter transform_data] Embedding Lookup ...")
     inputs = self._transform_data(data, mode)
     if log_dir:
       self.visualize(log_dir)
