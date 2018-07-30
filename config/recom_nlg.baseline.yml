@@ -75,7 +75,7 @@ params:
   maximum_iterations: 200
   # (optional) Replace unknown target tokens by the original source token with the
   # highest attention (default: false).
-  replace_unknown_target: false
+  replace_unknown_target: true
   # (optional) share word embedding between the encoder and decoder (default: false).
   decoder_share_embedding: true
 

@@ -289,6 +289,7 @@ class ParallelInputter(MultiInputter):
       return lengths[0]
 
   def make_dataset(self, data_file):
+    tf.logging.info(" >> [inputter.py class ParallelInputter make_dataset]")
     if not isinstance(data_file, list) or len(data_file) != len(self.inputters):
       raise ValueError("The number of data files must be the same as the number of inputters")
     datasets = [

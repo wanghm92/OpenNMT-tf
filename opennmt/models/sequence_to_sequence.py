@@ -217,10 +217,14 @@ class SequenceToSequence(Model):
               if alignment is None:
                   raise TypeError("replace_unknown_target is not compatible with decoders "
                                   "that don't return alignment history")
-              if not isinstance(self.source_inputter, inputters.WordEmbedder):
+              if isinstance(self.source_inputter, inputters.WordEmbedder):
+                  source_tokens = features["tokens"]
+              elif isinstance(self.source_inputter, inputters.ParallelInputter)\
+                      and isinstance(self.source_inputter.inputters[0], inputters.WordEmbedder):
+                  source_tokens = features["inputter_0_tokens"]
+              else:
                   raise TypeError("replace_unknown_target is only defined when the source "
-                                  "inputter is a WordEmbedder")
-              source_tokens = features["tokens"]
+                                  "inputter is a WordEmbedder or ParallelInputter with the 0th inputter being a WordEmbedder")
               if beam_width > 1:
                   source_tokens = tf.contrib.seq2seq.tile_batch(source_tokens, multiplier=beam_width)
               # Merge batch and beam dimensions.
