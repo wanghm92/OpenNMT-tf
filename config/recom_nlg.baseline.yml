@@ -3,21 +3,21 @@
 # without caring about their consistency.
 
 # The directory where models and summaries will be saved. It is created if it does not exist.
-model_dir: ../onmt-tf-output/recom_nlg_emb_v2
+model_dir: ../onmt-tf-output/recom_nlg_3c_multi-per-sku
 
 data:
   # (required for train_and_eval and train run types).
-  train_features_file: [../recom_nlg/onmt/recom_text.words.train, ../recom_nlg/onmt/recom_text.tags.train]
-  train_labels_file: ../recom_nlg/onmt/recom_text.outs.train
+  train_features_file: [../recom_nlg/onmt/multi_per_sku/recom_text.words.train, ../recom_nlg/onmt/multi_per_sku/recom_text.tags.train]
+  train_labels_file: ../recom_nlg/onmt/multi_per_sku/recom_text.outs.train
 
   # (required for train_end_eval and eval run types).
-  eval_features_file: [../recom_nlg/onmt/recom_text.words.val, ../recom_nlg/onmt/recom_text.tags.val]
-  eval_labels_file: ../recom_nlg/onmt/recom_text.outs.val
+  eval_features_file: [../recom_nlg/onmt/multi_per_sku/recom_text.words.val, ../recom_nlg/onmt/multi_per_sku/recom_text.tags.val]
+  eval_labels_file: ../recom_nlg/onmt/multi_per_sku/recom_text.outs.val
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
-  source_words_vocabulary: data/recom_nlg/words-outs-train.vocab
-  feature_vocabulary: data/recom_nlg/tags-train.vocab
-  target_words_vocabulary: data/recom_nlg/words-outs-train.vocab
+  source_words_vocabulary: data/recom_nlg/multi_per_sku/words-outs-train.vocab
+  feature_vocabulary: data/recom_nlg/multi_per_sku/tags-train.vocab
+  target_words_vocabulary: data/recom_nlg/multi_per_sku/words-outs-train.vocab
 
   words_embedding: ../recom_nlg/emb/20180710.vec
 # Model and optimization parameters.
@@ -75,7 +75,7 @@ params:
   maximum_iterations: 200
   # (optional) Replace unknown target tokens by the original source token with the
   # highest attention (default: false).
-  replace_unknown_target: true
+  replace_unknown_target: false
   # (optional) share word embedding between the encoder and decoder (default: false).
   decoder_share_embedding: true
 
@@ -130,7 +130,7 @@ eval:
   external_evaluators: BLEU
   # (optional) Model exporter(s) to use during the training and evaluation loop:
   # last, final, best, or null (default: last).
-  exporters: last
+  exporters: best
 
 # (optional) Inference options.
 infer:
