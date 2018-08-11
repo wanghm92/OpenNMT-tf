@@ -25,6 +25,10 @@ def _prefix_paths(prefix, paths):
     for key, path in six.iteritems(paths):
       paths[key] = _prefix_paths(prefix, path)
     return paths
+  elif isinstance(paths, list):
+    for i, path in enumerate(paths):
+      paths[i] = _prefix_paths(prefix, path)
+    return paths
   else:
     path = paths
     new_path = os.path.join(prefix, path)
@@ -86,6 +90,9 @@ def main():
     parser.add_argument("--inter_op_parallelism_threads", type=int, default=0,
                         help=("Number of inter op threads (0 means the system picks "
                               "an appropriate number)."))
+    parser.add_argument("--is_continue", default=False, action="store_true",
+                        help="If continue to train from a saved checkpoint")
+
     args = parser.parse_args()
 
     tf.logging.set_verbosity(getattr(tf.logging, args.log_level))
@@ -119,12 +126,12 @@ def main():
     config_save = os.path.join(config['model_dir'], 'args')
     if not os.path.exists(config_save):
       os.mkdir(config_save)
-    shutil.copy(args.model, config_save)
-    for c in args.config: shutil.copy(c, config_save)
-
-    # Save argparse flags
-    with open(os.path.join(config['model_dir'], 'args.json'),'w+') as fout:
-        json.dump(vars(args), fout, sort_keys=True, indent=4)
+    if not args.is_continue and (args.run == "train" or args.run == "train_and_eval"):
+        shutil.copy(args.model, config_save)
+        for c in args.config: shutil.copy(c, config_save)
+    if not args.is_continue:
+        with open(os.path.join(config_save, 'args.json'),'w+') as fout:
+            json.dump(vars(args), fout, sort_keys=True, indent=4)
 
     # Create the model from the catalog or a file, load pre-trained model parameters if exist
     model = load_model(config["model_dir"], model_file=args.model, model_name=args.model_type)
