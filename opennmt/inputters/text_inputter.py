@@ -227,6 +227,7 @@ class TextInputter(Inputter):
     self.tokenizer = tokenizer
 
   def get_length(self, data):
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter] get_length: return data[\"length\"]")
     return data["length"]
 
   def make_dataset(self, data_file):
@@ -387,6 +388,7 @@ class WordEmbedder(TextInputter):
       # Variable does not exist yet.
       tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] embeddings does not exist yet")
       if self.embedding_file:
+        tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] loading pretrained embedding from %s"%self.embedding_file)
         pretrained = load_pretrained_embeddings(
             self.embedding_file,
             self.vocabulary_file,

@@ -258,6 +258,7 @@ class MultiInputter(Inputter):
 
   def transform(self, inputs, mode):
     transformed = []
+    tf.logging.info(" >>>> [text_inputter.py Class MultiInputter transform]")
     for i, inputter in enumerate(self.inputters):
       with tf.variable_scope("inputter_{}".format(i+1)):
         transformed.append(inputter.transform(inputs[i+1], mode))
@@ -279,6 +280,7 @@ class ParallelInputter(MultiInputter):
     self.reducer = reducer
 
   def get_length(self, data):
+    tf.logging.info(" >> [inputter.py class ParallelInputter get_length]")
     lengths = []
     for i, inputter in enumerate(self.inputters):
       sub_data = extract_prefixed_keys(data, "inputter_{}_".format(i))
@@ -321,6 +323,7 @@ class ParallelInputter(MultiInputter):
     return all_receiver_tensors, all_features
 
   def _process(self, data):
+    tf.logging.info(" >> [inputter.py class ParallelInputter _process]")
     processed_data = {}
     for i, inputter in enumerate(self.inputters):
       sub_data = inputter._process(data[i])  # pylint: disable=protected-access
@@ -351,6 +354,7 @@ class ParallelInputter(MultiInputter):
     return transformed
 
   def transform(self, inputs, mode):
+    tf.logging.info(" >> [inputter.py class ParallelInputter transform]")
     transformed = super(ParallelInputter, self).transform(inputs, mode)
     if self.reducer is not None:
       transformed = self.reducer.reduce(transformed)
@@ -371,6 +375,12 @@ class MixedInputter(MultiInputter):
       reducer: A :class:`opennmt.layers.reducer.Reducer` to merge all inputs.
       dropout: The probability to drop units in the merged inputs.
     """
+    '''
+    Difference: 
+    (0) Most fundamental: e,g, MixedInputter applies different text_inputter to the same dataset
+    (1) MixedInputter assumes to use reducer and dropout
+    (2) ParallelInputter set different variable scope for [inputters]
+    '''
     super(MixedInputter, self).__init__(inputters)
     self.reducer = reducer
     self.dropout = dropout
@@ -379,6 +389,7 @@ class MixedInputter(MultiInputter):
     return self.inputters[0].get_length(data)
 
   def make_dataset(self, data_file):
+    tf.logging.info(" >> [inputter.py class MixedInputter make_dataset]")
     return self.inputters[0].make_dataset(data_file)
 
   def get_dataset_size(self, data_file):
@@ -394,6 +405,7 @@ class MixedInputter(MultiInputter):
     return all_receiver_tensors, all_features
 
   def _process(self, data):
+    tf.logging.info(" >> [inputter.py class MixedInputter _process]")
     for inputter in self.inputters:
       data = inputter._process(data)  # pylint: disable=protected-access
       self.volatile |= inputter.volatile
@@ -413,6 +425,7 @@ class MixedInputter(MultiInputter):
     return outputs
 
   def transform(self, inputs, mode):
+    tf.logging.info(" >> [inputter.py class MixedInputter transform]")
     transformed = super(MixedInputter, self).transform(inputs, mode)
     outputs = self.reducer.reduce(transformed)
     outputs = tf.layers.dropout(

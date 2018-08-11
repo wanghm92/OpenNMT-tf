@@ -1,0 +1,23 @@
+model_dir: ../onmt-tf-output/temp
+
+data:
+  # (required for train_and_eval and train run types).
+  train_features_file: [/home/hongmin/workspace/data/train.box.val,
+                        /home/hongmin/workspace/data/train.box.lab,
+                        /home/hongmin/workspace/data/train.box.pos,
+                        /home/hongmin/workspace/data/train.box.rpos]
+  train_labels_file: /home/hongmin/workspace/data/train.out
+
+  # (required for train_end_eval and eval run types).
+  eval_features_file: [/home/hongmin/workspace/data/valid.box.val,
+                        /home/hongmin/workspace/data/valid.box.lab,
+                        /home/hongmin/workspace/data/valid.box.pos,
+                        /home/hongmin/workspace/data/valid.box.rpos]
+  eval_labels_file: /home/hongmin/workspace/data/valid.out
+
+train:
+  save_checkpoints_steps: 2
+  # (optional) Save summaries every this many steps.
+  save_summary_steps: 2
+  # (optional) Train for this many steps. If not set, train forever.
+  train_steps: 4

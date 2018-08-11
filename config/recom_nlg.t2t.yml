@@ -3,40 +3,32 @@
 # without caring about their consistency.
 
 # The directory where models and summaries will be saved. It is created if it does not exist.
-model_dir: ../onmt-tf-output/wikibio_bilstm_lstm_glove6b300d
+#model_dir: ../onmt-tf-output/recom_nlg_clothes_t2t
 
 data:
   # (required for train_and_eval and train run types).
-  train_features_file: [../table2text/fieldgate/onmt_format/train.box.val,
-                        ../table2text/fieldgate/onmt_format/train.box.lab,
-                        ../table2text/fieldgate/onmt_format/train.box.pos,
-                        ../table2text/fieldgate/onmt_format/train.box.rpos]
-  train_labels_file: ../table2text/fieldgate/onmt_format/train.summary.sed_rlb
+  train_features_file: [../recom_nlg/onmt/clothes/one_per_sku/recom_text.words.train, ../recom_nlg/onmt/clothes/one_per_sku/recom_text.tags.train]
+  train_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/recom_text.outs.train
 
   # (required for train_end_eval and eval run types).
-  eval_features_file: [../table2text/fieldgate/onmt_format/valid.box.val,
-                        ../table2text/fieldgate/onmt_format/valid.box.lab,
-                        ../table2text/fieldgate/onmt_format/valid.box.pos,
-                        ../table2text/fieldgate/onmt_format/valid.box.rpos]
-  eval_labels_file: ../table2text/fieldgate/onmt_format/valid.summary.sed_rlb
+  eval_features_file: [../recom_nlg/onmt/clothes/one_per_sku/recom_text.words.val, ../recom_nlg/onmt/clothes/one_per_sku/recom_text.tags.val]
+  eval_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/recom_text.outs.val
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
-  source_words_vocabulary: ../table2text/fieldgate/onmt_format/word.vocab
-  field_vocabulary: ../table2text/fieldgate/onmt_format/field.vocab
-  position_vocabulary: ../table2text/fieldgate/onmt_format/pos.vocab
-  rposition_vocabulary: ../table2text/fieldgate/onmt_format/rpos.vocab
-  target_words_vocabulary: ../table2text/fieldgate/onmt_format/word.vocab
+  source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
+  feature_vocabulary: data/recom_nlg/clothes/one_per_sku/tags-train.vocab
+  target_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
 
-  words_embedding: /scratch/home/hongmin/glove/glove6B/glove.6B.300d.txt
+  words_embedding: ../recom_nlg/emb/20180710.vec
 # Model and optimization parameters.
 params:
   # The optimizer class name in tf.train or tf.contrib.opt.
   optimizer: AdamOptimizer
   # (optional) Additional optimizer parameters as defined in their documentation.
-#  optimizer_params:
-#    beta1: 0.8
-#    beta2: 0.998
-  learning_rate: 0.0005
+  optimizer_params:
+    beta1: 0.8
+    beta2: 0.998
+  learning_rate: 1.0
 
   # (optional) Global parameter initialization [-param_init, param_init].
   param_init: 0.1
@@ -62,28 +54,28 @@ params:
   # (optional) If true, the learning rate is decayed in a staircase fashion (default: True).
   staircase: true
   # (optional) After how many steps to start the decay (default: 0).
-  start_decay_steps: 70000
+  start_decay_steps: 50000
   # (optional) Stop decay when this learning rate value is reached (default: 0).
   minimum_learning_rate: 0.0001
   # (optional) Type of scheduled sampling (can be "constant", "linear", "exponential",
   # or "inverse_sigmoid", default: "constant").
-  scheduled_sampling_type: constant
+#  scheduled_sampling_type: constant
   # (optional) Probability to read directly from the inputs instead of sampling categorically
   # from the output ids (default: 1).
-  scheduled_sampling_read_probability: 1
+#  scheduled_sampling_read_probability: 1
   # (optional unless scheduled_sampling_type is set) The constant k of the schedule.
-  scheduled_sampling_k: 0
+#  scheduled_sampling_k: 0
   # (optional) The label smoothing value.
   label_smoothing: 0.1
   # (optional) Width of the beam search (default: 1).
-  beam_width: 1
+  beam_width: 4
   # (optional) Length penaly weight to apply on hypotheses (default: 0).
-  length_penalty: 0
+  length_penalty: 0.2
   # (optional) Maximum decoding iterations before stopping (default: 250).
   maximum_iterations: 200
   # (optional) Replace unknown target tokens by the original source token with the
   # highest attention (default: false).
-  replace_unknown_target: true
+  replace_unknown_target: false
   # (optional) share word embedding between the encoder and decoder (default: false).
   decoder_share_embedding: true
 
@@ -94,19 +86,19 @@ train:
   # (optional) Batch size is the number of "examples" or "tokens" (default: "examples").
   batch_type: examples
   # (optional) Save a checkpoint every this many steps. 5000
-  save_checkpoints_steps: 5000
+  save_checkpoints_steps: 1000
   # (optional) How many checkpoints to keep on disk.
   keep_checkpoint_max: 5
   # (optional) Save summaries every this many steps.
   save_summary_steps: 100
   # (optional) Train for this many steps. If not set, train forever.
-  train_steps: 1000000
+  train_steps: 500000
   # (optional) If true, makes a single pass over the training data (default: false).
   single_pass: false
   # (optional) The maximum length of feature sequences during training (default: None).
-#  maximum_features_length: 90
+  maximum_features_length: 100
   # (optional) The maximum length of label sequences during training (default: None).
-#  maximum_labels_length: 90
+  maximum_labels_length: 100
   # (optional) The width of the length buckets to select batch candidates from (default: 5).
   bucket_width: 5
   # (optional) The number of threads to use for processing data in parallel (default: 4).
@@ -124,13 +116,13 @@ train:
 # (optional) Evaluation options.
 eval:
   # (optional) The batch size to use (default: 32).
-  batch_size: 16
+  batch_size: 30
   # (optional) The number of threads to use for processing data in parallel (default: 1).
   num_threads: 1
   # (optional) The number of batches to prefetch asynchronously (default: 1).
   prefetch_buffer_size: 1
   # (optional) Evaluate every this many seconds (default: 18000).
-  eval_delay: 3600
+  eval_delay: 1800
   # (optional) Save evaluation predictions in model_dir/eval/.
   save_eval_predictions: false
   # (optional) Evalutator or list of evaluators that are called on the saved evaluation predictions.

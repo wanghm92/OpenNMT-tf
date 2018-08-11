@@ -290,6 +290,7 @@ class Model(object):
       The length as a ``tf.Tensor`` or list of ``tf.Tensor``, or ``None`` if
       length is undefined.
     """
+    tf.logging.info(" >> [model.py _get_features_length]")
     if self.features_inputter is None:
       return None
     return self.features_inputter.get_length(features)
