@@ -4,7 +4,7 @@ import argparse, json, os, six, sys, shutil
 sys.path.append(os.getcwd())
 
 import tensorflow as tf
-
+from google.protobuf import text_format
 from opennmt.models import catalog
 from opennmt.runner import Runner
 from opennmt.config import load_model, load_config
@@ -90,6 +90,9 @@ def main():
     parser.add_argument("--inter_op_parallelism_threads", type=int, default=0,
                         help=("Number of inter op threads (0 means the system picks "
                               "an appropriate number)."))
+    parser.add_argument("--session_config", default=None,
+                        help=("Path to a file containing a tf.ConfigProto message in text format "
+                              "and used to create the TensorFlow sessions."))
     parser.add_argument("--is_continue", default=False, action="store_true",
                         help="If continue to train from a saved checkpoint")
 
@@ -139,6 +142,9 @@ def main():
     session_config = tf.ConfigProto(
         intra_op_parallelism_threads=args.intra_op_parallelism_threads,
         inter_op_parallelism_threads=args.inter_op_parallelism_threads)
+    if args.session_config is not None:
+        with open(args.session_config, "rb") as session_config_file:
+            text_format.Merge(session_config_file.read(), session_config)
 
     # Initializes the runner parameters
     runner = Runner(
