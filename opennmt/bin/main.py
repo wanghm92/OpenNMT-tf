@@ -122,9 +122,10 @@ def main():
     if args.data_dir:
         config["data"] = _prefix_paths(args.data_dir, config["data"])
 
-    if not os.path.isdir(config["model_dir"]):
+    is_chief = args.task_type == "chief"
+    if is_chief and not tf.gfile.Exists(config["model_dir"]):
         tf.logging.info("Creating model directory %s", config["model_dir"])
-        os.makedirs(config["model_dir"])
+        tf.gfile.MakeDirs(config["model_dir"])
 
     config_save = os.path.join(config['model_dir'], 'args')
     if not os.path.exists(config_save):
@@ -137,7 +138,10 @@ def main():
             json.dump(vars(args), fout, sort_keys=True, indent=4)
 
     # Create the model from the catalog or a file, load pre-trained model parameters if exist
-    model = load_model(config["model_dir"], model_file=args.model, model_name=args.model_type)
+    model = load_model(config["model_dir"],
+                       model_file=args.model,
+                       model_name=args.model_type,
+                       serialize_model=is_chief)
     tf.logging.info(" >> Model = %s"%model)
     session_config = tf.ConfigProto(
         intra_op_parallelism_threads=args.intra_op_parallelism_threads,
