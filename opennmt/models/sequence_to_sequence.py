@@ -43,6 +43,24 @@ def shift_target_sequence(inputter, data):
 
   return data
 
+def _maybe_reuse_embedding_fn(embedding_fn, scope=None):
+  def _scoped_embedding_fn(ids):
+    try:
+      with tf.variable_scope(scope):
+        return embedding_fn(ids)
+    except ValueError:
+      with tf.variable_scope(scope, reuse=True):
+        return embedding_fn(ids)
+  return _scoped_embedding_fn
+
+class EmbeddingsSharingLevel(object):
+  """Level of embeddings sharing.
+   Possible values are:
+    * ``NONE``: no sharing (default)
+   * ``SOURCE_TARGET_INPUT``: share source and target word embeddings
+  """
+  NONE = 0
+  SOURCE_TARGET_INPUT = 1
 
 class SequenceToSequence(Model):
   """A sequence to sequence model."""
@@ -52,6 +70,7 @@ class SequenceToSequence(Model):
                target_inputter,
                encoder,
                decoder,
+               share_embeddings=EmbeddingsSharingLevel.NONE,
                daisy_chain_variables=False,
                name="seq2seq"):
     """Initializes a sequence-to-sequence model.
@@ -62,13 +81,17 @@ class SequenceToSequence(Model):
                         Currently, only the :class:`opennmt.inputters.text_inputter.WordEmbedder` is supported.
       encoder: A :class:`opennmt.encoders.encoder.Encoder` to encode the source.
       decoder: A :class:`opennmt.decoders.decoder.Decoder` to decode the target.
+      share_embeddings: Level of embeddings sharing, see
+        :class:`opennmt.models.sequence_to_sequence.EmbeddingsSharingLevel`
+        for possible values.
       daisy_chain_variables: If ``True``, copy variables in a daisy chain between devices for this model.
                                 Not compatible with RNN based models.
       name: The name of this model.
 
     Raises:
       TypeError: if :obj:`target_inputter` is not a
-        :class:`opennmt.inputters.text_inputter.WordEmbedder` or if
+        :class:`opennmt.inputters.text_inputter.WordEmbedder` (same for
+        :obj:`source_inputter` when embeddings sharing is enabled) or if
         :obj:`source_inputter` and :obj:`target_inputter` do not have the same
         ``dtype``.
     """
@@ -78,6 +101,10 @@ class SequenceToSequence(Model):
           "saw: {} and {}".format(source_inputter.dtype, target_inputter.dtype))
     if not isinstance(target_inputter, inputters.WordEmbedder):
       raise TypeError("Target inputter must be a WordEmbedder")
+    if share_embeddings == EmbeddingsSharingLevel.SOURCE_TARGET_INPUT:
+      if not isinstance(source_inputter, inputters.WordEmbedder):
+        raise TypeError("Sharing embeddings requires both inputters to be a "
+                        "WordEmbedder")
 
     super(SequenceToSequence, self).__init__(
         name,
@@ -87,20 +114,28 @@ class SequenceToSequence(Model):
 
     self.encoder = encoder
     self.decoder = decoder
+    self.share_embeddings = share_embeddings
     self.source_inputter = source_inputter
     self.target_inputter = target_inputter
     self.target_inputter.add_process_hooks([shift_target_sequence])
 
-  def _scoped_target_embedding_fn(self, mode, scope):
-    tf.logging.info(" >> [sequence_to_sequence.py _scoped_target_embedding_fn]")
-    def _target_embedding_fn(ids):
-      try:
-        with tf.variable_scope(scope):
-          return self.target_inputter.transform(ids, mode=mode)
-      except ValueError:
-        with tf.variable_scope(scope, reuse=True):
-          return self.target_inputter.transform(ids, mode=mode)
-    return _target_embedding_fn
+  # def _scoped_target_embedding_fn(self, mode, scope):
+  #   tf.logging.info(" >> [sequence_to_sequence.py _scoped_target_embedding_fn]")
+  #   def _target_embedding_fn(ids):
+  #     try:
+  #       with tf.variable_scope(scope):
+  #         return self.target_inputter.transform(ids, mode=mode)
+  #     except ValueError:
+  #       with tf.variable_scope(scope, reuse=True):
+  #         return self.target_inputter.transform(ids, mode=mode)
+  #   return _target_embedding_fn
+
+  def _get_input_scope(self, default_name=""):
+    if self.share_embeddings == EmbeddingsSharingLevel.SOURCE_TARGET_INPUT:
+      name = "shared_embeddings"
+    else:
+      name = default_name
+    return tf.VariableScope(None, name=tf.get_variable_scope().name + "/" + name)
 
   def _build(self, features, labels, params, mode, config=None):
 
@@ -109,63 +144,75 @@ class SequenceToSequence(Model):
       features_length = self._get_features_length(features)
       log_dir = config.model_dir if config is not None else None
 
-      share_emb = params.get("decoder_share_embedding")
-      tf.logging.info(" >> [sequence_to_sequence.py _build] source_inputter = %s, decoder_share_embedding = %s"%(self.source_inputter, share_emb))
-      if share_emb:
-          with tf.variable_scope("decoder"):
-              source_inputs = self.source_inputter.transform_data(
-                  features,
-                  mode=mode,
-                  log_dir=log_dir)
-          with tf.variable_scope("encoder", reuse=tf.AUTO_REUSE):
-              encoder_outputs, encoder_state, encoder_sequence_length = self.encoder.encode(
-                  source_inputs,
-                  sequence_length=features_length,
-                  mode=mode)
-      else:
-          with tf.variable_scope("encoder", reuse=tf.AUTO_REUSE):
-              source_inputs = self.source_inputter.transform_data(
-                  features,
-                  mode=mode,
-                  log_dir=log_dir)
-              encoder_outputs, encoder_state, encoder_sequence_length = self.encoder.encode(
-                  source_inputs,
-                  sequence_length=features_length,
-                  mode=mode)
+      # share_emb
+      source_input_scope = self._get_input_scope(default_name="encoder")
+      target_input_scope = self._get_input_scope(default_name="decoder")
+      source_inputs = _maybe_reuse_embedding_fn(
+          lambda ids: self.source_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
+          scope=source_input_scope)(features)
+
+      tf.logging.info(" >> [sequence_to_sequence.py _build] source_inputter = %s"%self.source_inputter)
+      # tf.logging.info(" >> [sequence_to_sequence.py _build] source_inputter = %s, decoder_share_embedding = %s"%(self.source_inputter, share_emb))
+      # share_emb = params.get("decoder_share_embedding")
+      # if share_emb:
+      #     with tf.variable_scope("decoder"):
+      #         source_inputs = self.source_inputter.transform_data(
+      #             features,
+      #             mode=mode,
+      #             log_dir=log_dir)
+      with tf.variable_scope("encoder", reuse=tf.AUTO_REUSE):
+          encoder_outputs, encoder_state, encoder_sequence_length = self.encoder.encode(
+              source_inputs,
+              sequence_length=features_length,
+              mode=mode)
+      # else:
+      # with tf.variable_scope("encoder", reuse=tf.AUTO_REUSE):
+      #     source_inputs = self.source_inputter.transform_data(
+      #         features,
+      #         mode=mode,
+      #         log_dir=log_dir)
+      #     encoder_outputs, encoder_state, encoder_sequence_length = self.encoder.encode(
+      #         source_inputs,
+      #         sequence_length=features_length,
+      #         mode=mode)
 
       target_vocab_size = self.target_inputter.vocabulary_size
       target_dtype = self.target_inputter.dtype
+      # share_emb
+      target_embedding_fn = _maybe_reuse_embedding_fn(
+          lambda ids: self.target_inputter.transform(ids, mode=mode),
+          scope=target_input_scope)
 
       tf.logging.info(" >> [sequence_to_sequence.py _build] target_inputter = %s" % self.target_inputter)
+      if labels is not None:
+          target_inputs = _maybe_reuse_embedding_fn(
+              lambda ids: self.target_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
+              scope=target_input_scope)(labels)
 
-      with tf.variable_scope("decoder", reuse=tf.AUTO_REUSE) as decoder_scope:
-          if labels is not None:
+          with tf.variable_scope("decoder"):
               sampling_probability = None
               if mode == tf.estimator.ModeKeys.TRAIN:
-                sampling_probability = get_sampling_probability(
-                  tf.train.get_or_create_global_step(),
-                  read_probability=params.get("scheduled_sampling_read_probability"),
-                  schedule_type=params.get("scheduled_sampling_type"),
-                  k=params.get("scheduled_sampling_k"))
-              target_inputs = self.target_inputter.transform_data(
-                  labels,
-                  mode=mode,
-                  log_dir=log_dir)
+                  sampling_probability = get_sampling_probability(
+                      tf.train.get_or_create_global_step(),
+                      read_probability=params.get("scheduled_sampling_read_probability"),
+                      schedule_type=params.get("scheduled_sampling_type"),
+                      k=params.get("scheduled_sampling_k"))
+
               logits, _, _ = self.decoder.decode(
                   target_inputs,
                   self._get_labels_length(labels),
                   vocab_size=target_vocab_size,
                   initial_state=encoder_state,
                   sampling_probability=sampling_probability,
-                  embedding=self._scoped_target_embedding_fn(mode, decoder_scope),
+                  embedding=target_embedding_fn,
                   mode=mode,
                   memory=encoder_outputs,
                   memory_sequence_length=encoder_sequence_length)
-          else:
-              logits = None
+      else:
+          logits = None
 
       if mode != tf.estimator.ModeKeys.TRAIN:
-          with tf.variable_scope(decoder_scope, reuse=labels is not None) as decoder_scope:
+          with tf.variable_scope("decoder", reuse=labels is not None):
               tf.logging.info(" >> [sequence_to_sequence.py _build] mode != tf.estimator.ModeKeys.TRAIN")
               batch_size = tf.shape(encoder_sequence_length)[0]
               beam_width = params.get("beam_width", 1)
@@ -177,7 +224,7 @@ class SequenceToSequence(Model):
               if beam_width <= 1:
                   tf.logging.info(" >> [sequence_to_sequence.py _build] dynamic_decode ...")
                   sampled_ids, _, sampled_length, log_probs, alignment = self.decoder.dynamic_decode(
-                      self._scoped_target_embedding_fn(mode, decoder_scope),
+                      target_embedding_fn,
                       start_tokens,
                       end_token,
                       vocab_size=target_vocab_size,
@@ -193,7 +240,7 @@ class SequenceToSequence(Model):
                   length_penalty = params.get("length_penalty", 0)
                   sampled_ids, _, sampled_length, log_probs, alignment = (
                       self.decoder.dynamic_decode_and_search(
-                          self._scoped_target_embedding_fn(mode, decoder_scope),
+                          target_embedding_fn,
                           start_tokens,
                           end_token,
                           vocab_size=target_vocab_size,
