@@ -16,9 +16,9 @@ data:
   eval_labels_file: ../recom_nlg/temp/recom_text.outs.val
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
-  source_words_vocabulary: data/recom_nlg/one_per_sku/words-outs-train.vocab
-  feature_vocabulary: data/recom_nlg/one_per_sku/tags-train.vocab
-  target_words_vocabulary: data/recom_nlg/one_per_sku/words-outs-train.vocab
+  source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
+  feature_vocabulary: data/recom_nlg/clothes/one_per_sku/tags-train.vocab
+  target_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
 
   words_embedding: ../recom_nlg/temp/emb.vec
 

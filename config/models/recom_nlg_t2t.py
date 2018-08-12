@@ -6,6 +6,7 @@ separate data files with separate vocabularies.
 
 import tensorflow as tf
 import opennmt as onmt
+from opennmt.models.sequence_to_sequence import EmbeddingsSharingLevel
 
 def model():
   return onmt.models.Transformer(
@@ -28,4 +29,5 @@ def model():
       ffn_inner_dim=1024,
       dropout=0.1,
       attention_dropout=0.1,
-      relu_dropout=0.1)
+      relu_dropout=0.1,
+      share_embeddings=EmbeddingsSharingLevel.SOURCE_TARGET_INPUT)

@@ -6,6 +6,7 @@ separate data files with separate vocabularies.
 
 import tensorflow as tf
 import opennmt as onmt
+from opennmt.models.sequence_to_sequence import EmbeddingsSharingLevel
 
 def model():
   return onmt.models.SequenceToSequence(
@@ -36,4 +37,5 @@ def model():
           attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,
-          residual_connections=False))
+          residual_connections=False),
+      share_embeddings=EmbeddingsSharingLevel.SOURCE_TARGET_INPUT)
