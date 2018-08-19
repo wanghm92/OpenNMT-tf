@@ -87,6 +87,12 @@ class RNNDecoder(Decoder):
              mode=tf.estimator.ModeKeys.TRAIN,
              memory=None,
              memory_sequence_length=None):
+    """
+    Decodes a full input sequence.
+    Usually used for training and evaluation where target sequences are known.
+    Returns:
+      A tuple ``(outputs, state, sequence_length)``.
+    """
     _ = memory
     _ = memory_sequence_length
 
@@ -101,6 +107,10 @@ class RNNDecoder(Decoder):
         raise ValueError("embedding argument must be set when using scheduled sampling")
 
       tf.summary.scalar("sampling_probability", sampling_probability)
+      '''
+        A training helper that adds scheduled sampling.
+        Returns -1s for sample_ids where no sampling took place; valid sample id values elsewhere.
+      '''
       helper = tf.contrib.seq2seq.ScheduledEmbeddingTrainingHelper(
           inputs,
           sequence_length,
@@ -108,6 +118,10 @@ class RNNDecoder(Decoder):
           sampling_probability)
       fused_projection = False
     else:
+      '''
+        A helper for use during training. Only reads inputs.
+        Returned sample_ids are the argmax of the RNN output logits.
+      '''
       helper = tf.contrib.seq2seq.TrainingHelper(inputs, sequence_length)
       fused_projection = True  # With TrainingHelper, project all timesteps at once.
 
@@ -122,12 +136,21 @@ class RNNDecoder(Decoder):
     if output_layer is None:
       output_layer = build_output_layer(self.num_units, vocab_size, dtype=inputs.dtype)
 
+    '''
+    Basic sampling decoder.
+    '''
     decoder = tf.contrib.seq2seq.BasicDecoder(
         cell,
         helper,
         initial_state,
         output_layer=output_layer if not fused_projection else None)
 
+    '''
+    Perform dynamic decoding with decoder.
+    Calls initialize() once and step() repeatedly on the Decoder object.
+    Returns:
+    (final_outputs, final_state, final_sequence_lengths).
+    '''
     outputs, state, length = tf.contrib.seq2seq.dynamic_decode(decoder)
 
     if fused_projection and output_layer is not None:

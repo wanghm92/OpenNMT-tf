@@ -172,6 +172,6 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
         self._model.print_prediction(prediction, stream=output_file)
 
   def end(self, session):
-    tf.logging.info("Evaluation predictions saved to %s", self._output_path)
+    tf.logging.info("Running _post_evaluation_fn (BLEU); Evaluation predictions saved to %s", self._output_path)
     if self._post_evaluation_fn is not None:
       self._post_evaluation_fn(self._current_step, self._output_path)

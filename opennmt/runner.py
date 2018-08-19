@@ -105,6 +105,8 @@ class Runner(object):
     params: dict of hyperparameters passed to the "params" in model_fn,  
             keys are names of parameters, values are basic python types
     '''
+
+    # TODO: model_fn
     self._estimator = tf.estimator.Estimator(
         self._model.model_fn(num_devices=self._num_devices),
         config=run_config,
@@ -126,6 +128,7 @@ class Runner(object):
     '''
     input_fn: A function that provides input data for training as minibatches.
     '''
+    # TODO: input_fn
     tf.logging.info(" >> [runner.py _build_train_spec] Creating model.input_fn ...")
     train_spec = tf.estimator.TrainSpec(
         input_fn=self._model.input_fn(
@@ -142,7 +145,8 @@ class Runner(object):
             sample_buffer_size=self._config["train"].get("sample_buffer_size", 500000),
             prefetch_buffer_size=self._config["train"].get("prefetch_buffer_size"),
             maximum_features_length=self._config["train"].get("maximum_features_length"),
-            maximum_labels_length=self._config["train"].get("maximum_labels_length")),
+            maximum_labels_length=self._config["train"].get("maximum_labels_length")
+        ),
         max_steps=self._config["train"].get("train_steps"),
         hooks=train_hooks)
     return train_spec
@@ -166,6 +170,7 @@ class Runner(object):
               self._config["data"]["eval_labels_file"],
               output_dir=self._estimator.model_dir)))
 
+    # TODO: input_fn
     eval_spec = tf.estimator.EvalSpec(
         input_fn=self._model.input_fn(
             tf.estimator.ModeKeys.EVAL,
@@ -206,9 +211,8 @@ class Runner(object):
     train_spec = self._build_train_spec()
     self._estimator.train(train_spec.input_fn, hooks=train_spec.hooks, max_steps=train_spec.max_steps)
     self._maybe_average_checkpoints()
-    tf.logging.info(">> [runner.py train] printing parameters ...")
-    for x in sorted([i.name for i in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)]):
-        print(x)
+    tf.logging.info(">> [runner.py train] Parameters : ")
+    print("\n".join(sorted([i.name for i in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)])))
     tf.logging.info(">> [runner.py train] training done")
 
   def evaluate(self, checkpoint_path=None):

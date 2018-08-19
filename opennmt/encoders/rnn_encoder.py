@@ -70,7 +70,21 @@ class UnidirectionalRNNEncoder(RNNEncoder):
 
   def encode(self, inputs, sequence_length=None, mode=tf.estimator.ModeKeys.TRAIN):
     cell = self._build_cell(mode)
-
+    '''
+    Returns:(outputs, state)
+    outputs: The RNN output Tensor.
+        If time_major == False (default):[batch_size, max_time, cell.output_size].
+        If time_major == True : [max_time, batch_size, cell.output_size].
+        Note, if cell.output_size is a (possibly nested) tuple of integers or TensorShape objects, 
+            then outputs will be a tuple having the same structure as cell.output_size, 
+            containing Tensors having shapes corresponding to the shape data in cell.output_size.
+    state: The final state. 
+        If cell.state_size is an int, this will be shaped [batch_size, cell.state_size]. 
+        If it is a TensorShape, this will be shaped [batch_size] + cell.state_size. 
+        If it is a (possibly nested) tuple of ints or TensorShape, this will be a tuple having the corresponding shapes. 
+        If cells are LSTMCells state will be a tuple containing a LSTMStateTuple for each cell.
+            LSTMStateTuple: (c, h), in that order. Where c is the hidden state and h is the output.
+    '''
     encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
         cell,
         inputs,
@@ -125,6 +139,15 @@ class BidirectionalRNNEncoder(RNNEncoder):
     cell_fw = self._build_cell(mode)
     cell_bw = self._build_cell(mode)
 
+    '''
+    Returns:
+    A tuple (outputs, output_states): 
+    * outputs: (output_fw, output_bw) containing the forward and the backward rnn output Tensor. 
+        If time_major == False (default): [batch_size, max_time, cell_fw.output_size] 
+        If time_major == True: [max_time, batch_size, cell_fw.output_size] 
+        The forward and backward outputs can be concatenated as tf.concat(outputs, 2). 
+    * output_states: (output_state_fw, output_state_bw) containing the forward and the backward final states.
+    '''
     encoder_outputs_tup, encoder_state_tup = tf.nn.bidirectional_dynamic_rnn(
         cell_fw,
         cell_bw,

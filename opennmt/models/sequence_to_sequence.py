@@ -120,10 +120,11 @@ class SequenceToSequence(Model):
     self.source_inputter = source_inputter
     self.target_inputter = target_inputter
     self.target_inputter.add_process_hooks([shift_target_sequence])
+    self.debug = []
 
   def _get_input_scope(self, default_name=""):
     if self.share_embeddings == EmbeddingsSharingLevel.SOURCE_TARGET_INPUT:
-      name = "shared_embeddings"
+      name = "decoder"
     else:
       name = default_name
     return tf.VariableScope(None, name=tf.get_variable_scope().name + "/" + name)
