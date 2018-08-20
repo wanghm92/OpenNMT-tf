@@ -282,6 +282,7 @@ class SelfAttentionDecoder(decoder.Decoder):
     log_probs = tf.expand_dims(log_probs, 1)
 
     if return_alignment_history:
+      # TODO: alignment_history is still returned as None
       return (outputs, None, lengths, log_probs, None)
     return (outputs, None, lengths, log_probs)
 

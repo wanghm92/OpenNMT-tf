@@ -49,6 +49,9 @@ class RNNDecoder(Decoder):
     else:
       return self.bridge(initial_state, zero_state)
 
+  '''
+    Default _build_cell() here for decoder does not pass the memory to cell.build_cell()
+  '''
   def _build_cell(self,
                   mode,
                   batch_size,
@@ -123,8 +126,17 @@ class RNNDecoder(Decoder):
         Returned sample_ids are the argmax of the RNN output logits.
       '''
       helper = tf.contrib.seq2seq.TrainingHelper(inputs, sequence_length)
-      fused_projection = True  # With TrainingHelper, project all timesteps at once.
+      # With TrainingHelper, project all timesteps at once after decoding
+      # Otherwise, doing projection at each single time step is waste of computation
+      fused_projection = True
 
+    '''
+    Pass memory and initial_state to _build_cell() when building AttentionalRNNDecoder
+    memory = encoder_outputs
+    initial_state = encoder_state 
+        LSTMStateTuple(c=<tf.Tensor 'seq2seq/parallel_0/seq2seq/encoder/concat_1:0' shape=(?, 128) dtype=float32>, 
+                       h=<tf.Tensor 'seq2seq/parallel_0/seq2seq/encoder/concat_2:0' shape=(?, 128) dtype=float32>)
+    '''
     cell, initial_state = self._build_cell(
         mode,
         batch_size,
@@ -150,6 +162,8 @@ class RNNDecoder(Decoder):
     Calls initialize() once and step() repeatedly on the Decoder object.
     Returns:
     (final_outputs, final_state, final_sequence_lengths).
+    state is final RNN state (last time step)
+    outputs is all RNN outputs (all time steps)
     '''
     outputs, state, length = tf.contrib.seq2seq.dynamic_decode(decoder)
 
@@ -176,6 +190,15 @@ class RNNDecoder(Decoder):
                      memory_sequence_length=None,
                      dtype=None,
                      return_alignment_history=False):
+    """Decodes dynamically from :obj:`start_tokens` with greedy search.
+
+    Usually used for inference. (decode use TrainingHelpers)
+    Returns:
+      A tuple ``(predicted_ids, state, sequence_length, log_probs)`` or
+      ``(predicted_ids, state, sequence_length, log_probs, alignment_history)``
+      if :obj:`return_alignment_history` is ``True``.
+    """
+
     batch_size = tf.shape(start_tokens)[0]
 
     helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
@@ -234,6 +257,15 @@ class RNNDecoder(Decoder):
                                 memory_sequence_length=None,
                                 dtype=None,
                                 return_alignment_history=False):
+    """Decodes dynamically from :obj:`start_tokens` with beam search.
+
+    Usually used for inference.
+    Returns:
+      A tuple ``(predicted_ids, state, sequence_length, log_probs)`` or
+      ``(predicted_ids, state, sequence_length, log_probs, alignment_history)``
+      if :obj:`return_alignment_history` is ``True``.
+    """
+
     if (return_alignment_history and
         "reorder_tensor_arrays" not in fn_args(tf.contrib.seq2seq.BeamSearchDecoder.__init__)):
       tf.logging.warn("The current version of tf.contrib.seq2seq.BeamSearchDecoder "
@@ -300,6 +332,11 @@ def _get_alignment_history(cell_state):
   """Returns the alignment history from the cell state."""
   if not hasattr(cell_state, "alignment_history") or cell_state.alignment_history == ():
     return None
+  '''
+  From  tf.contrib.seq2seq.AttentionWrapper:
+    alignment_history: Python boolean, whether to store alignment history from all time steps in the final output state 
+    (currently stored as a time major TensorArray on which you must call stack()).
+  '''
   alignment_history = cell_state.alignment_history
   if isinstance(alignment_history, tf.TensorArray):
     alignment_history = alignment_history.stack()
