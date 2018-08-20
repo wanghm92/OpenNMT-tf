@@ -171,7 +171,7 @@ class SequenceToSequence(Model):
                       schedule_type=params.get("scheduled_sampling_type"),
                       k=params.get("scheduled_sampling_k"))
 
-              logits, _, _ = self.decoder.decode(
+              logits, rnn_outputs, state, length = self.decoder.decode(
                   target_inputs,
                   self._get_labels_length(labels),
                   vocab_size=target_vocab_size,

@@ -175,7 +175,7 @@ class RNNDecoder(Decoder):
     inputs_len = tf.shape(inputs)[1]
     logits = align_in_time(logits, inputs_len)
 
-    return (logits, state, length)
+    return (logits, outputs.rnn_output, state, length)
 
   def dynamic_decode(self,
                      embedding,

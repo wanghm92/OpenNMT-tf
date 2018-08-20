@@ -30,7 +30,7 @@ def model():
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,
           residual_connections=False),
-      decoder=onmt.decoders.AttentionalRNNDecoder(
+      decoder=onmt.decoders.HierAttRNNDecoder(
           num_layers=1,
           num_units=128,
           bridge=onmt.layers.CopyBridge(),
