@@ -5,8 +5,9 @@ import tensorflow as tf
 from opennmt.decoders.decoder import build_output_layer
 from opennmt.layers.reducer import align_in_time
 from opennmt.decoders.rnn_decoder import RNNDecoder, AttentionalRNNDecoder, _build_attention_mechanism
-from opennmt.decoders.basic_decoder import BasicDecoder
+from opennmt.decoders.basic_decoder import BasicDecoder, BasicSubDecoder
 from opennmt.decoders.hierarchical_dynamic_decoder import hierarchical_dynamic_decode
+from opennmt.decoders.helper import *
 
 class HierAttRNNDecoder(AttentionalRNNDecoder):
   """A RNN decoder with attention.
@@ -106,14 +107,14 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
           A training helper that adds scheduled sampling.
           Returns -1s for sample_ids where no sampling took place; valid sample id values elsewhere.
         '''
-        master_helper = tf.contrib.seq2seq.ScheduledEmbeddingTrainingHelper(
+        master_helper = ScheduledEmbeddingTrainingHelper(
             inputs,
             sequence_length,
             embedding,
             sampling_probability)
 
         # TODO: specify this
-        sub_helper = tf.contrib.seq2seq.ScheduledEmbeddingTrainingHelper(
+        sub_helper = ScheduledEmbeddingTrainingHelper(
             inputs,
             sequence_length,
             embedding,
@@ -124,10 +125,10 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
           A helper for use during training. Only reads inputs.
           Returned sample_ids are the argmax of the RNN output logits.
         '''
-        master_helper = tf.contrib.seq2seq.TrainingHelper(inputs, sequence_length)
+        master_helper = TrainingHelper(inputs, sequence_length)
 
         # TODO: specify this
-        sub_helper = tf.contrib.seq2seq.TrainingHelper(inputs, sequence_length)
+        sub_helper = TrainingHelper(inputs, sequence_length)
 
         fused_projection = True
 
@@ -182,7 +183,7 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
         initial_state_master,
         output_layer=output_layer_master if not fused_projection else None)
 
-    sub_decoder = BasicDecoder(
+    sub_decoder = BasicSubDecoder(
         sub_cell,
         sub_helper,
         initial_state_sub,
@@ -208,153 +209,3 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
     logits = align_in_time(logits, inputs_len)
 
     return (logits, outputs.rnn_output, state, length)
-
-  # def dynamic_decode(self,
-  #                embedding,
-  #                start_tokens,
-  #                end_token,
-  #                vocab_size=None,
-  #                initial_state=None,
-  #                output_layer=None,
-  #                maximum_iterations=250,
-  #                mode=tf.estimator.ModeKeys.PREDICT,
-  #                memory=None,
-  #                memory_sequence_length=None,
-  #                dtype=None,
-  #                return_alignment_history=False):
-  #   """Decodes dynamically from :obj:`start_tokens` with greedy search.
-  #
-  #   Usually used for inference. (decode use TrainingHelpers)
-  #   Returns:
-  #     A tuple ``(predicted_ids, state, sequence_length, log_probs)`` or
-  #     ``(predicted_ids, state, sequence_length, log_probs, alignment_history)``
-  #     if :obj:`return_alignment_history` is ``True``.
-  #   """
-  #
-  #   batch_size = tf.shape(start_tokens)[0]
-  #
-  #   helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
-  #       embedding,
-  #       start_tokens,
-  #       end_token)
-  #
-  #   cell, initial_state = self._build_cell(
-  #       mode,
-  #       batch_size,
-  #       initial_state=initial_state,
-  #       memory=memory,
-  #       memory_sequence_length=memory_sequence_length,
-  #       dtype=dtype,
-  #       alignment_history=return_alignment_history)
-  #
-  #   if output_layer is None:
-  #     output_layer = build_output_layer(self.num_units, vocab_size, dtype=dtype or memory.dtype)
-  #
-  #   decoder = tf.contrib.seq2seq.BasicDecoder(
-  #       cell,
-  #       helper,
-  #       initial_state,
-  #       output_layer=output_layer)
-  #
-  #   outputs, state, length = tf.contrib.seq2seq.dynamic_decode(
-  #       decoder, maximum_iterations=maximum_iterations)
-  #
-  #   predicted_ids = outputs.sample_id
-  #   log_probs = logits_to_cum_log_probs(outputs.rnn_output, length)
-  #
-  #   # Make shape consistent with beam search.
-  #   predicted_ids = tf.expand_dims(predicted_ids, 1)
-  #   length = tf.expand_dims(length, 1)
-  #   log_probs = tf.expand_dims(log_probs, 1)
-  #
-  #   if return_alignment_history:
-  #     alignment_history = _get_alignment_history(state)
-  #     if alignment_history is not None:
-  #       alignment_history = tf.expand_dims(alignment_history, 1)
-  #     return (predicted_ids, state, length, log_probs, alignment_history)
-  #   return (predicted_ids, state, length, log_probs)
-  #
-  # def dynamic_decode_and_search(self,
-  #                               embedding,
-  #                               start_tokens,
-  #                               end_token,
-  #                               vocab_size=None,
-  #                               initial_state=None,
-  #                               output_layer=None,
-  #                               beam_width=5,
-  #                               length_penalty=0.0,
-  #                               maximum_iterations=250,
-  #                               mode=tf.estimator.ModeKeys.PREDICT,
-  #                               memory=None,
-  #                               memory_sequence_length=None,
-  #                               dtype=None,
-  #                               return_alignment_history=False):
-  #   """Decodes dynamically from :obj:`start_tokens` with beam search.
-  #
-  #   Usually used for inference.
-  #   Returns:
-  #     A tuple ``(predicted_ids, state, sequence_length, log_probs)`` or
-  #     ``(predicted_ids, state, sequence_length, log_probs, alignment_history)``
-  #     if :obj:`return_alignment_history` is ``True``.
-  #   """
-  #
-  #   if (return_alignment_history and
-  #       "reorder_tensor_arrays" not in fn_args(tf.contrib.seq2seq.BeamSearchDecoder.__init__)):
-  #     tf.logging.warn("The current version of tf.contrib.seq2seq.BeamSearchDecoder "
-  #                     "does not support returning the alignment history. None will "
-  #                     "be returned instead. Consider upgrading TensorFlow.")
-  #     alignment_history = False
-  #   else:
-  #     alignment_history = return_alignment_history
-  #
-  #   batch_size = tf.shape(start_tokens)[0]
-  #
-  #   # Replicate batch `beam_width` times.
-  #   if initial_state is not None:
-  #     initial_state = tf.contrib.seq2seq.tile_batch(
-  #         initial_state, multiplier=beam_width)
-  #   if memory is not None:
-  #     memory = tf.contrib.seq2seq.tile_batch(
-  #         memory, multiplier=beam_width)
-  #   if memory_sequence_length is not None:
-  #     memory_sequence_length = tf.contrib.seq2seq.tile_batch(
-  #         memory_sequence_length, multiplier=beam_width)
-  #
-  #   cell, initial_state = self._build_cell(
-  #       mode,
-  #       batch_size * beam_width,
-  #       initial_state=initial_state,
-  #       memory=memory,
-  #       memory_sequence_length=memory_sequence_length,
-  #       dtype=dtype,
-  #       alignment_history=alignment_history)
-  #
-  #   if output_layer is None:
-  #     output_layer = build_output_layer(self.num_units, vocab_size, dtype=dtype or memory.dtype)
-  #
-  #   tf.logging.info(" >> [sequence_to_sequence.py _build] tf.contrib.seq2seq.BeamSearchDecoder ...")
-  #   decoder = tf.contrib.seq2seq.BeamSearchDecoder(
-  #       cell,
-  #       embedding,
-  #       start_tokens,
-  #       end_token,
-  #       initial_state,
-  #       beam_width,
-  #       output_layer=output_layer,
-  #       length_penalty_weight=length_penalty)
-  #
-  #   tf.logging.info(" >> [sequence_to_sequence.py _build] tf.contrib.seq2seq.dynamic_decode ...")
-  #   outputs, beam_state, length = tf.contrib.seq2seq.dynamic_decode(
-  #       decoder, maximum_iterations=maximum_iterations)
-  #
-  #   predicted_ids = tf.transpose(outputs.predicted_ids, perm=[0, 2, 1])
-  #   log_probs = beam_state.log_probs
-  #   state = beam_state.cell_state
-  #
-  #   if return_alignment_history:
-  #     alignment_history = _get_alignment_history(state)
-  #     if alignment_history is not None:
-  #       alignment_history = tf.reshape(
-  #           alignment_history, [batch_size, beam_width, -1, tf.shape(memory)[1]])
-  #     return (predicted_ids, state, length, log_probs, alignment_history)
-  #   return (predicted_ids, state, length, log_probs)

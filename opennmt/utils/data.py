@@ -2,7 +2,6 @@
 
 import tensorflow as tf
 import numpy as np
-import sys
 
 def get_padded_shapes(dataset):
   """Returns the padded shapes for ``tf.data.Dataset.padded_batch``.
