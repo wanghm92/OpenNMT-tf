@@ -150,6 +150,16 @@ class SequenceToSequence(Model):
               sequence_length=features_length,
               mode=mode)
 
+      print('*' * 10 + 'encoder_outputs' + '*' * 10)
+      print(encoder_outputs)
+      # print('\n')
+      print('*' * 10 + 'encoder_state(initial_state)' + '*' * 10)
+      print(encoder_state)
+      # print('\n')
+      print('*' * 10 + 'encoder_sequence_length' + '*' * 10)
+      print(encoder_sequence_length)
+      # print('\n')
+
       target_vocab_size = self.target_inputter.vocabulary_size
       target_dtype = self.target_inputter.dtype
       target_embedding_fn = _maybe_reuse_embedding_fn(
@@ -174,7 +184,7 @@ class SequenceToSequence(Model):
               logits, rnn_outputs, state, length = self.decoder.decode(
                   target_inputs,
                   self._get_labels_length(labels),
-                  vocab_size=target_vocab_size,
+                  vocab_size_master=target_vocab_size,
                   initial_state=encoder_state,
                   sampling_probability=sampling_probability,
                   embedding=target_embedding_fn,
@@ -183,6 +193,19 @@ class SequenceToSequence(Model):
                   memory_sequence_length=encoder_sequence_length)
       else:
           logits = None
+
+      print('*' * 10 + 'logits' + '*' * 10)
+      print(logits)
+      # print('\n')
+      print('*' * 10 + 'rnn_outputs' + '*' * 10)
+      print(rnn_outputs)
+      # print('\n')
+      print('*' * 10 + 'state' + '*' * 10)
+      print(state)
+      # print('\n')
+      print('*' * 10 + 'length' + '*' * 10)
+      print(length)
+      # sys.exit(0)
 
       if mode != tf.estimator.ModeKeys.TRAIN:
           with tf.variable_scope("decoder", reuse=labels is not None):
