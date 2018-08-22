@@ -28,7 +28,9 @@ from tensorflow.python.layers import base as layers_base
 from tensorflow.python.ops import rnn_cell_impl
 from tensorflow.python.util import nest
 
+import tensorflow as tf
 from opennmt.decoders.hierarchical_dynamic_decoder import HierarchicalDynamicDecoder
+from opennmt.decoders.decoder import build_output_layer
 
 __all__ = [
     "BasicDecoderOutput",
