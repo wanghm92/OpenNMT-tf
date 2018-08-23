@@ -146,7 +146,8 @@ class BasicDecoder(HierarchicalDynamicDecoder):
           state=cell_state,
           sample_ids=sample_ids)
     outputs = BasicDecoderOutput(cell_outputs, sample_ids)
-    return (outputs, next_state, next_inputs, finished)
+    return outputs, next_state, next_inputs, finished
+
 
 # TODO: maybe inherit from HierarchicalDynamicDecoder?
 class BasicSubDecoder(BasicDecoder):
@@ -181,4 +182,4 @@ class BasicSubDecoder(BasicDecoder):
           state=cell_state,
           sample_ids=sample_ids)
     outputs = BasicDecoderOutput(cell_outputs, sample_ids)
-    return (outputs, next_state, next_inputs, finished)
+    return outputs, next_state, next_inputs, finished

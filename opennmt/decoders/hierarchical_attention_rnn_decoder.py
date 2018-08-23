@@ -93,8 +93,9 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
     # TODO: 'inputs' should be able to split into 2 levels of information (multiple pieces !!!!!!)
     # TODO: 'sequence_length' should be able to split into 2 levels of information
     # TODO: 'vocab_size' should be 2 vocabs, one for attributes, one for words
-    vocab_size_sub = vocab_size_master
     # TODO: 'embedding' should also be 2
+
+    vocab_size_sub = vocab_size_master
 
     if (sampling_probability is not None
         and (tf.contrib.framework.is_tensor(sampling_probability)
@@ -128,7 +129,7 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
         master_helper = TrainingHelper(inputs, sequence_length)
 
         # TODO: specify this
-        sub_helper = TrainingHelper(inputs, sequence_length)
+        sub_helper = HierarchicalTrainingHelper(inputs, sequence_length)
 
         fused_projection = True
 

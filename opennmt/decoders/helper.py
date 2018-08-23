@@ -47,10 +47,37 @@ __all__ = [
     "ScheduledEmbeddingTrainingHelper",
     "ScheduledOutputTrainingHelper",
     "InferenceHelper",
+    "HierarchicalTrainingHelper",
 ]
 
 _transpose_batch_time = rnn._transpose_batch_time  # pylint: disable=protected-access
 _zero_state_tensors = rnn_cell_impl._zero_state_tensors  # pylint: disable=protected-access
+
+def _transpose_batch_time_sub(x):
+  """Transposes the batch and time dimensions of a Tensor.
+
+  If the input tensor has rank < 2 it returns the original tensor. Retains as
+  much of the static shape information as possible.
+
+  Args:
+    x: A Tensor.
+
+  Returns:
+    x transposed along the 1st and 2nd dimensions. (0th dimension unchanged)
+  """
+  x_static_shape = x.get_shape()
+  if x_static_shape.ndims is not None and x_static_shape.ndims < 2:
+    return x
+
+  x_rank = array_ops.rank(x)
+  x_t = array_ops.transpose(
+      x, array_ops.concat(
+          ([0, 2, 1], math_ops.range(3, x_rank)), axis=0))
+  x_t.set_shape(
+      tensor_shape.TensorShape([
+          x_static_shape[0].value, x_static_shape[2].value, x_static_shape[1].value
+      ]).concatenate(x_static_shape[3:]))
+  return x_t
 
 def _unstack_ta(inp):
   return tensor_array_ops.TensorArray(
@@ -161,6 +188,112 @@ class CustomHelper(Helper):
       return self._next_inputs_fn(
           time=time, outputs=outputs, state=state, sample_ids=sample_ids)
 
+class HierarchicalTrainingHelper(Helper):
+  """A helper for use during training.  Only reads inputs.
+
+  Returned sample_ids are the argmax of the RNN output logits.
+  """
+
+  def __init__(self, inputs, sequence_length, time_major=False, name=None):
+    """Initializer.
+
+    Args:
+      inputs: A (structure of) input tensors.
+      sequence_length: An int32 vector tensor.
+      time_major: Python bool.  Whether the tensors in `inputs` are time major.
+        If `False` (default), they are assumed to be batch major.
+      name: Name scope for any created operations.
+
+    Raises:
+      ValueError: if `sequence_length` is not a 1D tensor.
+    """
+    with ops.name_scope(name, "TrainingHelper", [inputs, sequence_length]):
+      inputs = ops.convert_to_tensor(inputs, name="inputs")
+      self._inputs = inputs
+
+      # batch x mt x st x dim
+      if not time_major:
+          # mt x batch x st x dim
+          inputs = nest.map_structure(_transpose_batch_time, inputs)
+          # mt x st x batch x dim
+          inputs = nest.map_structure(_transpose_batch_time_sub, inputs)
+      self._input_tas = nest.map_structure(_unstack_ta, inputs)
+
+      # batch x mt
+      self._sequence_length = ops.convert_to_tensor(sequence_length, name="sequence_length")
+      if not time_major:
+          # mt x batch
+          self._sequence_length = nest.map_structure(_transpose_batch_time, self._sequence_length)
+
+      if self._sequence_length.get_shape().ndims != 2:
+        raise ValueError(
+            "Expected sequence_length to be the size of [batch, master_time], but received shape: %s" %
+            self._sequence_length.get_shape())
+
+      self._zero_inputs = nest.map_structure(lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
+
+      self._batch_size = array_ops.shape(sequence_length)[0]
+
+      # TODO: paused here, continue with input.read(master_time) and unroll using while_loop, SEE YOU TOMORROW !!
+
+  @property
+  def inputs(self):
+    return self._inputs
+
+  @property
+  def sequence_length(self):
+    return self._sequence_length
+
+  @property
+  def batch_size(self):
+    return self._batch_size
+
+  @property
+  def sample_ids_shape(self):
+    return tensor_shape.TensorShape([])
+
+  @property
+  def sample_ids_dtype(self):
+    return dtypes.int32
+
+  def initialize(self, name=None):
+    with ops.name_scope(name, "TrainingHelperInitialize"):
+      finished = math_ops.equal(0, self._sequence_length)
+      all_finished = math_ops.reduce_all(finished)
+      next_inputs = control_flow_ops.cond(
+          all_finished, lambda: self._zero_inputs,
+          lambda: nest.map_structure(lambda inp: inp.read(0), self._input_tas))
+      return finished, next_inputs
+
+  # TODO: modify this to read master_time [batch, sub_time, :] tensors
+  def initialize_sub(self, master_time, name=None):
+    with ops.name_scope(name, "TrainingHelperInitializeForSubsequenceDecoding"):
+      finished = math_ops.equal(0, self._sequence_length)
+      all_finished = math_ops.reduce_all(finished)
+      next_inputs = control_flow_ops.cond(
+          all_finished, lambda: self._zero_inputs,
+          lambda: nest.map_structure(lambda inp: inp.read(0), self._input_tas))
+      return finished, next_inputs
+
+  def sample(self, time, outputs, name=None, **unused_kwargs):
+    with ops.name_scope(name, "TrainingHelperSample", [time, outputs]):
+      sample_ids = math_ops.cast(
+          math_ops.argmax(outputs, axis=-1), dtypes.int32)
+      return sample_ids
+
+  def next_inputs(self, time, outputs, state, name=None, **unused_kwargs):
+    """next_inputs_fn for TrainingHelper."""
+    with ops.name_scope(name, "TrainingHelperNextInputs",
+                        [time, outputs, state]):
+      next_time = time + 1
+      finished = (next_time >= self._sequence_length)
+      all_finished = math_ops.reduce_all(finished)
+      def read_from_ta(inp):
+        return inp.read(next_time)
+      next_inputs = control_flow_ops.cond(
+          all_finished, lambda: self._zero_inputs,
+          lambda: nest.map_structure(read_from_ta, self._input_tas))
+      return finished, next_inputs, state
 
 class TrainingHelper(Helper):
   """A helper for use during training.  Only reads inputs.

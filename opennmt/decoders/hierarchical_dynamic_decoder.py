@@ -306,7 +306,7 @@ def hierarchical_dynamic_decode(
       # TODO: _ = sub_seq_decode()
       # TODO: something like:
             # zero_outputs = _create_zero_outputs()
-            # outputs, state, length = sub_dynamic_decode(sub_decoder)
+            # outputs, state, length = sub_dynamic_decode(sub_decoder, time, next_finished, next_state)
             # outputs_ta = nest.map_structure(lambda ta, out: ta.write(time, out), outputs_ta, emit)
 
       return time + 1, outputs_ta, next_state, next_inputs, next_finished, next_sequence_lengths
@@ -349,9 +349,11 @@ def hierarchical_dynamic_decode(
 
   return final_outputs, final_state, final_sequence_lengths
 
+
 def sub_dynamic_decode(
         decoder,
         master_time,
+        master_finished,
         initial_state,
         output_time_major=False,
         impute_finished=False,
@@ -413,7 +415,7 @@ def sub_dynamic_decode(
       if maximum_iterations.get_shape().ndims != 0:
         raise ValueError("maximum_iterations must be a scalar")
 
-    initial_finished, initial_inputs, initial_state = decoder.initialize()
+    initial_finished, initial_inputs, initial_state = decoder.initialize_sub(master_time)
 
     zero_outputs = _create_zero_outputs(decoder.output_size,
                                         decoder.output_dtype,
