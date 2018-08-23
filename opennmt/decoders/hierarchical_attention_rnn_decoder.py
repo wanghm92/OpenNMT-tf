@@ -5,7 +5,7 @@ import tensorflow as tf
 from opennmt.decoders.decoder import build_output_layer
 from opennmt.layers.reducer import align_in_time
 from opennmt.decoders.rnn_decoder import RNNDecoder, AttentionalRNNDecoder, _build_attention_mechanism
-from opennmt.decoders.basic_decoder import BasicDecoder, BasicSubDecoder
+from opennmt.decoders.basic_decoder import BasicDecoder
 from opennmt.decoders.hierarchical_dynamic_decoder import hierarchical_dynamic_decode
 from opennmt.decoders.helper import *
 
@@ -184,7 +184,7 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
         initial_state_master,
         output_layer=output_layer_master if not fused_projection else None)
 
-    sub_decoder = BasicSubDecoder(
+    sub_decoder = BasicDecoder(
         sub_cell,
         sub_helper,
         initial_state_sub,

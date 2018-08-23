@@ -211,28 +211,31 @@ class HierarchicalTrainingHelper(Helper):
       inputs = ops.convert_to_tensor(inputs, name="inputs")
       self._inputs = inputs
 
-      # batch x mt x st x dim
+      # [batch, mt, st, dim]
       if not time_major:
-          # mt x batch x st x dim
+          # [mt, batch, st, dim]
           inputs = nest.map_structure(_transpose_batch_time, inputs)
-          # mt x st x batch x dim
+          # [mt, st, batch, dim]
           inputs = nest.map_structure(_transpose_batch_time_sub, inputs)
       self._input_tas = nest.map_structure(_unstack_ta, inputs)
 
-      # batch x mt
+      # [batch, mt]
       self._sequence_length = ops.convert_to_tensor(sequence_length, name="sequence_length")
       if not time_major:
-          # mt x batch
+          # [mt, batch]
           self._sequence_length = nest.map_structure(_transpose_batch_time, self._sequence_length)
 
-      if self._sequence_length.get_shape().ndims != 2:
+      # if self._sequence_length.get_shape().ndims != 2:
+      if self._sequence_length.get_shape().ndims != 1:
         raise ValueError(
             "Expected sequence_length to be the size of [batch, master_time], but received shape: %s" %
             self._sequence_length.get_shape())
 
+      # self._zero_inputs = nest.map_structure(lambda inp: array_ops.zeros_like(inp[0, 0, :]), inputs)
       self._zero_inputs = nest.map_structure(lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
 
-      self._batch_size = array_ops.shape(sequence_length)[0]
+      # self._batch_size = array_ops.shape(sequence_length)[0]
+      self._batch_size = array_ops.size(sequence_length)
 
       # TODO: paused here, continue with input.read(master_time) and unroll using while_loop, SEE YOU TOMORROW !!
 
@@ -256,17 +259,15 @@ class HierarchicalTrainingHelper(Helper):
   def sample_ids_dtype(self):
     return dtypes.int32
 
-  def initialize(self, name=None):
-    with ops.name_scope(name, "TrainingHelperInitialize"):
-      finished = math_ops.equal(0, self._sequence_length)
-      all_finished = math_ops.reduce_all(finished)
-      next_inputs = control_flow_ops.cond(
-          all_finished, lambda: self._zero_inputs,
-          lambda: nest.map_structure(lambda inp: inp.read(0), self._input_tas))
-      return finished, next_inputs
+  def read_from_ta(inp, time):
+    return inp.read(time)
 
-  # TODO: modify this to read master_time [batch, sub_time, :] tensors
-  def initialize_sub(self, master_time, name=None):
+  # TODO: change input_tas and sequence_length to _sub
+  def initialize(self, master_time, name=None):
+    inputs_sub = nest.map_structure(read_from_ta, self._input_tas, master_time)
+    self._input_tas_sub = nest.map_structure(_unstack_ta, inputs_sub)
+    self._sequence_length_sub = nest.map_structure(read_from_ta, self._sequence_length)
+
     with ops.name_scope(name, "TrainingHelperInitializeForSubsequenceDecoding"):
       finished = math_ops.equal(0, self._sequence_length)
       all_finished = math_ops.reduce_all(finished)
@@ -288,11 +289,9 @@ class HierarchicalTrainingHelper(Helper):
       next_time = time + 1
       finished = (next_time >= self._sequence_length)
       all_finished = math_ops.reduce_all(finished)
-      def read_from_ta(inp):
-        return inp.read(next_time)
       next_inputs = control_flow_ops.cond(
           all_finished, lambda: self._zero_inputs,
-          lambda: nest.map_structure(read_from_ta, self._input_tas))
+          lambda: nest.map_structure(read_from_ta, self._input_tas, next_time))
       return finished, next_inputs, state
 
 class TrainingHelper(Helper):
