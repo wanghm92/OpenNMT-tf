@@ -186,7 +186,6 @@ class RNNDecoder(Decoder):
     inputs_len = tf.shape(inputs)[1]
     logits = align_in_time(logits, inputs_len)
 
-
     return (logits, outputs.rnn_output, state, length)
 
   def dynamic_decode(self,
@@ -204,7 +203,7 @@ class RNNDecoder(Decoder):
                      return_alignment_history=False):
     """Decodes dynamically from :obj:`start_tokens` with greedy search.
 
-    Usually used for inference. (decode use TrainingHelpers)
+    Usually used for inference. (decode() uses TrainingHelpers)
     Args:
       embedding=target_embedding_fn,
       start_tokens=start_tokens,

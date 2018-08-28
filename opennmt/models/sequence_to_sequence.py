@@ -29,6 +29,7 @@ def shift_target_sequence(inputter, data):
     the end token id. Additionally, the ``length`` is increased by 1
     to reflect the added token on both sequences.
   """
+  tf.logging.info(" >> [sequence_to_sequence.py] shift_target_sequence")
   bos = tf.cast(tf.constant([constants.START_OF_SENTENCE_ID]), tf.int64)
   eos = tf.cast(tf.constant([constants.END_OF_SENTENCE_ID]), tf.int64)
 
@@ -119,6 +120,7 @@ class SequenceToSequence(Model):
     self.share_embeddings = share_embeddings
     self.source_inputter = source_inputter
     self.target_inputter = target_inputter
+    tf.logging.info(" >> [sequence_to_sequence.py __init__] self.target_inputter.add_process_hooks([shift_target_sequence])")
     self.target_inputter.add_process_hooks([shift_target_sequence])
     self.debug = []
 
@@ -292,6 +294,8 @@ class SequenceToSequence(Model):
       return logits, predictions
 
   def _compute_loss(self, features, labels, outputs, params, mode):
+    # TODO: overwrite this method to calculate hierarchical losses
+        # by defining a customized model in catalog (or somewhere else)
     tf.logging.info(" >> [sequence_to_sequence.py _compute_loss]")
     return cross_entropy_sequence_loss(
         outputs,

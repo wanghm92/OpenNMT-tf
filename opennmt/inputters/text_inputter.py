@@ -6,6 +6,7 @@ import io
 import os
 import shutil
 import six
+import sys
 
 import numpy as np
 import tensorflow as tf
@@ -227,11 +228,11 @@ class TextInputter(Inputter):
     self.tokenizer = tokenizer
 
   def get_length(self, data):
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter] get_length: return data[\"length\"]")
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter get_length] return data[\"length\"]")
     return data["length"]
 
   def make_dataset(self, data_file):
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter] make_dataset: return tf.data.TextLineDataset(data_file)")
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter make_dataset] return tf.data.TextLineDataset(data_file)")
     '''
     A Dataset comprising lines from one or more text files
     '''
@@ -241,7 +242,7 @@ class TextInputter(Inputter):
     return count_lines(data_file)
 
   def initialize(self, metadata):
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter initialize]")
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter initialize] self.tokenizer.initialize(metadata)")
     self.tokenizer.initialize(metadata)
 
   def _process(self, data):
@@ -256,7 +257,7 @@ class TextInputter(Inputter):
 
       data = self.set_data_field(data, "tokens", tokens)
       data = self.set_data_field(data, "length", length)
-
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] data = {}".format(data))
     return data
 
   @abc.abstractmethod
@@ -334,7 +335,12 @@ class WordEmbedder(TextInputter):
 
     self.vocabulary_size = count_lines(self.vocabulary_file) + self.num_oov_buckets
     tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder initialize] Building lookup table from vocab")
-    # Returns a lookup table that converts a string tensor into int64 IDs
+    '''
+    Returns a lookup table that converts a string tensor into int64 IDs
+    The mapping can be initialized from a vocabulary file specified in vocabulary_file, 
+        where the whole line is the key and the zero-based line number is the ID.
+    Any lookup of an OOV token will return a bucket ID based on its hash if num_oov_buckets > 0
+    '''
     self.vocabulary = tf.contrib.lookup.index_table_from_file(
         self.vocabulary_file,
         vocab_size=self.vocabulary_size - self.num_oov_buckets,
@@ -358,11 +364,11 @@ class WordEmbedder(TextInputter):
 
     if "ids" not in data:
       tokens = data["tokens"]
-      tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] ids = self.vocabulary.lookup(tokens)")
+      tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] self.vocabulary = {}".format(self.vocabulary))
       ids = self.vocabulary.lookup(tokens)
-
+      tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] ids = {}".format(ids))
       data = self.set_data_field(data, "ids", ids)
-
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] data = {}".format(data))
     return data
 
   def visualize(self, log_dir):

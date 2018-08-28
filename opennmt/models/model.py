@@ -15,7 +15,7 @@ from opennmt.utils.misc import add_dict_to_collection, item_or_tuple
 from opennmt.utils.parallel import GraphDispatcher
 
 pp = pprint.PrettyPrinter(indent=4)
-
+log_separator = "\nINFO:tensorflow:{}\n".format("*"*50)
 @six.add_metaclass(abc.ABCMeta)
 class Model(object):
   """Base class for models."""
@@ -108,7 +108,7 @@ class Model(object):
                         such as num_ps_replicas, or model_dir
       :return: ops necessary to perform training, evaluation, or predictions.
       """
-      tf.logging.info(" >> [model.py model_fn _model_fn]")
+      tf.logging.info(" >> [model.py model_fn _model_fn] \nfeatures = {}\nlabels = {}".format(features, labels))
       # ------------------ Train ----------------- #
       if mode == tf.estimator.ModeKeys.TRAIN:
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> _register_word_counters")
@@ -335,6 +335,7 @@ class Model(object):
     tf.logging.info(" >> [model.py _get_features_builder] self.features_inputter.make_dataset(features_file)")
     dataset = self.features_inputter.make_dataset(features_file)
     process_fn = self.features_inputter.process
+    tf.logging.info(" >> [model.py _get_features_builder] process_fn = {}".format(process_fn))
     return dataset, process_fn
 
   def _get_labels_builder(self, labels_file):
@@ -351,6 +352,7 @@ class Model(object):
     tf.logging.info(" >> [model.py _get_labels_builder] self.labels_inputter.make_dataset(labels_file)")
     dataset = self.labels_inputter.make_dataset(labels_file)
     process_fn = self.labels_inputter.process
+    tf.logging.info(" >> [model.py _get_labels_builder] process_fn = {}".format(process_fn))
     return dataset, process_fn
 
   def _input_fn_impl(self,
@@ -368,14 +370,14 @@ class Model(object):
                      prefetch_buffer_size=None,
                      maximum_features_length=None,
                      maximum_labels_length=None):
-    tf.logging.info(" >> [model.py _input_fn_impl] Building input_fn ... ")
+    tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building input_fn ... ")
     tf.logging.info(" >> [model.py _input_fn_impl] Metadata: ")
     pp.pprint(metadata)
     tf.logging.info(" >> [model.py _input_fn_impl] self._initialize ... ")
     self._initialize(metadata)
 
     # features_file: self._config["data"]["train_features_file"]
-    tf.logging.info(" >> [model.py _input_fn_impl] Building features ... ")
+    tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building features ... ")
     feat_dataset, feat_process_fn = self._get_features_builder(features_file)
 
     if labels_file is None:
@@ -383,32 +385,36 @@ class Model(object):
       # Parallel inputs must be caught in a single tuple and not considered as multiple arguments.
       process_fn = lambda *arg: feat_process_fn(item_or_tuple(arg))
     else:
-      tf.logging.info(" >> [model.py _input_fn_impl] Building labels ... ")
+      tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building labels ... ")
       labels_dataset, labels_process_fn = self._get_labels_builder(labels_file)
 
       dataset = tf.data.Dataset.zip((feat_dataset, labels_dataset))
-      process_fn = lambda features, labels: (
-          feat_process_fn(features), labels_process_fn(labels))
+      process_fn = lambda features, labels: (feat_process_fn(features), labels_process_fn(labels))
 
-    tf.logging.info(" >> [model.py _input_fn_impl] Building dataset ... ")
+    # TODO:
+      # Tokenizer is by default SpaceTokenizer()
+      # Need to split by vertical bar
+
     if mode == tf.estimator.ModeKeys.TRAIN:
+      tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building training_pipeline ... ")
       dataset = data.training_pipeline(
-          dataset,
-          batch_size,
-          batch_type=batch_type,
-          batch_multiplier=batch_multiplier,
-          bucket_width=bucket_width,
-          single_pass=single_pass,
-          process_fn=process_fn,
-          num_threads=num_threads,
-          shuffle_buffer_size=sample_buffer_size,
-          prefetch_buffer_size=prefetch_buffer_size,
-          dataset_size=self._get_dataset_size(features_file),
-          maximum_features_length=maximum_features_length,
-          maximum_labels_length=maximum_labels_length,
-          features_length_fn=self._get_features_length,
-          labels_length_fn=self._get_labels_length)
+        dataset,
+        batch_size,
+        batch_type=batch_type,
+        batch_multiplier=batch_multiplier,
+        bucket_width=bucket_width,
+        single_pass=single_pass,
+        process_fn=process_fn,
+        num_threads=num_threads,
+        shuffle_buffer_size=sample_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
+        dataset_size=self._get_dataset_size(features_file),
+        maximum_features_length=maximum_features_length,
+        maximum_labels_length=maximum_labels_length,
+        features_length_fn=self._get_features_length,
+        labels_length_fn=self._get_labels_length)
     else:
+      tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building inference_pipeline ... ")
       dataset = data.inference_pipeline(
           dataset,
           batch_size,

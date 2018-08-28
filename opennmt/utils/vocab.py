@@ -110,12 +110,15 @@ class Vocab(object):
     Returns:
       The value associated with :obj:`identifier` or :obj:`default`.
     """
+    tf.logging.info(" >>>> [vocab.py Class Vocab lookup] ids = self.vocabulary.lookup(tokens)")
     value = None
 
     if isinstance(identifier, six.string_types):
       if identifier in self._token_to_id:
+        tf.logging.info(" >>>> [vocab.py Class Vocab lookup] value = self._token_to_id[identifier]")
         value = self._token_to_id[identifier]
     elif identifier < self.size:
+      tf.logging.info(" >>>> [vocab.py Class Vocab lookup] value = self._id_to_token[identifier]")
       value = self._id_to_token[identifier]
 
     if value is None:

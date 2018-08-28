@@ -57,6 +57,7 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
   def decode(self,
              inputs,
              sequence_length,
+             sub_inputs=None,
              vocab_size_master=None,
              vocab_size_sub=None,
              initial_state=None,

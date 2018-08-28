@@ -133,13 +133,17 @@ class Inputter(object):
     See Also:
       :meth:`opennmt.inputters.inputter.Inputter.transform_data`
     """
-    tf.logging.info(" >> [inputter.py process] data = self._process(data)")
+    tf.logging.info(" >> [inputter.py class Inputter process] data = self._process(data)")
     data = self._process(data)
+    tf.logging.info(" >> [inputter.py class Inputter process] data : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
+    tf.logging.info(" >> [inputter.py class Inputter process] applying process_hooks ...")
     for hook in self.process_hooks:
       data = hook(self, data)
+    tf.logging.info(" >> [inputter.py class Inputter process] data : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
     for key in self.volatile:
       data = self.remove_data_field(data, key)
     self.volatile.clear()
+    tf.logging.info(" >> [inputter.py class Inputter process] data : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
     return data
 
   def _process(self, data):
@@ -162,11 +166,13 @@ class Inputter(object):
       ValueError: if :obj:`data` is a dictionary but does not contain the
         ``raw`` key.
     """
-    tf.logging.info(" >> [inputter.py class Inputter _process]")
+    tf.logging.info(" >> [inputter.py class Inputter _process] data = {}".format(data))
     if not isinstance(data, dict):
+      tf.logging.info(" >> [inputter.py class Inputter _process] data = self.set_data_field()")
       data = self.set_data_field({}, "raw", data, volatile=True)
     elif "raw" not in data:
       raise ValueError("data must contain the raw dataset value")
+    tf.logging.info(" >> [inputter.py class Inputter _process] return data = {}".format(data))
     return data
 
   def visualize(self, log_dir):
@@ -242,11 +248,12 @@ class MultiInputter(Inputter):
     raise NotImplementedError()
 
   def initialize(self, metadata):
+    tf.logging.info(" >>>> [inputter.py Class MultiInputter initialize]")
     for inputter in self.inputters:
       inputter.initialize(metadata)
 
   def visualize(self, log_dir):
-    tf.logging.info(" >>>> [text_inputter.py Class MultiInputter visualize]")
+    tf.logging.info(" >>>> [inputter.py Class MultiInputter visualize]")
     self.inputters[0].visualize(log_dir)
     for i, inputter in enumerate(self.inputters[1:]):
         with tf.variable_scope("inputter_{}".format(i+1)):
@@ -258,7 +265,7 @@ class MultiInputter(Inputter):
 
   def transform(self, inputs, mode):
     transformed = []
-    tf.logging.info(" >>>> [text_inputter.py Class MultiInputter transform]")
+    tf.logging.info(" >>>> [inputter.py Class MultiInputter transform]")
     for i, inputter in enumerate(self.inputters):
       with tf.variable_scope("inputter_{}".format(i+1)):
         transformed.append(inputter.transform(inputs[i+1], mode))
@@ -323,10 +330,12 @@ class ParallelInputter(MultiInputter):
     return all_receiver_tensors, all_features
 
   def _process(self, data):
-    tf.logging.info(" >> [inputter.py class ParallelInputter _process]")
+    tf.logging.info(" >> [inputter.py class ParallelInputter _process] data = {}".format(data))
     processed_data = {}
     for i, inputter in enumerate(self.inputters):
       sub_data = inputter._process(data[i])  # pylint: disable=protected-access
+      tf.logging.info(" >> [inputter.py class Inputter process] sub_data : \n{}".format("\n".join(["{}".format(x) for x in sub_data.items()])))
+      tf.logging.info(" >> [inputter.py class Inputter process] inputter.volatile = {}".format(inputter.volatile))
       for key, value in six.iteritems(sub_data):
         prefixed_key = "inputter_{}_{}".format(i, key)
         processed_data = self.set_data_field(
@@ -334,10 +343,12 @@ class ParallelInputter(MultiInputter):
             prefixed_key,
             value,
             volatile=key in inputter.volatile)
+      tf.logging.info(" >> [inputter.py class Inputter process] self.volatile = {}".format(self.volatile))
     return processed_data
 
   def _transform_data(self, data, mode):
     tf.logging.info(" >> [inputter.py class ParallelInputter _transform_data] for i, inputter in enumerate(self.inputters) ...")
+    tf.logging.info(" >> [inputter.py class ParallelInputter _transform_data] data = {}".format(data))
     transformed = []
 
     inputter = self.inputters[0]

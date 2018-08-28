@@ -46,6 +46,7 @@ class Tokenizer(object):
       metadata: A dictionary containing additional metadata set
         by the user.
     """
+    tf.logging.info(" >>>> [tokenizer.py Class Tokenizer initialize]: self._configuration_file_key = {}".format(self._configuration_file_key))
     if self._configuration_file_key is not None:
       configuration_file = metadata[self._configuration_file_key]
       with tf.gfile.Open(configuration_file, mode="rb") as conf_file:

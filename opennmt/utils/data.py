@@ -2,6 +2,9 @@
 
 import tensorflow as tf
 import numpy as np
+import sys
+
+log_separator = "\nINFO:tensorflow:{}\n".format("*"*50)
 
 def get_padded_shapes(dataset):
   """Returns the padded shapes for ``tf.data.Dataset.padded_batch``.
@@ -255,7 +258,8 @@ def training_pipeline(dataset,
   Returns:
     A ``tf.data.Dataset``.
   """
-  tf.logging.info(" >>>> [utils/data.py training_pipeline] ")
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] dataset = tf.data.Dataset.zip((feat_dataset, labels_dataset)) from runner")
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] dataset = {}".format(dataset))
   # shuffle_buffer_size = sample_buffer_size
   if shuffle_buffer_size is not None and shuffle_buffer_size != 0:
     if dataset_size is not None:
@@ -270,9 +274,10 @@ def training_pipeline(dataset,
     tf.logging.info(" >>>> [utils/data.py training_pipeline] Shuffling dataset ...")
     dataset = dataset.shuffle(shuffle_buffer_size)
   if process_fn is not None:
-    tf.logging.info(" >>>> [utils/data.py training_pipeline] Applying process_fn ...")
+    tf.logging.info(log_separator+" >>>> [utils/data.py training_pipeline] Applying process_fn {} ...".format(process_fn))
     dataset = dataset.map(process_fn, num_parallel_calls=num_threads or 4)
-  tf.logging.info(" >>>> [utils/data.py training_pipeline] filter_examples_by_length ...")
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] dataset = {}".format(dataset))
+  tf.logging.info(log_separator+" >>>> [utils/data.py training_pipeline] filter_examples_by_length ...")
   dataset = dataset.apply(filter_examples_by_length(
       maximum_features_length=maximum_features_length,
       maximum_labels_length=maximum_labels_length,
