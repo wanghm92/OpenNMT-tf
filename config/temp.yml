@@ -8,11 +8,21 @@ model_dir: ../onmt-tf-output/temp
 
 data:
   # (required for train_and_eval and train run types).
-  train_features_file: [../recom_nlg/temp/recom_text.words.train, ../recom_nlg/temp/recom_text.tags.train]
-  train_labels_file: ../recom_nlg/temp/recom_text.outs.train
+  train_features_file:
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.words.train.filter.seg.top10
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.tags.train.filter.seg.top10
+  train_labels_file: 
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.attr_one.top10
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.1.top10
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.2.top10
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.3.top10
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.4.top10
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.5.top10
 
   # (required for train_end_eval and eval run types).
-  eval_features_file: [../recom_nlg/temp/recom_text.words.val, ../recom_nlg/temp/recom_text.tags.val]
+  eval_features_file:
+    - ../recom_nlg/temp/recom_text.words.val
+    - ../recom_nlg/temp/recom_text.tags.val
   eval_labels_file: ../recom_nlg/temp/recom_text.outs.val
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
@@ -23,9 +33,9 @@ data:
   words_embedding: ../recom_nlg/temp/emb.vec
 
 train:
-  save_checkpoints_steps: 2
-  save_summary_steps: 2
-  train_steps: 4
+  save_checkpoints_steps: 1
+  save_summary_steps: 1
+  train_steps: 1
 
 eval:
   # (optional) Evaluate every this many seconds (default: 18000).

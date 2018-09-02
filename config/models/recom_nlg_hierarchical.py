@@ -9,7 +9,7 @@ import opennmt as onmt
 from opennmt.models.sequence_to_sequence import EmbeddingsSharingLevel
 
 def model():
-  return onmt.models.SequenceToSequence(
+  return onmt.models.HierarchicalSequenceToSequence(
       source_inputter=onmt.inputters.ParallelInputter([
           onmt.inputters.WordEmbedder(
               vocabulary_file_key="source_words_vocabulary",
@@ -20,9 +20,13 @@ def model():
               embedding_size=64)],
           reducer=onmt.layers.ConcatReducer()),
       target_inputter=onmt.inputters.WordEmbedder(
-          vocabulary_file_key="target_words_vocabulary",
+          vocabulary_file_key="master_target_words_vocabulary",
           embedding_size=None,
           embedding_file_key="words_embedding"),
+      sub_target_inputter=onmt.inputters.HierarchicalInputter(
+          inputter_type=onmt.inputters.WordEmbedder,
+          inputter_args=["sub_target_words_vocabulary", None, "words_embedding"],
+          num=5),
       encoder=onmt.encoders.BidirectionalRNNEncoder(
           num_layers=1,
           num_units=128,
@@ -30,7 +34,7 @@ def model():
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,
           residual_connections=False),
-      decoder=onmt.decoders.AttentionalRNNDecoder(
+      decoder=onmt.decoders.HierAttRNNDecoder(
           num_layers=1,
           num_units=128,
           bridge=onmt.layers.CopyBridge(),
