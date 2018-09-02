@@ -36,7 +36,7 @@ def visualize_embeddings(log_dir, embedding_var, vocabulary_file, num_oov_bucket
     vocabulary_file: The associated vocabulary file.
     num_oov_buckets: The number of additional unknown tokens.
   """
-  tf.logging.info(" >>>> [text_inputter.py visualize_embeddings] embedding_var.name = %s"%embedding_var.name)
+  tf.logging.info(" >>>> [text_inputter.py visualize_embeddings] embedding_var.name = {}".format(embedding_var.name))
 
   # Copy vocabulary file to log_dir.
   basename = os.path.basename(vocabulary_file)
@@ -247,9 +247,9 @@ class TextInputter(Inputter):
 
   def _process(self, data):
     """Tokenizes raw text."""
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] Tokenizes raw text (default: split by space)")
-
     data = super(TextInputter, self)._process(data)
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] BEFORE: data = {}".format(data))
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] Tokenizes raw text (default: split by space) set_data_field(\"tokens\", \"length\")")
     if "tokens" not in data:
       text = data["raw"]
       tokens = self.tokenizer.tokenize(text)
@@ -257,7 +257,7 @@ class TextInputter(Inputter):
 
       data = self.set_data_field(data, "tokens", tokens)
       data = self.set_data_field(data, "length", length)
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] data = {}".format(data))
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] AFTER: data = {}".format(data))
     return data
 
   @abc.abstractmethod
@@ -272,6 +272,8 @@ class TextInputter(Inputter):
   def transform(self, inputs, mode):
     raise NotImplementedError()
 
+  def get_vocab_size(self):
+    return self.vocabulary_size
 
 class WordEmbedder(TextInputter):
   """Simple word embedder."""
@@ -391,7 +393,6 @@ class WordEmbedder(TextInputter):
       embeddings = tf.get_variable("w_embs", dtype=self.dtype, trainable=self.trainable)
       tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] embeddings reused")
     except ValueError:
-      # Variable does not exist yet.
       tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] embeddings does not exist yet")
       if self.embedding_file:
         tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] loading pretrained embedding from %s"%self.embedding_file)

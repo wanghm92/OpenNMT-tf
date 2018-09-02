@@ -5,9 +5,10 @@ import six
 
 import tensorflow as tf
 
-from opennmt.layers.reducer import ConcatReducer
+from opennmt.layers.reducer import ConcatReducer, PackReducer
 from opennmt.utils.misc import extract_prefixed_keys
 
+cnt=0
 
 @six.add_metaclass(abc.ABCMeta)
 class Inputter(object):
@@ -133,17 +134,19 @@ class Inputter(object):
     See Also:
       :meth:`opennmt.inputters.inputter.Inputter.transform_data`
     """
-    tf.logging.info(" >> [inputter.py class Inputter process] data = self._process(data)")
+    global cnt
+    cnt += 1
+    tf.logging.info(" >> [inputter.py class Inputter process] data = self._process(data) cnt = {}".format(cnt))
     data = self._process(data)
-    tf.logging.info(" >> [inputter.py class Inputter process] data : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
+    tf.logging.info(" >> [inputter.py class Inputter process] after data = self._process(data)\ndata : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
     tf.logging.info(" >> [inputter.py class Inputter process] applying process_hooks ...")
     for hook in self.process_hooks:
       data = hook(self, data)
-    tf.logging.info(" >> [inputter.py class Inputter process] data : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
+    tf.logging.info(" >> [inputter.py class Inputter process] after applying hooks\ndata : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
     for key in self.volatile:
       data = self.remove_data_field(data, key)
     self.volatile.clear()
-    tf.logging.info(" >> [inputter.py class Inputter process] data : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
+    tf.logging.info(" >> [inputter.py class Inputter process] after remove_data_field()\ndata : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
     return data
 
   def _process(self, data):
@@ -168,7 +171,7 @@ class Inputter(object):
     """
     tf.logging.info(" >> [inputter.py class Inputter _process] data = {}".format(data))
     if not isinstance(data, dict):
-      tf.logging.info(" >> [inputter.py class Inputter _process] data = self.set_data_field()")
+      tf.logging.info(" >> [inputter.py class Inputter _process] data = self.set_data_field(\"raw\")")
       data = self.set_data_field({}, "raw", data, volatile=True)
     elif "raw" not in data:
       raise ValueError("data must contain the raw dataset value")
@@ -249,7 +252,8 @@ class MultiInputter(Inputter):
 
   def initialize(self, metadata):
     tf.logging.info(" >>>> [inputter.py Class MultiInputter initialize]")
-    for inputter in self.inputters:
+    for idx, inputter in enumerate(self.inputters):
+      tf.logging.info(" >>>> [inputter.py Class MultiInputter initialize] initializing inputter ---- {} ---- ({}) ".format(idx, inputter))
       inputter.initialize(metadata)
 
   def visualize(self, log_dir):
@@ -264,11 +268,14 @@ class MultiInputter(Inputter):
     raise NotImplementedError()
 
   def transform(self, inputs, mode):
+    # seems to be never used, too
+    # maybe doing the same thing as _transform_data
+    # may need to change i to i+1
     transformed = []
     tf.logging.info(" >>>> [inputter.py Class MultiInputter transform]")
     for i, inputter in enumerate(self.inputters):
-      with tf.variable_scope("inputter_{}".format(i+1)):
-        transformed.append(inputter.transform(inputs[i+1], mode))
+      with tf.variable_scope("inputter_{}".format(i)):
+        transformed.append(inputter.transform(inputs[i], mode))
     return transformed
 
 
@@ -334,8 +341,8 @@ class ParallelInputter(MultiInputter):
     processed_data = {}
     for i, inputter in enumerate(self.inputters):
       sub_data = inputter._process(data[i])  # pylint: disable=protected-access
-      tf.logging.info(" >> [inputter.py class Inputter process] sub_data : \n{}".format("\n".join(["{}".format(x) for x in sub_data.items()])))
-      tf.logging.info(" >> [inputter.py class Inputter process] inputter.volatile = {}".format(inputter.volatile))
+      tf.logging.info(" >> [inputter.py class ParallelInputter process] sub_data : \n{}".format("\n".join(["{}".format(x) for x in sub_data.items()])))
+      tf.logging.info(" >> [inputter.py class ParallelInputter process] inputter.volatile = {}".format(inputter.volatile))
       for key, value in six.iteritems(sub_data):
         prefixed_key = "inputter_{}_{}".format(i, key)
         processed_data = self.set_data_field(
@@ -343,7 +350,7 @@ class ParallelInputter(MultiInputter):
             prefixed_key,
             value,
             volatile=key in inputter.volatile)
-      tf.logging.info(" >> [inputter.py class Inputter process] self.volatile = {}".format(self.volatile))
+      tf.logging.info(" >> [inputter.py class ParallelInputter process] self.volatile = {}".format(self.volatile))
     return processed_data
 
   def _transform_data(self, data, mode):
@@ -352,7 +359,9 @@ class ParallelInputter(MultiInputter):
     transformed = []
 
     inputter = self.inputters[0]
+    tf.logging.info(" >> [inputter.py class ParallelInputter _transform_data] self.inputters[0] = {}".format(inputter))
     sub_data = extract_prefixed_keys(data, "inputter_{}_".format(0))
+    tf.logging.info(" >> [inputter.py class ParallelInputter _transform_data] sub_data = {}".format(sub_data))
     transformed.append(inputter._transform_data(sub_data, mode))  # pylint: disable=protected-access
 
     for i, inputter in enumerate(self.inputters[1:]):
@@ -365,12 +374,72 @@ class ParallelInputter(MultiInputter):
     return transformed
 
   def transform(self, inputs, mode):
+    # seems to be never used
     tf.logging.info(" >> [inputter.py class ParallelInputter transform]")
     transformed = super(ParallelInputter, self).transform(inputs, mode)
     if self.reducer is not None:
       transformed = self.reducer.reduce(transformed)
     return transformed
 
+class HierarchicalInputter(ParallelInputter):
+  """An multi inputter that process Hierarchical data."""
+
+  def __init__(self, inputter_type, inputter_args, num, reducer=PackReducer(axis=1)):
+    """Initializes a Hierarchical inputter.
+
+    Args:
+      inputters: A list of :class:`opennmt.inputters.inputter.Inputter`.
+      reducer: A :class:`opennmt.layers.reducer.Reducer` to merge all inputs. If
+        set, Hierarchical inputs are assumed to have the same length.
+    """
+    vocabulary_file_key, embedding_size, embedding_file_key = inputter_args
+    inputters = []
+    for i in range(num):
+      inputters.append(
+        inputter_type(
+          vocabulary_file_key=vocabulary_file_key,
+          embedding_size=embedding_size,
+          embedding_file_key=embedding_file_key))
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter __init__] inputters = {}".format("\n".join(["{}".format(x) for x in inputters])))
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter __init__] reducer = {}".format(reducer))
+    super(HierarchicalInputter, self).__init__(inputters, reducer)
+
+  def _transform_data(self, data, mode):
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter _transform_data] for i, inputter in enumerate(self.inputters) ...")
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter _transform_data] data = {}".format(data))
+    transformed = []
+
+    # All inputters in sub_inputter are of the same type, WordEmbedder, and all reuse the same embedding as the inputter_1 in feature_inputter
+    for i, inputter in enumerate(self.inputters):
+        sub_data = extract_prefixed_keys(data, "inputter_{}_".format(i))
+        transformed.append(inputter._transform_data(sub_data, mode))  # pylint: disable=protected-access
+
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter _transform_data] transformed = {}".format(transformed))
+
+    if self.reducer is not None:
+      transformed = self.reducer.reduce(transformed)
+    return transformed
+
+  def visualize(self, log_dir):
+    tf.logging.info(" >>>> [inputter.py Class HierarchicalInputter visualize]")
+    for inputter in self.inputters: inputter.visualize(log_dir)
+
+  def get_length(self, data, to_reduce=False):
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter get_length]")
+    lengths = []
+    for i, inputter in enumerate(self.inputters):
+      sub_data = extract_prefixed_keys(data, "inputter_{}_".format(i))
+      lengths.append(inputter.get_length(sub_data))
+    if self.reducer is None:
+      return lengths
+    elif not to_reduce:
+      return lengths[0]
+    else:
+      return self.reducer.pack_sequence_lengths(lengths)
+
+  def get_vocab_size(self):
+    # TODO: all inputters are assumed to share the same vocab file for now
+    return self.inputters[0].vocabulary_size
 
 class MixedInputter(MultiInputter):
   """An multi inputter that applies several transformation on the same data."""

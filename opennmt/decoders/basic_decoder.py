@@ -20,6 +20,7 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
+import tensorflow as tf
 
 from opennmt.decoders import helper as helper_py
 from tensorflow.python.framework import ops
@@ -28,7 +29,7 @@ from tensorflow.python.layers import base as layers_base
 from tensorflow.python.ops import rnn_cell_impl
 from tensorflow.python.util import nest
 
-from opennmt.decoders.hierarchical_dynamic_decoder import HierarchicalDynamicDecoder
+from opennmt.decoders.hierarchical_dynamic_decoder import TfContribSeq2seqDecoder
 
 __all__ = [
     "BasicDecoderOutput",
@@ -41,8 +42,7 @@ class BasicDecoderOutput(
     collections.namedtuple("BasicDecoderOutput", ("rnn_output", "sample_id"))):
   pass
 
-
-class BasicDecoder(HierarchicalDynamicDecoder):
+class BasicDecoder(TfContribSeq2seqDecoder):
   """Basic sampling decoder."""
 
   def __init__(self, cell, helper, initial_state, output_layer=None):
@@ -106,6 +106,7 @@ class BasicDecoder(HierarchicalDynamicDecoder):
     # Assume the dtype of the cell is the output_size structure
     # containing the input_state's first component's dtype.
     # Return that structure and the sample_ids_dtype from the helper.
+    # [c, h, attention, time, alignments, attention_state]
     dtype = nest.flatten(self._initial_state)[0].dtype
     return BasicDecoderOutput(
         nest.map_structure(lambda _: dtype, self._rnn_output_size()),
@@ -120,6 +121,7 @@ class BasicDecoder(HierarchicalDynamicDecoder):
     Returns:
       `(finished, first_inputs, initial_state)`.
     """
+    tf.logging.info(" >> [basic_decoder.py BasicDecoder] initialize() : return self._helper.initialize() + (self._initial_state,)")
     return self._helper.initialize() + (self._initial_state,)
 
   def step(self, time, inputs, state, name=None):
@@ -134,6 +136,8 @@ class BasicDecoder(HierarchicalDynamicDecoder):
     Returns:
       `(outputs, next_state, next_inputs, finished)`.
     """
+    tf.logging.info(" >> [basic_decoder.py BasicDecoder step] inputs = {}".format(inputs))
+    tf.logging.info(">> [basic_decoder.py BasicDecoder step]\n state = {}\n".format(state))
     with ops.name_scope(name, "BasicDecoderStep", (time, inputs, state)):
       cell_outputs, cell_state = self._cell(inputs, state)
       if self._output_layer is not None:
@@ -147,3 +151,19 @@ class BasicDecoder(HierarchicalDynamicDecoder):
           sample_ids=sample_ids)
     outputs = BasicDecoderOutput(cell_outputs, sample_ids)
     return outputs, next_state, next_inputs, finished
+
+class BasicSubDecoder(BasicDecoder):
+
+    def initialize(self, initial_state, master_time, name=None):
+        """Initialize the decoder.
+
+        Args:
+          name: Name scope for any created operations.
+
+        Returns:
+          `(finished, first_inputs, initial_state)`.
+        """
+        # TODO: initial_state from master decoder may need to be stored in a TensorArray
+        tf.logging.info(" >> [basic_decoder.py BasicDecoder] initialize() : return self._helper.initialize() + (self._initial_state,)")
+        self._initial_state = initial_state
+        return self._helper.initialize(master_time) + (self._initial_state,)

@@ -464,6 +464,7 @@ class AttentionalRNNDecoder(RNNDecoder):
         batch_size,
         initial_state=initial_state,
         dtype=memory.dtype)
+    tf.logging.info(" >> [rnn_decoder.py class AttentionalRNNDecoder _build_cell] initial_cell_state (bridged) = {}".format(initial_cell_state))
 
     cell = tf.contrib.seq2seq.AttentionWrapper(
         cell,

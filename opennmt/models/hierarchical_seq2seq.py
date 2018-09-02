@@ -9,67 +9,18 @@ from opennmt.models.model import Model
 from opennmt.utils.losses import cross_entropy_sequence_loss
 from opennmt.utils.misc import print_bytes
 from opennmt.decoders.decoder import get_sampling_probability
+from opennmt.utils.hooks import add_counter
+from opennmt.models.sequence_to_sequence import _maybe_reuse_embedding_fn, EmbeddingsSharingLevel, shift_target_sequence
 
+log_separator = "\nINFO:tensorflow:{}\n".format("*"*50)
 
-def shift_target_sequence(inputter, data):
-  """Prepares shifted target sequences.
-
-  Given a target sequence ``a b c``, the decoder input should be
-  ``<s> a b c`` and the output should be ``a b c </s>`` for the dynamic
-  decoding to start on ``<s>`` and stop on ``</s>``.
-
-  Args:
-    inputter: The :class:`opennmt.inputters.inputter.Inputter` that processed
-      :obj:`data`.
-    data: A dict of ``tf.Tensor`` containing ``ids`` and ``length`` keys.
-
-  Returns:
-    The updated :obj:`data` dictionary with ``ids`` the sequence prefixed
-    with the start token id and ``ids_out`` the sequence suffixed with
-    the end token id. Additionally, the ``length`` is increased by 1
-    to reflect the added token on both sequences.
-  """
-  tf.logging.info(" >> [sequence_to_sequence.py] shift_target_sequence")
-  bos = tf.cast(tf.constant([constants.START_OF_SENTENCE_ID]), tf.int64)
-  eos = tf.cast(tf.constant([constants.END_OF_SENTENCE_ID]), tf.int64)
-
-  ids = data["ids"]
-  length = data["length"]
-
-  data = inputter.set_data_field(data, "ids_out", tf.concat([ids, eos], axis=0))
-  data = inputter.set_data_field(data, "ids", tf.concat([bos, ids], axis=0))
-
-  # Increment length accordingly.
-  inputter.set_data_field(data, "length", length + 1)
-
-  return data
-
-# TODO: share embedding is still ugly
-def _maybe_reuse_embedding_fn(embedding_fn, scope=None):
-  def _scoped_embedding_fn(ids):
-    try:
-      with tf.variable_scope(scope):
-        return embedding_fn(ids)
-    except ValueError:
-      with tf.variable_scope(scope, reuse=True):
-        return embedding_fn(ids)
-  return _scoped_embedding_fn
-
-class EmbeddingsSharingLevel(object):
-  """Level of embeddings sharing.
-   Possible values are:
-    * ``NONE``: no sharing (default)
-   * ``SOURCE_TARGET_INPUT``: share source and target word embeddings
-  """
-  NONE = 0
-  SOURCE_TARGET_INPUT = 1
-
-class SequenceToSequence(Model):
-  """A sequence to sequence model."""
+class HierarchicalSequenceToSequence(Model):
+  """A hierarchical sequence to sequence model."""
 
   def __init__(self,
                source_inputter,
                target_inputter,
+               sub_target_inputter,
                encoder,
                decoder,
                share_embeddings=EmbeddingsSharingLevel.NONE,
@@ -101,8 +52,7 @@ class SequenceToSequence(Model):
       raise TypeError(
           "Source and target inputters must have the same dtype, "
           "saw: {} and {}".format(source_inputter.dtype, target_inputter.dtype))
-    if not isinstance(target_inputter, inputters.WordEmbedder):
-      raise TypeError("Target inputter must be a WordEmbedder")
+
     if share_embeddings == EmbeddingsSharingLevel.SOURCE_TARGET_INPUT:
       if not isinstance(source_inputter, inputters.WordEmbedder) and \
               not (isinstance(source_inputter, inputters.ParallelInputter)
@@ -110,7 +60,7 @@ class SequenceToSequence(Model):
         raise TypeError("Sharing embeddings requires both inputters to be a WordEmbedder or"
                         "the 0th inputter of the ParallelInputter must be a WordEmbedder")
 
-    super(SequenceToSequence, self).__init__(
+    super(HierarchicalSequenceToSequence, self).__init__(
         name,
         features_inputter=source_inputter,
         labels_inputter=target_inputter,
@@ -121,32 +71,49 @@ class SequenceToSequence(Model):
     self.share_embeddings = share_embeddings
     self.source_inputter = source_inputter
     self.target_inputter = target_inputter
-    tf.logging.info(" >> [sequence_to_sequence.py __init__] self.target_inputter.add_process_hooks([shift_target_sequence])")
-    self.target_inputter.add_process_hooks([shift_target_sequence])
+    self.sub_target_inputter = sub_target_inputter
     self.debug = []
+
+    # TODO: add process hook for sub_target_inputter as well
+    tf.logging.info(" >> [hierarchical_seq2seq.py __init__] self.target_inputter.add_process_hooks([shift_target_sequence])")
+    self.target_inputter.add_process_hooks([shift_target_sequence])
 
   def _get_input_scope(self, default_name=""):
     if self.share_embeddings == EmbeddingsSharingLevel.SOURCE_TARGET_INPUT:
-      name = "decoder"
+      name = "shared_embeddings"
     else:
       name = default_name
     return tf.VariableScope(None, name=tf.get_variable_scope().name + "/" + name)
 
+  # TODO: make labels a tuple that contains master and sub labels
   def _build(self, features, labels, params, mode, config=None):
 
-      tf.logging.info(" >> [sequence_to_sequence.py _build] mode = <{}> \nfeatures = {}; \nlabels = {}".format(mode, features, labels))
+      tf.logging.info(log_separator+" >> [hierarchical_seq2seq.py _build] mode = <{}>".format(mode))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] features = \n{}".format(features))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] labels = \n{}".format(labels))
+
+      # This is pretty ugly
+      labels = (labels[0][0], labels[1][0])
+      master_labels, sub_labels = labels
 
       features_length = self._get_features_length(features)
       log_dir = config.model_dir if config is not None else None
 
       source_input_scope = self._get_input_scope(default_name="encoder")
       target_input_scope = self._get_input_scope(default_name="decoder")
-      tf.logging.info(" >> [sequence_to_sequence.py _build] source_input_scope = %s ;  target_input_scope = %s"%(source_input_scope.name, target_input_scope.name))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] source_input_scope = {}".format(source_input_scope.name))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_input_scope = {}".format(target_input_scope.name))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] source_inputter = {}".format(self.source_inputter))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_inputter = {}".format(self.target_inputter))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] sub_target_inputter = {}".format(self.sub_target_inputter))
+
+      tf.logging.info(log_separator+" >> [hierarchical_seq2seq.py _build] self.source_inputter.transform_data")
+
+
       source_inputs = _maybe_reuse_embedding_fn(
           lambda ids: self.source_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
           scope=source_input_scope)(features)
-
-      tf.logging.info(" >> [sequence_to_sequence.py _build] source_inputter = %s"%self.source_inputter)
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] source_inputs = {}".format(source_inputs))
       with tf.variable_scope("encoder", reuse=tf.AUTO_REUSE):
           encoder_outputs, encoder_state, encoder_sequence_length = self.encoder.encode(
               source_inputs,
@@ -156,17 +123,30 @@ class SequenceToSequence(Model):
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] encoder_state (initial_state) = {}".format(encoder_state))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] encoder_sequence_length = {}".format(encoder_sequence_length))
 
-      target_vocab_size = self.target_inputter.vocabulary_size
+      master_target_vocab_size = self.target_inputter.get_vocab_size()
+      sub_target_vocab_size = self.sub_target_inputter.get_vocab_size()
       target_dtype = self.target_inputter.dtype
+
+      # TODO:
+        # target_inputter is assumed to be WordEmbedder before, transform() returns embedding_lookup()
+        # WordEmbedder.transform() is called in _transform_data(),
+                                            # which is called by [source/target_inputters].transform_data()
       target_embedding_fn = _maybe_reuse_embedding_fn(
           lambda ids: self.target_inputter.transform(ids, mode=mode),
-          scope=target_input_scope)
+          scope=target_input_scope) # callable
 
-      tf.logging.info(" >> [sequence_to_sequence.py _build] target_inputter = %s" % self.target_inputter)
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_inputter = %s" % self.target_inputter)
       if labels is not None:
           target_inputs = _maybe_reuse_embedding_fn(
               lambda ids: self.target_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
-              scope=target_input_scope)(labels)
+              scope=target_input_scope)(master_labels)
+          tf.logging.info(log_separator + " >> [hierarchical_seq2seq.py _build] target_inputs = {}".format(target_inputs))
+
+          sub_target_inputs = _maybe_reuse_embedding_fn(
+              lambda ids: self.sub_target_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
+              scope=target_input_scope)(sub_labels)
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] sub_target_inputs = {}".format(sub_target_inputs))
+          tf.logging.info(log_separator + " >> [hierarchical_seq2seq.py _build] self.decoder.decode ...")
 
           with tf.variable_scope("decoder"):
               sampling_probability = None
@@ -178,39 +158,42 @@ class SequenceToSequence(Model):
                       k=params.get("scheduled_sampling_k"))
 
               logits, rnn_outputs, state, length = self.decoder.decode(
-                  target_inputs,
-                  self._get_labels_length(labels),
-                  vocab_size_master=target_vocab_size,
+                  (target_inputs, sub_target_inputs),
+                  self._get_labels_length(labels, to_reduce=True),
+                  vocab_size_master=master_target_vocab_size,
+                  vocab_size_sub=sub_target_vocab_size,
                   initial_state=encoder_state,
                   sampling_probability=sampling_probability,
                   embedding=target_embedding_fn,
                   mode=mode,
                   memory=encoder_outputs,
                   memory_sequence_length=encoder_sequence_length)
-          tf.logging.info(" >> [sequence_to_sequence.py _build] logits = {}".format(logits))
-          tf.logging.info(" >> [sequence_to_sequence.py _build] rnn_outputs = {}".format(rnn_outputs))
-          tf.logging.info(" >> [sequence_to_sequence.py _build] state = {}".format(state))
-          tf.logging.info(" >> [sequence_to_sequence.py _build] length = {}".format(length))
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] logits = {}".format(logits))
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] rnn_outputs = {}".format(rnn_outputs))
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] state = {}".format(state))
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] length = {}".format(length))
       else:
           logits = None
 
+      # TODO: training part is done, now the eval part !!!
+
       if mode != tf.estimator.ModeKeys.TRAIN:
           with tf.variable_scope("decoder", reuse=labels is not None):
-              tf.logging.info(" >> [sequence_to_sequence.py _build] mode != tf.estimator.ModeKeys.TRAIN")
+              tf.logging.info(" >> [hierarchical_seq2seq.py _build] mode != tf.estimator.ModeKeys.TRAIN")
               batch_size = tf.shape(encoder_sequence_length)[0]
               beam_width = params.get("beam_width", 1)
-              tf.logging.info(" >> [sequence_to_sequence.py _build] beam_width = %d"%beam_width)
+              tf.logging.info(" >> [hierarchical_seq2seq.py _build] beam_width = %d"%beam_width)
               maximum_iterations = params.get("maximum_iterations", 250)
               start_tokens = tf.fill([batch_size], constants.START_OF_SENTENCE_ID)
               end_token = constants.END_OF_SENTENCE_ID
 
               if beam_width <= 1:
-                  tf.logging.info(" >> [sequence_to_sequence.py _build] dynamic_decode ...")
+                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] dynamic_decode ...")
                   sampled_ids, _, sampled_length, log_probs, alignment = self.decoder.dynamic_decode(
                       target_embedding_fn,
                       start_tokens,
                       end_token,
-                      vocab_size=target_vocab_size,
+                      vocab_size=master_target_vocab_size,
                       initial_state=encoder_state,
                       maximum_iterations=maximum_iterations,
                       mode=mode,
@@ -219,14 +202,14 @@ class SequenceToSequence(Model):
                       dtype=target_dtype,
                       return_alignment_history=True)
               else:
-                  tf.logging.info(" >> [sequence_to_sequence.py _build] dynamic_decode ...")
+                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] dynamic_decode ...")
                   length_penalty = params.get("length_penalty", 0)
                   sampled_ids, _, sampled_length, log_probs, alignment = (
                       self.decoder.dynamic_decode_and_search(
                           target_embedding_fn,
                           start_tokens,
                           end_token,
-                          vocab_size=target_vocab_size,
+                          vocab_size=master_target_vocab_size,
                           initial_state=encoder_state,
                           beam_width=beam_width,
                           length_penalty=length_penalty,
@@ -239,11 +222,11 @@ class SequenceToSequence(Model):
 
           target_vocab_rev = tf.contrib.lookup.index_to_string_table_from_file(
               self.target_inputter.vocabulary_file,
-              vocab_size=target_vocab_size - self.target_inputter.num_oov_buckets,
+              vocab_size=master_target_vocab_size - self.target_inputter.num_oov_buckets,
               default_value=constants.UNKNOWN_TOKEN)
-          tf.logging.info(" >> [sequence_to_sequence.py _build] index_to_string_table_from_file")
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] index_to_string_table_from_file")
           target_tokens = target_vocab_rev.lookup(tf.cast(sampled_ids, tf.int64))
-          tf.logging.info(" >> [sequence_to_sequence.py _build] target_vocab_rev.lookup")
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_vocab_rev.lookup")
 
           if params.get("replace_unknown_target", False):
               if alignment is None:
@@ -278,11 +261,108 @@ class SequenceToSequence(Model):
 
       return logits, predictions
 
+  def _initialize(self, metadata):
+    """Runs model specific initialization (e.g. vocabularies loading).
+
+    Args:
+      metadata: A dictionary containing additional metadata set by the user.
+    """
+    super(HierarchicalSequenceToSequence, self)._initialize(metadata)
+    tf.logging.info(" >> [hierarchical_seq2seq.py _initialize] Initializing with metadata ... ")
+    if self.sub_target_inputter is not None:
+      tf.logging.info(" >> [hierarchical_seq2seq.py _initialize] self.labels_inputter.initialize(metadata) --- sub_target_inputter = {}".format(self.sub_target_inputter))
+      self.sub_target_inputter.initialize(metadata)
+
+  def _get_labels_builder(self, labels_file):
+      """Returns the recipe to build labels.
+
+      Args:
+        labels_file: The file of labels.
+
+      Returns:
+        A tuple ``(tf.data.Dataset, process_fn)``.
+      """
+      '''
+      labels_inputter=target_inputter
+      '''
+      master_labels_file = labels_file[0]
+      sub_labels_file = labels_file[1:]
+      tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_builder] master_labels_file = {}".format(master_labels_file))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_builder] sub_labels_file = {}".format(sub_labels_file))
+
+      if self.labels_inputter is None:
+          raise NotImplementedError()
+      tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_builder] self.labels_inputter.make_dataset(master_labels_file)")
+      master_labels_dataset = self.labels_inputter.make_dataset(master_labels_file)
+      tf.logging.info(" >> [hierarchical_seq2seq.py _input_fn_impl] master_labels_dataset = {} ".format(master_labels_dataset))
+      master_labels_process_fn = self.labels_inputter.process
+      tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_builder] master_labels_process_fn = {}".format(master_labels_process_fn))
+
+      if self.sub_target_inputter is None:
+          raise NotImplementedError()
+      tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_builder] self.sub_target_inputter.make_dataset(sub_labels_file)")
+      sub_labels_dataset = self.sub_target_inputter.make_dataset(sub_labels_file)
+      tf.logging.info(" >> [hierarchical_seq2seq.py _input_fn_impl] sub_labels_dataset = {} ".format(sub_labels_dataset))
+      sub_labels_process_fn = self.sub_target_inputter.process
+      tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_builder] sub_labels_process_fn = {}".format(sub_labels_process_fn))
+
+      labels_dataset = tf.data.Dataset.zip((master_labels_dataset, sub_labels_dataset))
+      process_fn = lambda labels: (master_labels_process_fn(labels[0]), sub_labels_process_fn(labels[1]))
+
+      return labels_dataset, process_fn
+
+  def _get_labels_length(self, labels, to_reduce=False):
+    """Returns the labels length.
+
+    Args:
+      labels: A dict of ``tf.Tensor``.
+
+    Returns:
+      The length as a ``tf.Tensor``  or ``None`` if length is undefined.
+    """
+    tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_length] labels = {}".format(labels))
+    tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_length] len(labels) = {}".format(len(labels)))
+    master_labels = labels[0]
+    sub_labels = labels[1]
+    tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_length] master_labels = {}".format(master_labels))
+    tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_length] sub_labels = {}".format(sub_labels))
+
+    master_length = self.labels_inputter.get_length(master_labels)
+    tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_length] master_length = {}".format(master_length))
+    sub_length = self.sub_target_inputter.get_length(sub_labels, to_reduce=to_reduce)
+    tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_length] sub_length = {}".format(sub_length))
+    if self.labels_inputter is None or self.sub_target_inputter is None:
+      return None
+    return [master_length, sub_length]
+
+  def _register_word_counters(self, features, labels):
+    """Creates word counters for sequences (if any) of :obj:`features` and
+    :obj:`labels`.
+    """
+    tf.logging.info(" >> [hierarchical_seq2seq.py _register_word_counters]")
+    features_length = self._get_features_length(features)
+    master_length, sub_length = self._get_labels_length(labels)
+
+    with tf.variable_scope("words_per_sec"):
+      if features_length is not None:
+        add_counter("features", tf.reduce_sum(features_length))
+      if master_length is not None:
+        add_counter("master_labels", tf.reduce_sum(master_length))
+      if sub_length is not None:
+        add_counter("sub_labels", tf.reduce_sum(sub_length))
+
   def _compute_loss(self, features, labels, outputs, params, mode):
-    tf.logging.info(" >> [sequence_to_sequence.py _compute_loss]")
+    # TODO: overwrite this method to calculate hierarchical losses
+        # by defining a customized model in catalog (or somewhere else)
+    '''
+    :param outputs: logits
+    '''
+    labels = (labels[0][0], labels[1][0])
+    master_labels = labels[0]
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss]")
     return cross_entropy_sequence_loss(
         outputs,
-        labels["ids_out"],
+        master_labels["ids_out"],
         self._get_labels_length(labels),
         label_smoothing=params.get("label_smoothing", 0.0),
         average_in_time=params.get("average_loss_in_time", False),
@@ -299,7 +379,6 @@ class SequenceToSequence(Model):
       tokens = prediction["tokens"][i][:prediction["length"][i] - 1] # Ignore </s>.
       sentence = self.target_inputter.tokenizer.detokenize(tokens)
       print_bytes(tf.compat.as_bytes(sentence), stream=stream)
-
 
 def align_tokens_from_attention(tokens, attention):
   """Returns aligned tokens from the attention.
@@ -346,3 +425,4 @@ def replace_unknown_target(target_tokens,
       tf.equal(target_tokens, unknown_token),
       x=aligned_source_tokens,
       y=target_tokens)
+

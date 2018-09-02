@@ -163,6 +163,7 @@ class ParallelEncoder(Encoder):
         all_states.append(state)
         all_sequence_lengths.append(length)
 
+    # may not work with PackReducer
     outputs, sequence_length = self.outputs_reducer.reduce_sequence(
         all_outputs, all_sequence_lengths)
 

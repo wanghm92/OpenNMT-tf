@@ -216,6 +216,7 @@ class SpaceTokenizer(Tokenizer):
   """A tokenizer that splits on spaces."""
 
   def _tokenize_tensor(self, text):
+    tf.logging.info(" >>>> [tokenizer.py Class SpaceTokenizer _tokenize_tensor] text = {}".format(text))
     return tf.string_split([text], delimiter=" ").values
 
   def _detokenize_tensor(self, tokens):

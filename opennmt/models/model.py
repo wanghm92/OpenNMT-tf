@@ -108,14 +108,20 @@ class Model(object):
                         such as num_ps_replicas, or model_dir
       :return: ops necessary to perform training, evaluation, or predictions.
       """
-      tf.logging.info(" >> [model.py model_fn _model_fn] \nfeatures = {}\nlabels = {}".format(features, labels))
+      tf.logging.info(log_separator+" >> [model.py model_fn _model_fn] \n---\nfeatures = {}\n---\nlabels = {}".format(features, labels))
       # ------------------ Train ----------------- #
       if mode == tf.estimator.ModeKeys.TRAIN:
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> _register_word_counters")
         self._register_word_counters(features, labels)
 
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> dispatching shards ... ")
         features_shards = dispatcher.shard(features)
-        labels_shards = dispatcher.shard(labels)
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> features_shards = \n{} ".format(features_shards))
+        if isinstance(labels, tuple):
+          labels_shards = tuple([dispatcher.shard(l) for l in labels])
+        else:
+          labels_shards = dispatcher.shard(labels)
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> labels_shards = \n{} ".format(labels_shards))
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Creating loss_ops ...")
         with tf.variable_scope(self.name, initializer=self._initializer(params), reuse=tf.AUTO_REUSE):
@@ -143,6 +149,8 @@ class Model(object):
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
           logits, predictions = self._build(features, labels, params, mode, config=config)
 
+          # TODO: modify for eval
+
           tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing loss ...")
           loss = self._compute_loss(features, labels, logits, params, mode)
 
@@ -164,6 +172,9 @@ class Model(object):
       # ------------------ Pred ----------------- #
       elif mode == tf.estimator.ModeKeys.PREDICT:
         tf.logging.info(" >> [model.py model_fn _model_fn] <PREDICT> Building Graph ...")
+
+        # TODO: modify for pred
+
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
           _, predictions = self._build(features, labels, params, mode, config=config)
 
@@ -259,15 +270,14 @@ class Model(object):
     """Runs model specific initialization (e.g. vocabularies loading).
 
     Args:
-      metadata: A dictionary containing additional metadata set
-        by the user.
+      metadata: A dictionary containing additional metadata set by the user.
     """
     tf.logging.info(" >> [model.py _initialize] Initializing with metadata ... ")
     if self.features_inputter is not None:
-      tf.logging.info(" >> [model.py _initialize] self.features_inputter.initialize(metadata) --- features_inputter %s"%self.features_inputter)
+      tf.logging.info(" >> [model.py _initialize] self.features_inputter.initialize(metadata) --- features_inputter = {}".format(self.features_inputter))
       self.features_inputter.initialize(metadata)
     if self.labels_inputter is not None:
-      tf.logging.info(" >> [model.py _initialize] self.labels_inputter.initialize(metadata) --- labels_inputter %s"%self.labels_inputter)
+      tf.logging.info(" >> [model.py _initialize] self.labels_inputter.initialize(metadata) --- labels_inputter = {}".format(self.labels_inputter))
       self.labels_inputter.initialize(metadata)
 
   def _get_serving_input_receiver(self):
@@ -290,7 +300,7 @@ class Model(object):
       The length as a ``tf.Tensor`` or list of ``tf.Tensor``, or ``None`` if
       length is undefined.
     """
-    tf.logging.info(" >> [model.py _get_features_length]")
+    tf.logging.info(" >> [model.py _get_features_length] features = {}".format(features))
     if self.features_inputter is None:
       return None
     return self.features_inputter.get_length(features)
@@ -304,6 +314,7 @@ class Model(object):
     Returns:
       The length as a ``tf.Tensor``  or ``None`` if length is undefined.
     """
+    tf.logging.info(" >> [model.py _get_labels_length] labels = {}".format(labels))
     if self.labels_inputter is None:
       return None
     return self.labels_inputter.get_length(labels)
@@ -378,7 +389,9 @@ class Model(object):
 
     # features_file: self._config["data"]["train_features_file"]
     tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building features ... ")
+    tf.logging.info(" >> [model.py _input_fn_impl] features_file = {}".format(features_file))
     feat_dataset, feat_process_fn = self._get_features_builder(features_file)
+    tf.logging.info(" >> [model.py _input_fn_impl] feat_dataset = {} ".format(feat_dataset))
 
     if labels_file is None:
       dataset = feat_dataset
@@ -387,13 +400,20 @@ class Model(object):
     else:
       tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building labels ... ")
       labels_dataset, labels_process_fn = self._get_labels_builder(labels_file)
+      tf.logging.info(" >> [model.py _input_fn_impl] labels_dataset = {} ".format(labels_dataset))
 
+      tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building pipelines ... ")
       dataset = tf.data.Dataset.zip((feat_dataset, labels_dataset))
+
+      tf.logging.info(" >> [model.py _input_fn_impl] dataset = {} ".format(dataset))
+      tf.logging.info(" >> [model.py _input_fn_impl] feat_process_fn = {} ".format(feat_process_fn))
+      tf.logging.info(" >> [model.py _input_fn_impl] labels_process_fn = {} ".format(labels_process_fn))
+
       process_fn = lambda features, labels: (feat_process_fn(features), labels_process_fn(labels))
 
     # TODO:
-      # Tokenizer is by default SpaceTokenizer()
-      # Need to split by vertical bar
+      # max_labels_length should be a tuple for hierarchical_seq2seq
+      # overwrite _get_labels_length() in hierarchical_seq2seq.py
 
     if mode == tf.estimator.ModeKeys.TRAIN:
       tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building training_pipeline ... ")
@@ -476,20 +496,21 @@ class Model(object):
       ``tf.estimator.Estimator``.
     """
     '''
-        tf.estimator.ModeKeys.TRAIN,
-        self._config["train"]["batch_size"],
-        self._config["data"], #metadata
-        self._config["data"]["train_features_file"],
-        labels_file=self._config["data"]["train_labels_file"],
-        batch_type=self._config["train"].get("batch_type", "examples"),
-        batch_multiplier=self._num_devices,
-        bucket_width=self._config["train"].get("bucket_width", 5),
-        single_pass=self._config["train"].get("single_pass", False),
-        num_threads=self._config["train"].get("num_threads"),
-        sample_buffer_size=self._config["train"].get("sample_buffer_size", 500000),
-        prefetch_buffer_size=self._config["train"].get("prefetch_buffer_size"),
-        maximum_features_length=self._config["train"].get("maximum_features_length"),
-        maximum_labels_length=self._config["train"].get("maximum_labels_length")),
+    Args:
+      mode                   : tf.estimator.ModeKeys.TRAIN,
+      batch_size             : self._config["train"]["batch_size"],
+      metadata               : self._config["data"], #metadata
+      features_file          : self._config["data"]["train_features_file"],
+      labels_file            : self._config["data"]["train_labels_file"],
+      batch_type             : self._config["train"].get("batch_type", "examples"),
+      batch_multiplier       : self._num_devices,
+      bucket_width           : self._config["train"].get("bucket_width", 5),
+      single_pass            : self._config["train"].get("single_pass", False),
+      num_threads            : self._config["train"].get("num_threads"),
+      sample_buffer_size     : self._config["train"].get("sample_buffer_size", 500000),
+      prefetch_buffer_size   : self._config["train"].get("prefetch_buffer_size"),
+      maximum_features_length: self._config["train"].get("maximum_features_length"),
+      maximum_labels_length  : self._config["train"].get("maximum_labels_length")),
     '''
 
     if mode != tf.estimator.ModeKeys.PREDICT and labels_file is None:

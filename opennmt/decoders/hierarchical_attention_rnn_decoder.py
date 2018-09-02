@@ -5,7 +5,7 @@ import tensorflow as tf
 from opennmt.decoders.decoder import build_output_layer
 from opennmt.layers.reducer import align_in_time
 from opennmt.decoders.rnn_decoder import RNNDecoder, AttentionalRNNDecoder, _build_attention_mechanism
-from opennmt.decoders.basic_decoder import BasicDecoder
+from opennmt.decoders.basic_decoder import BasicDecoder, BasicSubDecoder
 from opennmt.decoders.hierarchical_dynamic_decoder import hierarchical_dynamic_decode
 from opennmt.decoders.helper import *
 
@@ -48,8 +48,8 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
         num_layers,
         num_units,
         bridge=bridge,
-        attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
-        output_is_attention=True,
+        attention_mechanism_class=attention_mechanism_class,
+        output_is_attention=output_is_attention,
         cell_class=cell_class,
         dropout=dropout,
         residual_connections=residual_connections)
@@ -57,7 +57,6 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
   def decode(self,
              inputs,
              sequence_length,
-             sub_inputs=None,
              vocab_size_master=None,
              vocab_size_sub=None,
              initial_state=None,
@@ -72,9 +71,10 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
     Decodes a full input sequence.
     Usually used for training and evaluation where target sequences are known.
     Args:
-      inputs = target_inputs, (embedding lookup)
+      inputs = (target_inputs, sub_target_inputs) (embedding lookup)
       sequence_length = self._get_labels_length(labels),
-      vocab_size=target_vocab_size,
+      vocab_size_master=master_target_vocab_size,
+      vocab_size_sub=sub_target_vocab_size,
       initial_state=encoder_state,
       sampling_probability=sampling_probability,
       embedding=target_embedding_fn,
@@ -87,16 +87,18 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
     _ = memory
     _ = memory_sequence_length
 
-    tf.logging.info(" >> [rnn_decoder.py decode]")
+    tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode]")
 
-    batch_size = tf.shape(inputs)[0]
+    master_inputs, sub_inputs = inputs
+    tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] master_inputs = {}".format(master_inputs))
+    tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] sub_inputs = {}".format(sub_inputs))
 
-    # TODO: 'inputs' should be able to split into 2 levels of information (multiple pieces !!!!!!)
-    # TODO: 'sequence_length' should be able to split into 2 levels of information
-    # TODO: 'vocab_size' should be 2 vocabs, one for attributes, one for words
+    master_sequence_length, sub_sequence_length = sequence_length
+    tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] master_sequence_length = {}".format(master_sequence_length))
+    tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] sub_sequence_length = {}".format(sub_sequence_length))
+    batch_size = tf.shape(master_inputs)[0]
+
     # TODO: 'embedding' should also be 2
-
-    vocab_size_sub = vocab_size_master
 
     if (sampling_probability is not None
         and (tf.contrib.framework.is_tensor(sampling_probability)
@@ -110,15 +112,15 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
           Returns -1s for sample_ids where no sampling took place; valid sample id values elsewhere.
         '''
         master_helper = ScheduledEmbeddingTrainingHelper(
-            inputs,
-            sequence_length,
+            master_inputs,
+            master_sequence_length,
             embedding,
             sampling_probability)
 
-        # TODO: specify this
+        # TODO: sampling_prob is now None, sub_sequence_length is (batch, 5)
         sub_helper = ScheduledEmbeddingTrainingHelper(
-            inputs,
-            sequence_length,
+            sub_inputs,
+            sub_sequence_length,
             embedding,
             sampling_probability)
         fused_projection = False
@@ -127,10 +129,9 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
           A helper for use during training. Only reads inputs.
           Returned sample_ids are the argmax of the RNN output logits.
         '''
-        master_helper = TrainingHelper(inputs, sequence_length)
+        master_helper = TrainingHelper(master_inputs, master_sequence_length)
 
-        # TODO: specify this
-        sub_helper = HierarchicalTrainingHelper(inputs, sequence_length)
+        sub_helper = HierarchicalTrainingHelper(sub_inputs, sub_sequence_length)
 
         fused_projection = True
 
@@ -147,34 +148,26 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
         initial_state=initial_state,
         memory=memory,
         memory_sequence_length=memory_sequence_length,
-        dtype=inputs.dtype)
+        dtype=master_inputs.dtype)
+    tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] master_cell = {}".format(master_cell))
+    tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] initial_state_master = {}".format(initial_state_master))
 
-    # TODO: specify this
-    # TODO: remember to wrap using AttentionWrapper()
+    # TODO: remember to wrap using _build_attention_mechanism()/AttentionWrapper() during decode, decoder state as the initial state
+        # memory = encoder/master_decoder?
     sub_cell, initial_state_sub = RNNDecoder._build_cell(
         self,
         mode,
         batch_size,
         initial_state=initial_state,
-        dtype=inputs.dtype)
+        dtype=sub_inputs.dtype)
 
-    print('\n')
-    print('*' * 10 + 'inputs' + '*' * 10)
-    print(inputs)
-    print('*' * 10 + 'initial_state_master' + '*' * 10)
-    print(initial_state_master)
-    print('*' * 10 + 'master_cell' + '*' * 10)
-    print(master_cell)
-    print('*' * 10 + 'initial_state_sub' + '*' * 10)
-    print(initial_state_sub)
-    print('*' * 10 + 'sub_cell' + '*' * 10)
-    print(sub_cell)
-    print('\n')
+    tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] sub_cell = {}".format(sub_cell))
+    tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] initial_state_sub = {}".format(initial_state_sub))
 
     if output_layer_master is None:
-        output_layer_master = build_output_layer(self.num_units, vocab_size_master, dtype=inputs.dtype)
+        output_layer_master = build_output_layer(self.num_units, vocab_size_master, dtype=master_inputs.dtype)
     if output_layer_sub is None:
-        output_layer_sub = build_output_layer(self.num_units, vocab_size_sub, dtype=inputs.dtype)
+        output_layer_sub = build_output_layer(self.num_units, vocab_size_sub, dtype=sub_inputs.dtype)
 
     '''
     master and sub-sequence sampling decoder.
@@ -185,7 +178,8 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
         initial_state_master,
         output_layer=output_layer_master if not fused_projection else None)
 
-    sub_decoder = BasicDecoder(
+    # TODO: customize sub decoder, self.step() maybe different
+    sub_decoder = BasicSubDecoder(
         sub_cell,
         sub_helper,
         initial_state_sub,
@@ -207,7 +201,7 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
     else:
         logits = outputs.rnn_output
     # Make sure outputs have the same time_dim as inputs
-    inputs_len = tf.shape(inputs)[1]
+    inputs_len = tf.shape(master_inputs)[1]
     logits = align_in_time(logits, inputs_len)
 
     return (logits, outputs.rnn_output, state, length)

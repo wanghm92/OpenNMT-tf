@@ -118,6 +118,7 @@ class Runner(object):
     """
     tf.logging.info(" >> [runner.py _build_train_spec] Building train_spec ...")
 
+    # TODO: check hooks for hierarchical outputs
     train_hooks = [
         hooks.LogParametersCountHook(),
         hooks.CountersHook(
