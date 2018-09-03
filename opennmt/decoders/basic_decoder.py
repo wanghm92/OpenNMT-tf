@@ -167,3 +167,7 @@ class BasicSubDecoder(BasicDecoder):
         tf.logging.info(" >> [basic_decoder.py BasicDecoder] initialize() : return self._helper.initialize() + (self._initial_state,)")
         self._initial_state = initial_state
         return self._helper.initialize(master_time) + (self._initial_state,)
+
+    @property
+    def sub_time(self):
+        return self._helper.sub_time

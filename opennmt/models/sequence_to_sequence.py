@@ -279,7 +279,7 @@ class SequenceToSequence(Model):
       return logits, predictions
 
   def _compute_loss(self, features, labels, outputs, params, mode):
-    tf.logging.info(" >> [sequence_to_sequence.py _compute_loss]")
+    tf.logging.info(" >> [sequence_to_sequence.py _compute_loss] labels[\"ids_out\"] = {}".format(labels["ids_out"]))
     return cross_entropy_sequence_loss(
         outputs,
         labels["ids_out"],

@@ -388,7 +388,7 @@ class WordEmbedder(TextInputter):
     return self.transform(data["ids"], mode)
 
   def transform(self, inputs, mode):
-    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform]")
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] inputs = {}".format(inputs))
     try:
       embeddings = tf.get_variable("w_embs", dtype=self.dtype, trainable=self.trainable)
       tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] embeddings reused")

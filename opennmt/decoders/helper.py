@@ -320,17 +320,18 @@ class HierarchicalTrainingHelper(TrainingHelper):
 
       self._sequence_length_tas = nest.map_structure(_unstack_ta, sequence_length)
 
-      # [st, batch, dim]
+      # [batch, dim]
       self._zero_inputs = nest.map_structure(lambda inp: array_ops.zeros_like(inp[0, 0, :]), inputs)
       # self._zero_inputs = nest.map_structure(lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
 
       self._batch_size = array_ops.shape(sequence_length)[1]
-      # self._batch_size = array_ops.size(sequence_length)
+
+  @property
+  def sub_time(self):
+    return array_ops.shape(self._inputs)[2]
 
   def initialize(self, master_time, name=None):
     inputs_sub = nest.map_structure(lambda inp: inp.read(master_time), self._input_tas)
-    depth = self._inputs.get_shape().as_list()[-1]
-    inputs_sub.set_shape((None, None, depth))
     self._input_tas_sub = nest.map_structure(_unstack_ta, inputs_sub)
     self._sequence_length_sub = nest.map_structure(lambda inp: inp.read(master_time), self._sequence_length_tas)
 

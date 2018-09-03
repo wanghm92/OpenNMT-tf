@@ -77,6 +77,7 @@ class HierarchicalSequenceToSequence(Model):
     # TODO: add process hook for sub_target_inputter as well
     tf.logging.info(" >> [hierarchical_seq2seq.py __init__] self.target_inputter.add_process_hooks([shift_target_sequence])")
     self.target_inputter.add_process_hooks([shift_target_sequence])
+    self.sub_target_inputter.add_process_hooks([shift_target_sequence])
 
   def _get_input_scope(self, default_name=""):
     if self.share_embeddings == EmbeddingsSharingLevel.SOURCE_TARGET_INPUT:
@@ -85,7 +86,6 @@ class HierarchicalSequenceToSequence(Model):
       name = default_name
     return tf.VariableScope(None, name=tf.get_variable_scope().name + "/" + name)
 
-  # TODO: make labels a tuple that contains master and sub labels
   def _build(self, features, labels, params, mode, config=None):
 
       tf.logging.info(log_separator+" >> [hierarchical_seq2seq.py _build] mode = <{}>".format(mode))
@@ -108,12 +108,11 @@ class HierarchicalSequenceToSequence(Model):
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] sub_target_inputter = {}".format(self.sub_target_inputter))
 
       tf.logging.info(log_separator+" >> [hierarchical_seq2seq.py _build] self.source_inputter.transform_data")
-
-
       source_inputs = _maybe_reuse_embedding_fn(
           lambda ids: self.source_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
           scope=source_input_scope)(features)
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] source_inputs = {}".format(source_inputs))
+
       with tf.variable_scope("encoder", reuse=tf.AUTO_REUSE):
           encoder_outputs, encoder_state, encoder_sequence_length = self.encoder.encode(
               source_inputs,
@@ -127,10 +126,6 @@ class HierarchicalSequenceToSequence(Model):
       sub_target_vocab_size = self.sub_target_inputter.get_vocab_size()
       target_dtype = self.target_inputter.dtype
 
-      # TODO:
-        # target_inputter is assumed to be WordEmbedder before, transform() returns embedding_lookup()
-        # WordEmbedder.transform() is called in _transform_data(),
-                                            # which is called by [source/target_inputters].transform_data()
       target_embedding_fn = _maybe_reuse_embedding_fn(
           lambda ids: self.target_inputter.transform(ids, mode=mode),
           scope=target_input_scope) # callable
@@ -157,7 +152,7 @@ class HierarchicalSequenceToSequence(Model):
                       schedule_type=params.get("scheduled_sampling_type"),
                       k=params.get("scheduled_sampling_k"))
 
-              logits, rnn_outputs, state, length = self.decoder.decode(
+              logits, logits_sub, state, length = self.decoder.decode(
                   (target_inputs, sub_target_inputs),
                   self._get_labels_length(labels, to_reduce=True),
                   vocab_size_master=master_target_vocab_size,
@@ -169,13 +164,14 @@ class HierarchicalSequenceToSequence(Model):
                   memory=encoder_outputs,
                   memory_sequence_length=encoder_sequence_length)
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] logits = {}".format(logits))
-          tf.logging.info(" >> [hierarchical_seq2seq.py _build] rnn_outputs = {}".format(rnn_outputs))
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] logits_sub = {}".format(logits_sub))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] state = {}".format(state))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] length = {}".format(length))
       else:
           logits = None
+          logits_sub = None
 
-      # TODO: training part is done, now the eval part !!!
+      # TODO: paused here, training part is done, now the eval part !!!
 
       if mode != tf.estimator.ModeKeys.TRAIN:
           with tf.variable_scope("decoder", reuse=labels is not None):
@@ -259,7 +255,7 @@ class HierarchicalSequenceToSequence(Model):
       else:
           predictions = None
 
-      return logits, predictions
+      return (logits, logits_sub), predictions
 
   def _initialize(self, metadata):
     """Runs model specific initialization (e.g. vocabularies loading).
@@ -351,22 +347,37 @@ class HierarchicalSequenceToSequence(Model):
       if sub_length is not None:
         add_counter("sub_labels", tf.reduce_sum(sub_length))
 
-  def _compute_loss(self, features, labels, outputs, params, mode):
-    # TODO: overwrite this method to calculate hierarchical losses
-        # by defining a customized model in catalog (or somewhere else)
-    '''
-    :param outputs: logits
-    '''
-    labels = (labels[0][0], labels[1][0])
-    master_labels = labels[0]
-    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss]")
+  def _compute_loss_impl(self, logits, labels, sequence_length, params, mode):
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] labels = {}".format(labels))
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] labels[\"ids_out\"] = {}".format(labels["ids_out"]))
     return cross_entropy_sequence_loss(
-        outputs,
-        master_labels["ids_out"],
-        self._get_labels_length(labels),
+        logits,
+        labels["ids_out"],
+        sequence_length,
         label_smoothing=params.get("label_smoothing", 0.0),
         average_in_time=params.get("average_loss_in_time", False),
         mode=mode)
+
+  def _compute_loss(self, features, labels, outputs, params, mode):
+
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] outputs = {}".format(outputs))
+    labels = (labels[0][0], labels[1][0])
+    master_labels, sub_labels = labels
+    master_logits, sub_logits = outputs
+    master_length, sub_length = self._get_labels_length(labels)
+
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] \nmaster_labels : \n{}".format("\n".join(["{}".format(x) for x in master_labels.items()])))
+
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] BEFORE \nsub_labels : \n{}".format("\n".join(["{}".format(x) for x in sub_labels.items()])))
+    sub_labels = self.sub_target_inputter._transform_sub_labels(sub_labels)
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] AFTER \nsub_labels : \n{}".format("\n".join(["{}".format(x) for x in sub_labels.items()])))
+
+    master_loss = self._compute_loss_impl(master_logits, master_labels, master_length, params, mode)
+    sub_loss = self._compute_loss_impl(sub_logits, sub_labels, sub_length, params, mode)
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_loss = {}".format(master_loss))
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] sub_loss = {}".format(sub_loss))
+
+    return (master_loss, sub_loss)
 
   def print_prediction(self, prediction, params=None, stream=None):
     n_best = params and params.get("n_best")

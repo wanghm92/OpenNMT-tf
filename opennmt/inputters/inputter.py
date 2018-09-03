@@ -341,8 +341,8 @@ class ParallelInputter(MultiInputter):
     processed_data = {}
     for i, inputter in enumerate(self.inputters):
       sub_data = inputter._process(data[i])  # pylint: disable=protected-access
-      tf.logging.info(" >> [inputter.py class ParallelInputter process] sub_data : \n{}".format("\n".join(["{}".format(x) for x in sub_data.items()])))
-      tf.logging.info(" >> [inputter.py class ParallelInputter process] inputter.volatile = {}".format(inputter.volatile))
+      tf.logging.info(" >> [inputter.py class ParallelInputter _process] sub_data : \n{}".format("\n".join(["{}".format(x) for x in sub_data.items()])))
+      tf.logging.info(" >> [inputter.py class ParallelInputter _process] inputter.volatile = {}".format(inputter.volatile))
       for key, value in six.iteritems(sub_data):
         prefixed_key = "inputter_{}_{}".format(i, key)
         processed_data = self.set_data_field(
@@ -350,7 +350,7 @@ class ParallelInputter(MultiInputter):
             prefixed_key,
             value,
             volatile=key in inputter.volatile)
-      tf.logging.info(" >> [inputter.py class ParallelInputter process] self.volatile = {}".format(self.volatile))
+      tf.logging.info(" >> [inputter.py class ParallelInputter _process] self.volatile = {}".format(self.volatile))
     return processed_data
 
   def _transform_data(self, data, mode):
@@ -404,6 +404,49 @@ class HierarchicalInputter(ParallelInputter):
     tf.logging.info(" >> [inputter.py class HierarchicalInputter __init__] reducer = {}".format(reducer))
     super(HierarchicalInputter, self).__init__(inputters, reducer)
 
+  def process(self, data):
+    """Prepares raw data.
+
+    Args:
+      data: The raw data.
+
+    Returns:
+      A dictionary of ``tf.Tensor``.
+
+    See Also:
+      :meth:`opennmt.inputters.inputter.Inputter.transform_data`
+    """
+    global cnt
+    cnt += 1
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter process] data = self._process(data) cnt = {}".format(cnt))
+    data = self._process(data)
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter process] after data = self._process(data)\ndata : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
+    for key in self.volatile:
+      data = self.remove_data_field(data, key)
+    self.volatile.clear()
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter process] after remove_data_field()\ndata : \n{}".format("\n".join(["{}".format(x) for x in data.items()])))
+    return data
+
+  def _process(self, data):
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter _process] data = {}".format(data))
+    processed_data = {}
+    for i, inputter in enumerate(self.inputters):
+      sub_data = inputter._process(data[i])  # pylint: disable=protected-access
+      tf.logging.info(" >> [inputter.py class HierarchicalInputter _process] BEFORE sub_data : \n{}".format("\n".join(["{}".format(x) for x in sub_data.items()])))
+      tf.logging.info(" >> [inputter.py class HierarchicalInputter _process] inputter.volatile = {}".format(inputter.volatile))
+      for hook in inputter.process_hooks:
+        sub_data = hook(inputter, sub_data)
+      tf.logging.info(" >> [inputter.py class HierarchicalInputter _process] AFTER sub_data : \n{}".format("\n".join(["{}".format(x) for x in sub_data.items()])))
+      for key, value in six.iteritems(sub_data):
+        prefixed_key = "inputter_{}_{}".format(i, key)
+        processed_data = self.set_data_field(
+            processed_data,
+            prefixed_key,
+            value,
+            volatile=key in inputter.volatile)
+      tf.logging.info(" >> [inputter.py class HierarchicalInputter _process] self.volatile = {}".format(self.volatile))
+    return processed_data
+
   def _transform_data(self, data, mode):
     tf.logging.info(" >> [inputter.py class HierarchicalInputter _transform_data] for i, inputter in enumerate(self.inputters) ...")
     tf.logging.info(" >> [inputter.py class HierarchicalInputter _transform_data] data = {}".format(data))
@@ -419,6 +462,19 @@ class HierarchicalInputter(ParallelInputter):
     if self.reducer is not None:
       transformed = self.reducer.reduce(transformed)
     return transformed
+
+  def _transform_sub_labels(self, data):
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter _transform_sub_labels] \ndata :\n{}".format("\n".join(["{}".format(x) for x in data.items()])))
+    transformed = []
+    for i, inputter in enumerate(self.inputters):
+        sub_data = extract_prefixed_keys(data, "inputter_{}_".format(i))
+        transformed.append(tf.expand_dims(sub_data["ids_out"], axis=1))
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter _transform_sub_labels] BEFORE transformed = {}".format(transformed))
+    if self.reducer is not None:
+      transformed = self.reducer.reduce(transformed, has_depth=False)
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter _transform_sub_labels] AFTER transformed = {}".format(transformed))
+    data = self.set_data_field(data, "ids_out", transformed, volatile=False)
+    return data
 
   def visualize(self, log_dir):
     tf.logging.info(" >>>> [inputter.py Class HierarchicalInputter visualize]")
@@ -440,6 +496,21 @@ class HierarchicalInputter(ParallelInputter):
   def get_vocab_size(self):
     # TODO: all inputters are assumed to share the same vocab file for now
     return self.inputters[0].vocabulary_size
+
+  def add_process_hooks(self, hooks):
+    """Adds processing hooks.
+
+    Processing hooks are additional and model specific data processing
+    functions applied after calling this inputter
+    :meth:`opennmt.inputters.inputter.Inputter.process` function.
+
+    Args:
+      hooks: A list of callables with the signature
+        ``(inputter, data) -> data``.
+    """
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter add_process_hooks]")
+    for inputter in self.inputters:
+      inputter.process_hooks.extend(hooks)
 
 class MixedInputter(MultiInputter):
   """An multi inputter that applies several transformation on the same data."""

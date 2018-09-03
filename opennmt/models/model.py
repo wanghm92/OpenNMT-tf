@@ -86,13 +86,33 @@ class Model(object):
 
     def _extract_loss(loss):
       """Extracts and summarizes the loss."""
-      tf.logging.info(" >> [model.py model_fn _extract_loss] Extracts and summarizes the loss ...")
+      tf.logging.info(" >> [model.py model_fn _extract_loss] loss = {}".format(loss))
+
+      def _normalize_loss_meta(loss):
+          actual_loss = _normalize_loss(loss[0], den=loss[1])
+          tboard_loss = _normalize_loss(loss[0], den=loss[2]) if len(loss) > 2 else actual_loss
+          return actual_loss, tboard_loss
+
       if not isinstance(loss, tuple):
         actual_loss = _normalize_loss(loss)
         tboard_loss = actual_loss
       else:
-        actual_loss = _normalize_loss(loss[0], den=loss[1])
-        tboard_loss = _normalize_loss(loss[0], den=loss[2]) if len(loss) > 2 else actual_loss
+        if not isinstance(loss[0], list):
+          actual_loss, tboard_loss = _normalize_loss_meta(loss)
+        else:
+          master_loss, sub_loss = (loss[0][0], loss[1][0])
+          tf.logging.info(" >> [model.py model_fn _extract_loss] master_loss = {}".format(master_loss))
+          tf.logging.info(" >> [model.py model_fn _extract_loss] sub_loss = {}".format(sub_loss))
+
+          master_actual_loss, master_tboard_loss = _normalize_loss_meta(master_loss)
+          sub_actual_loss, sub_tboard_loss = _normalize_loss_meta(sub_loss)
+          tf.logging.info(" >> [model.py model_fn _extract_loss] master_actual_loss = {}".format(master_actual_loss))
+          tf.logging.info(" >> [model.py model_fn _extract_loss] master_tboard_loss = {}".format(master_tboard_loss))
+          tf.logging.info(" >> [model.py model_fn _extract_loss] sub_actual_loss = {}".format(sub_actual_loss))
+          tf.logging.info(" >> [model.py model_fn _extract_loss] sub_tboard_loss = {}".format(sub_tboard_loss))
+          actual_loss = tf.reduce_mean([master_actual_loss, sub_actual_loss])
+          tboard_loss = tf.reduce_mean([master_tboard_loss, sub_tboard_loss])
+
       tf.summary.scalar("loss", tboard_loss)
       return actual_loss
 
