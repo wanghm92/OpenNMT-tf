@@ -106,6 +106,7 @@ class Runner(object):
             keys are names of parameters, values are basic python types
     '''
 
+    # TODO: come back here
     self._estimator = tf.estimator.Estimator(
         self._model.model_fn(num_devices=self._num_devices),
         config=run_config,
@@ -114,11 +115,10 @@ class Runner(object):
   def _build_train_spec(self):
     """
     :return: Configuration for the "train" part for the train_and_evaluate call
-    tf.estimator.TrainSpec: input data for the training, as well as the duration
+                tf.estimator.TrainSpec: input data for the training, as well as the duration
     """
     tf.logging.info(" >> [runner.py _build_train_spec] Building train_spec ...")
 
-    # TODO: check hooks for hierarchical outputs
     train_hooks = [
         hooks.LogParametersCountHook(),
         hooks.CountersHook(

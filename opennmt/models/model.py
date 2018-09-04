@@ -168,12 +168,13 @@ class Model(object):
       # ------------------ Eval ----------------- #
       elif mode == tf.estimator.ModeKeys.EVAL:
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Building Graph ...")
+        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> features = \n{} ".format(features))
+        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> labels = \n{} ".format(labels))
 
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
+          # TODO: come back here
+          # TODO: predictions needs to be done
           logits, predictions = self._build(features, labels, params, mode, config=config)
-
-          # TODO: modify for eval
-
           tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing loss ...")
           loss = self._compute_loss(features, labels, logits, params, mode)
 
@@ -181,6 +182,7 @@ class Model(object):
         loss = _extract_loss(loss)
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing Metrics ...")
+        # TODO: come back here
         eval_metric_ops = self._compute_metrics(features, labels, predictions)
 
         if predictions is not None:
@@ -195,8 +197,6 @@ class Model(object):
       # ------------------ Pred ----------------- #
       elif mode == tf.estimator.ModeKeys.PREDICT:
         tf.logging.info(" >> [model.py model_fn _model_fn] <PREDICT> Building Graph ...")
-
-        # TODO: modify for pred
 
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
           _, predictions = self._build(features, labels, params, mode, config=config)

@@ -126,11 +126,13 @@ class HierarchicalSequenceToSequence(Model):
       sub_target_vocab_size = self.sub_target_inputter.get_vocab_size()
       target_dtype = self.target_inputter.dtype
 
+      # TODO: construct sub_embedding_fn for scheduled sampling
       target_embedding_fn = _maybe_reuse_embedding_fn(
           lambda ids: self.target_inputter.transform(ids, mode=mode),
           scope=target_input_scope) # callable
 
-      tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_inputter = %s" % self.target_inputter)
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_embedding_fn = {}".format(target_embedding_fn))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_inputter = {}".format(self.target_inputter))
       if labels is not None:
           target_inputs = _maybe_reuse_embedding_fn(
               lambda ids: self.target_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
@@ -171,7 +173,7 @@ class HierarchicalSequenceToSequence(Model):
           logits = None
           logits_sub = None
 
-      # TODO: paused here, training part is done, now the eval part !!!
+      # TODO: now inference time !!!
 
       if mode != tf.estimator.ModeKeys.TRAIN:
           with tf.variable_scope("decoder", reuse=labels is not None):

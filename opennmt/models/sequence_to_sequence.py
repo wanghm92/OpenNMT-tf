@@ -180,7 +180,7 @@ class SequenceToSequence(Model):
               logits, rnn_outputs, state, length = self.decoder.decode(
                   target_inputs,
                   self._get_labels_length(labels),
-                  vocab_size_master=target_vocab_size,
+                  vocab_size=target_vocab_size,
                   initial_state=encoder_state,
                   sampling_probability=sampling_probability,
                   embedding=target_embedding_fn,

@@ -112,18 +112,15 @@ class CountersHook(tf.train.SessionRunHook):
     '''
     Called after each call to run().
     If session.run() raises any exceptions then after_run() is not called.
-    :param run_context: the same one send to before_run call. run_context.request_stop() can be called to stop the iteration.
+    :param run_context: the same one send to before_run call.
+                        run_context.request_stop() can be called to stop the iteration.
     :param run_values: results of requested ops/tensors by before_run()
     '''
 
-    if not self._counters:
-      return
-
+    if not self._counters:return
     counters, step, debug_ops = run_values.results
-
-    # tf.logging.info(" ********** [hooks.py class CountersHook after_run] debug_ops :")
+    # tf.logging.info(" >> [hooks.py class CountersHook after_run] debug_ops :")
     # pp.pprint(debug_ops)
-    
     if self._timer.should_trigger_for_step(step):
       elapsed_time, _ = self._timer.update_last_triggered_step(step)
       if elapsed_time is not None:
@@ -209,6 +206,7 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
     predictions, self._current_step = run_values.results
     self._output_path = "{}.{}".format(self._output_file, self._current_step)
     with io.open(self._output_path, encoding="utf-8", mode="a") as output_file:
+      # TODO: check this hook !!!
       for prediction in misc.extract_batches(predictions):
         self._model.print_prediction(prediction, stream=output_file)
 

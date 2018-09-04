@@ -21,9 +21,15 @@ data:
 
   # (required for train_end_eval and eval run types).
   eval_features_file:
-    - ../recom_nlg/temp/recom_text.words.val
-    - ../recom_nlg/temp/recom_text.tags.val
-  eval_labels_file: ../recom_nlg/temp/recom_text.outs.val
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.words.train.filter.seg.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.tags.train.filter.seg.top100
+  eval_labels_file:
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.attr_one.top100
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.1.top100
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.2.top100
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.3.top100
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.4.top100
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.5.top100
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
   source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
