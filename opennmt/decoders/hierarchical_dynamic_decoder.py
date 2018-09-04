@@ -367,10 +367,12 @@ def hierarchical_dynamic_decode(
       tf.logging.info(" >> [hierarchical_dynamic_decoder.py hierarchical_dynamic_decode] next_finished = {}".format(next_finished))
       tf.logging.info(" >> [hierarchical_dynamic_decoder.py hierarchical_dynamic_decode] next_sequence_lengths = {}".format(next_sequence_lengths))
 
-      # TODO: something like:
-            # zero_outputs = _create_zero_outputs()
+      # TODO: do not need to sub_decode when finished, zero_outputs = _create_zero_outputs()
       tf.logging.info(" >> [hierarchical_dynamic_decoder.py hierarchical_dynamic_decode] next_state = {}".format(next_state))
-      sub_outputs, sub_state, sub_length = sub_dynamic_decode(sub_decoder, master_time=time, initial_state=next_state.cell_state)
+      sub_outputs, sub_state, sub_length = sub_dynamic_decode(sub_decoder,
+                                                              master_time=time,
+                                                              initial_state=next_state.cell_state,
+                                                              maximum_iterations=sub_decoder.sub_time)
 
       outputs_ta_sub = nest.map_structure(lambda ta, out: ta.write(time, out), outputs_ta_sub, sub_outputs)
 
@@ -416,11 +418,10 @@ def hierarchical_dynamic_decode(
     except NotImplementedError:
       pass
 
-    # TODO: check time batch dimension
     if not output_time_major:
+      tf.logging.info(" >> [hierarchical_dynamic_decoder.py hierarchical_dynamic_decode] output_time_major = {}".format(output_time_major))
       final_outputs = nest.map_structure(_transpose_batch_time, final_outputs)
       final_outputs_sub = nest.map_structure(_transpose_back_batch_mastertime_subtime, final_outputs_sub)
-
 
   return final_outputs, final_outputs_sub, final_state, final_sequence_lengths
 
@@ -430,7 +431,7 @@ def sub_dynamic_decode(
         master_time,
         initial_state,
         output_time_major=False,
-        impute_finished=False,
+        impute_finished=True,
         maximum_iterations=None,
         parallel_iterations=32,
         swap_memory=False,
@@ -522,8 +523,8 @@ def sub_dynamic_decode(
 
     initial_outputs_ta = nest.map_structure(_create_ta, decoder.output_size, decoder.output_dtype)
 
-    def condition(unused_time, unused_outputs_ta, unused_state, unused_inputs, finished, unused_sequence_lengths):
-      return math_ops.logical_not(math_ops.reduce_all(finished))
+    def condition(time, unused_outputs_ta, unused_state, unused_inputs, unused_finished, unused_sequence_lengths):
+      return math_ops.logical_not(time >= maximum_iterations)
 
     def body(time, outputs_ta, state, inputs, finished, sequence_lengths):
       """Internal while_loop body.
@@ -609,8 +610,8 @@ def sub_dynamic_decode(
     except NotImplementedError:
       pass
 
-    # TODO: may not need this step and just need _transpose_batch_mastertime_subtime before master return
-    if not output_time_major:
-      final_outputs = nest.map_structure(_transpose_batch_time, final_outputs)
+    # do need this step and just need _transpose_batch_mastertime_subtime before master return
+    # if not output_time_major:
+    #   final_outputs = nest.map_structure(_transpose_batch_time, final_outputs)
 
   return final_outputs, final_state, final_sequence_lengths

@@ -9,15 +9,15 @@ model_dir: ../onmt-tf-output/temp
 data:
   # (required for train_and_eval and train run types).
   train_features_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.words.train.filter.seg.top10
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.tags.train.filter.seg.top10
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.words.train.filter.seg.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.tags.train.filter.seg.top100
   train_labels_file: 
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.attr_one.top10
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.1.top10
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.2.top10
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.3.top10
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.4.top10
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/10/recom_text.outs.train.seg.5.top10
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.attr_one.top100
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.1.top100
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.2.top100
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.3.top100
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.4.top100
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.5.top100
 
   # (required for train_end_eval and eval run types).
   eval_features_file:

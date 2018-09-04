@@ -364,7 +364,7 @@ class HierarchicalSequenceToSequence(Model):
     labels = (labels[0][0], labels[1][0])
     master_labels, sub_labels = labels
     master_logits, sub_logits = outputs
-    master_length, sub_length = self._get_labels_length(labels)
+    master_length, sub_length = self._get_labels_length(labels, to_reduce=True)
 
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] \nmaster_labels : \n{}".format("\n".join(["{}".format(x) for x in master_labels.items()])))
 
@@ -372,10 +372,13 @@ class HierarchicalSequenceToSequence(Model):
     sub_labels = self.sub_target_inputter._transform_sub_labels(sub_labels)
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] AFTER \nsub_labels : \n{}".format("\n".join(["{}".format(x) for x in sub_labels.items()])))
 
-    master_loss = self._compute_loss_impl(master_logits, master_labels, master_length, params, mode)
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] sub_length = {}".format(sub_length))
     sub_loss = self._compute_loss_impl(sub_logits, sub_labels, sub_length, params, mode)
-    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_loss = {}".format(master_loss))
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] sub_loss = {}".format(sub_loss))
+
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_length = {}".format(master_length))
+    master_loss = self._compute_loss_impl(master_logits, master_labels, master_length, params, mode)
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_loss = {}".format(master_loss))
 
     return (master_loss, sub_loss)
 

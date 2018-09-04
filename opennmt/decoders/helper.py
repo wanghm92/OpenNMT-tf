@@ -333,6 +333,7 @@ class HierarchicalTrainingHelper(TrainingHelper):
   def initialize(self, master_time, name=None):
     inputs_sub = nest.map_structure(lambda inp: inp.read(master_time), self._input_tas)
     self._input_tas_sub = nest.map_structure(_unstack_ta, inputs_sub)
+    # [mt, batch] --> [batch]
     self._sequence_length_sub = nest.map_structure(lambda inp: inp.read(master_time), self._sequence_length_tas)
 
     with ops.name_scope(name, "TrainingHelperInitializeForSubsequenceDecoding"):

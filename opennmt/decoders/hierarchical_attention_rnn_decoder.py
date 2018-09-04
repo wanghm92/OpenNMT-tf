@@ -204,8 +204,6 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] state = {}".format(state))
     tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] length = {}".format(length))
 
-    # TODO: paused here, output is not yet done, loss is not yet calculated, inference to be done
-
     if fused_projection and output_layer_master is not None:
         logits = output_layer_master(outputs.rnn_output)
         logits_sub = output_layer_sub(outputs_sub.rnn_output)
@@ -219,9 +217,7 @@ class HierAttRNNDecoder(AttentionalRNNDecoder):
     inputs_len = tf.shape(master_inputs)[1]
     logits = align_in_time(logits, inputs_len)
     tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] AFTER logits = {}".format(logits))
-    logits_sub = align_in_time_2d(logits_sub, tf.shape(sub_inputs))
+    logits_sub = align_in_time_2d(logits_sub, sub_inputs.get_shape().as_list()[1], tf.shape(sub_inputs)[2])
     tf.logging.info(" >> [hierarchical_attention_rnn_decoder.py decode] AFTER logits_sub = {}".format(logits_sub))
-
-    # TODO: align_in_time for logits_sub
 
     return (logits, logits_sub, state, length)

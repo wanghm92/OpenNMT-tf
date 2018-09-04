@@ -431,9 +431,7 @@ class Model(object):
 
       process_fn = lambda features, labels: (feat_process_fn(features), labels_process_fn(labels))
 
-    # TODO:
-      # max_labels_length should be a tuple for hierarchical_seq2seq
-      # overwrite _get_labels_length() in hierarchical_seq2seq.py
+      tf.logging.info(" >> [model.py _input_fn_impl] maximum_labels_length = {} ".format(maximum_labels_length))
 
     if mode == tf.estimator.ModeKeys.TRAIN:
       tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building training_pipeline ... ")

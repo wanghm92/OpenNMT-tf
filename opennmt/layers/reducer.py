@@ -77,39 +77,42 @@ def align_in_time(x, length):
 def align_in_sub_time(x, length):
   """Aligns the time dimension of :obj:`x` with :obj:`length`."""
   time_dim = tf.shape(x)[-1]
-
   return tf.cond(
       tf.less(time_dim, length),
       true_fn=lambda: tf.pad(x, [[0, 0], [0, 0], [0, length - time_dim]]),
       false_fn=lambda: x[:, :length])
 
-def align_in_time_2d(x, lengths):
+def align_in_time_2d(x, master_length, sub_length):
   """Aligns the time dimension of :obj:`x` with :obj:`length`."""
-  master_length = lengths[1]
   master_time = tf.shape(x)[1]
-
-  sub_length = lengths[2]
   sub_time = tf.shape(x)[2]
-
   depth = x.get_shape().as_list()[-1]
+  # batch_size = x.get_shape().as_list()[0]
 
   def pad_in_master_time(y, padding_length):
     y = tf.pad(y, [[0, 0], [0, padding_length], [0, 0], [0, 0]])
     y.set_shape((None, None, None, depth))
+    # y.set_shape((None, master_length, None, depth))
     return y
 
   def pad_in_sub_time(y, padding_length):
     y = tf.pad(y, [[0, 0], [0, 0], [0, padding_length], [0, 0]])
     y.set_shape((None, None, None, depth))
+    # y.set_shape((None, master_length, None, depth))
     return y
 
   master_aligned = tf.cond(tf.less(master_time, master_length),
                            true_fn=lambda: pad_in_master_time(x, master_length - master_time),
                            false_fn=lambda: x[:, :master_length])
 
+  # master_aligned.set_shape((batch_size, master_length, None, depth))
+
   final_aligned = tf.cond(tf.less(sub_time, sub_length),
                           true_fn=lambda: pad_in_sub_time(master_aligned, sub_length - sub_time),
                           false_fn=lambda: master_aligned[:, :, :sub_length])
+
+  # final_aligned.set_shape((batch_size, master_length, None, depth))
+
   return final_aligned
 
 def roll_sequence(tensor, offsets):
@@ -263,7 +266,7 @@ class PackReducer(ConcatReducer):
         packed = tf.reshape(aligned, [batch_size, len(inputs), maxlen, depth])
       else:
         maxlen = tf.reduce_max([tf.shape(x)[-1] for x in inputs])
-        aligned = tf.concat([align_in_sub_time(x, maxlen) for x in inputs], axis=1)  # batch * (len(inputs)*maxlen) * depth
+        aligned = tf.concat([align_in_sub_time(x, maxlen) for x in inputs], axis=1)  # batch * len(inputs) * maxlen
         packed = tf.reshape(aligned, [batch_size, len(inputs), maxlen])
       tf.logging.info(" >> [reducer.py class PackReducer reduce] packed = {}".format(packed))
       return packed
