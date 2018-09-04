@@ -29,7 +29,7 @@ from tensorflow.python.layers import base as layers_base
 from tensorflow.python.ops import rnn_cell_impl
 from tensorflow.python.util import nest
 
-from opennmt.decoders.hierarchical_dynamic_decoder import TfContribSeq2seqDecoder
+from opennmt.decoders.tf_contrib_seq2seq_decoder import TfContribSeq2seqDecoder
 
 __all__ = [
     "BasicDecoderOutput",
@@ -154,7 +154,7 @@ class BasicDecoder(TfContribSeq2seqDecoder):
 
 class BasicSubDecoder(BasicDecoder):
 
-    def initialize(self, initial_state, master_time, name=None):
+    def initialize(self, initial_state, master_time=None, name=None):
         """Initialize the decoder.
 
         Args:
@@ -164,9 +164,12 @@ class BasicSubDecoder(BasicDecoder):
           `(finished, first_inputs, initial_state)`.
         """
         # TODO: initial_state from master decoder may need to be stored in a TensorArray
-        tf.logging.info(" >> [basic_decoder.py BasicDecoder] initialize() : return self._helper.initialize() + (self._initial_state,)")
         self._initial_state = initial_state
-        return self._helper.initialize(master_time) + (self._initial_state,)
+        if master_time is not None:
+            tf.logging.info(" >> [basic_decoder.py BasicDecoder initialize] master_time = {}".format(master_time))
+            return self._helper.initialize(master_time) + (self._initial_state,) # for HierarchicalTrainingHelper
+        else:
+            return self._helper.initialize() + (self._initial_state,) # for GreedyEmbeddingHelper
 
     @property
     def sub_time(self):
