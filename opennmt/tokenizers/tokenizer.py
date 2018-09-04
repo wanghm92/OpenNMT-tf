@@ -46,6 +46,7 @@ class Tokenizer(object):
       metadata: A dictionary containing additional metadata set
         by the user.
     """
+    tf.logging.info(" >>>> [tokenizer.py Class Tokenizer initialize]: self._configuration_file_key = {}".format(self._configuration_file_key))
     if self._configuration_file_key is not None:
       configuration_file = metadata[self._configuration_file_key]
       with tf.gfile.Open(configuration_file, mode="rb") as conf_file:
@@ -215,6 +216,7 @@ class SpaceTokenizer(Tokenizer):
   """A tokenizer that splits on spaces."""
 
   def _tokenize_tensor(self, text):
+    tf.logging.info(" >>>> [tokenizer.py Class SpaceTokenizer _tokenize_tensor] text = {}".format(text))
     return tf.string_split([text], delimiter=" ").values
 
   def _detokenize_tensor(self, tokens):

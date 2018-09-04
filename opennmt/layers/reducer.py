@@ -13,14 +13,6 @@ def pad_in_time(x, padding_length):
   x.set_shape((None, None, depth))
   return x
 
-def align_in_time(x, length):
-  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
-  time_dim = tf.shape(x)[1]
-  return tf.cond(
-      tf.less(time_dim, length),
-      true_fn=lambda: pad_in_time(x, length - time_dim),
-      false_fn=lambda: x[:, :length])
-
 def pad_with_identity(x, sequence_length, max_sequence_length, identity_values=0, maxlen=None):
   """Pads a tensor with identity values up to :obj:`max_sequence_length`.
 
@@ -29,7 +21,7 @@ def pad_with_identity(x, sequence_length, max_sequence_length, identity_values=0
     sequence_length: The true sequence length of :obj:`x`.
     max_sequence_length: The sequence length up to which the tensor must contain
       :obj:`identity values`.
-    identity_values: The identity value.
+    identity_values: The identity value. e.g. can be set the idx of certain padding such as <eos>/<unk>
     maxlen: Size of the output time dimension. Default is the maximum value in
       obj:`max_sequence_length`.
 
@@ -66,12 +58,62 @@ def pad_n_with_identity(inputs, sequence_lengths, identity_values=0):
     sequence length.
   """
   max_sequence_length = tf.reduce_max(sequence_lengths, axis=0)
+  # ensure shape match for concat
   maxlen = tf.reduce_max([tf.shape(x)[1] for x in inputs])
   padded = [
       pad_with_identity(
           x, length, max_sequence_length, identity_values=identity_values, maxlen=maxlen)
       for x, length in zip(inputs, sequence_lengths)]
   return padded, max_sequence_length
+
+def align_in_time(x, length):
+  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
+  time_dim = tf.shape(x)[1]
+  return tf.cond(
+      tf.less(time_dim, length),
+      true_fn=lambda: pad_in_time(x, length - time_dim),
+      false_fn=lambda: x[:, :length])
+
+def align_in_sub_time(x, length):
+  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
+  time_dim = tf.shape(x)[-1]
+  return tf.cond(
+      tf.less(time_dim, length),
+      true_fn=lambda: tf.pad(x, [[0, 0], [0, 0], [0, length - time_dim]]),
+      false_fn=lambda: x[:, :length])
+
+def align_in_time_2d(x, master_length, sub_length):
+  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
+  master_time = tf.shape(x)[1]
+  sub_time = tf.shape(x)[2]
+  depth = x.get_shape().as_list()[-1]
+  # batch_size = x.get_shape().as_list()[0]
+
+  def pad_in_master_time(y, padding_length):
+    y = tf.pad(y, [[0, 0], [0, padding_length], [0, 0], [0, 0]])
+    y.set_shape((None, None, None, depth))
+    # y.set_shape((None, master_length, None, depth))
+    return y
+
+  def pad_in_sub_time(y, padding_length):
+    y = tf.pad(y, [[0, 0], [0, 0], [0, padding_length], [0, 0]])
+    y.set_shape((None, None, None, depth))
+    # y.set_shape((None, master_length, None, depth))
+    return y
+
+  master_aligned = tf.cond(tf.less(master_time, master_length),
+                           true_fn=lambda: pad_in_master_time(x, master_length - master_time),
+                           false_fn=lambda: x[:, :master_length])
+
+  # master_aligned.set_shape((batch_size, master_length, None, depth))
+
+  final_aligned = tf.cond(tf.less(sub_time, sub_length),
+                          true_fn=lambda: pad_in_sub_time(master_aligned, sub_length - sub_time),
+                          false_fn=lambda: master_aligned[:, :, :sub_length])
+
+  # final_aligned.set_shape((batch_size, master_length, None, depth))
+
+  return final_aligned
 
 def roll_sequence(tensor, offsets):
   """Shifts sequences by an offset.
@@ -202,6 +244,37 @@ class ConcatReducer(Reducer):
     else:
       raise ValueError("Unsupported concatenation on axis {}".format(axis))
 
+class PackReducer(ConcatReducer):
+  """A reducer that concatenates the inputs."""
+
+  def __init__(self, axis=-1):
+    self.axis = axis
+
+  def reduce(self, inputs, has_depth=True):
+    if has_depth:
+      axis = self.axis % inputs[0].shape.ndims
+    else:
+      axis = self.axis
+
+    if axis == 1:
+      # Align all input tensors to the maximum combined length.
+      batch_size = tf.shape(inputs[0])[0]
+      if has_depth:
+        depth = inputs[0].get_shape().as_list()[-1] # get static instead of dynamic shape
+        maxlen = tf.reduce_max([tf.shape(x)[1] for x in inputs])
+        aligned = tf.concat([align_in_time(x, maxlen) for x in inputs], axis=1) # batch * (len(inputs)*maxlen) * depth
+        packed = tf.reshape(aligned, [batch_size, len(inputs), maxlen, depth])
+      else:
+        maxlen = tf.reduce_max([tf.shape(x)[-1] for x in inputs])
+        aligned = tf.concat([align_in_sub_time(x, maxlen) for x in inputs], axis=1)  # batch * len(inputs) * maxlen
+        packed = tf.reshape(aligned, [batch_size, len(inputs), maxlen])
+      tf.logging.info(" >> [reducer.py class PackReducer reduce] packed = {}".format(packed))
+      return packed
+
+    else:
+      raise ValueError("Currently only supoort pack_reduce on axis =1 (but received {})".format(axis))
+  def pack_sequence_lengths(self, sequence_lengths):
+    return tf.concat([tf.expand_dims(x, axis=-1) for x in sequence_lengths], axis=-1)
 
 class JoinReducer(Reducer):
   """A reducer that joins its inputs in a single tuple."""

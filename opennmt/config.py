@@ -87,7 +87,7 @@ def load_model(model_dir, model_file=None, model_name=None, serialize_model=True
   elif not tf.gfile.Exists(serial_model_file):
     raise RuntimeError("A model configuration is required.")
   else:
-    tf.logging.info("Loading serialized model description from %s", serial_model_file)
+    tf.logging.info("Loading serialized model description from {}".format(serial_model_file))
     with tf.gfile.Open(serial_model_file, mode="rb") as serial_model:
       model = pickle.load(serial_model)
 
@@ -105,7 +105,7 @@ def load_config(config_paths, config=None):
   """
   if config is None:
     config = {}
-
+  tf.logging.info("Loading configuration files:\nconfig_path = {}\nconfig = {}".format(config_paths, config))
   for config_path in config_paths:
     with tf.gfile.Open(config_path, mode="rb") as config_file:
       subconfig = yaml.load(config_file.read())

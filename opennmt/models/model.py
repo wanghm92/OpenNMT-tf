@@ -15,7 +15,7 @@ from opennmt.utils.misc import add_dict_to_collection, item_or_tuple
 from opennmt.utils.parallel import GraphDispatcher
 
 pp = pprint.PrettyPrinter(indent=4)
-
+log_separator = "\nINFO:tensorflow:{}\n".format("*"*50)
 @six.add_metaclass(abc.ABCMeta)
 class Model(object):
   """Base class for models."""
@@ -69,7 +69,7 @@ class Model(object):
       tf.logging.info(" >> [model.py model_fn _loss_op] <TRAIN> Building Graph ... ")
       logits, _ = self._build(features, labels, params, mode, config=config) # logits, predictions
       tf.logging.info(" >> [model.py model_fn _loss_op] <TRAIN> Computing loss ... ... ")
-      return self._compute_loss(features, labels, logits, params, mode)
+      return self._compute_loss(features, labels, logits, params, mode), logits
 
     def _normalize_loss(num, den=None):
       """Normalizes the loss."""
@@ -86,13 +86,33 @@ class Model(object):
 
     def _extract_loss(loss):
       """Extracts and summarizes the loss."""
-      tf.logging.info(" >> [model.py model_fn _extract_loss] Extracts and summarizes the loss ...")
+      tf.logging.info(" >> [model.py model_fn _extract_loss] loss = {}".format(loss))
+
+      def _normalize_loss_meta(loss):
+          actual_loss = _normalize_loss(loss[0], den=loss[1])
+          tboard_loss = _normalize_loss(loss[0], den=loss[2]) if len(loss) > 2 else actual_loss
+          return actual_loss, tboard_loss
+
       if not isinstance(loss, tuple):
         actual_loss = _normalize_loss(loss)
         tboard_loss = actual_loss
       else:
-        actual_loss = _normalize_loss(loss[0], den=loss[1])
-        tboard_loss = _normalize_loss(loss[0], den=loss[2]) if len(loss) > 2 else actual_loss
+        if not isinstance(loss[0], list):
+          actual_loss, tboard_loss = _normalize_loss_meta(loss)
+        else:
+          master_loss, sub_loss = (loss[0][0], loss[1][0])
+          tf.logging.info(" >> [model.py model_fn _extract_loss] master_loss = {}".format(master_loss))
+          tf.logging.info(" >> [model.py model_fn _extract_loss] sub_loss = {}".format(sub_loss))
+
+          master_actual_loss, master_tboard_loss = _normalize_loss_meta(master_loss)
+          sub_actual_loss, sub_tboard_loss = _normalize_loss_meta(sub_loss)
+          tf.logging.info(" >> [model.py model_fn _extract_loss] master_actual_loss = {}".format(master_actual_loss))
+          tf.logging.info(" >> [model.py model_fn _extract_loss] master_tboard_loss = {}".format(master_tboard_loss))
+          tf.logging.info(" >> [model.py model_fn _extract_loss] sub_actual_loss = {}".format(sub_actual_loss))
+          tf.logging.info(" >> [model.py model_fn _extract_loss] sub_tboard_loss = {}".format(sub_tboard_loss))
+          actual_loss = tf.reduce_mean([master_actual_loss, sub_actual_loss])
+          tboard_loss = tf.reduce_mean([master_tboard_loss, sub_tboard_loss])
+
       tf.summary.scalar("loss", tboard_loss)
       return actual_loss
 
@@ -108,18 +128,27 @@ class Model(object):
                         such as num_ps_replicas, or model_dir
       :return: ops necessary to perform training, evaluation, or predictions.
       """
-      tf.logging.info(" >> [model.py model_fn _model_fn]")
+      tf.logging.info(log_separator+" >> [model.py model_fn _model_fn] \n---\nfeatures = {}\n---\nlabels = {}".format(features, labels))
       # ------------------ Train ----------------- #
       if mode == tf.estimator.ModeKeys.TRAIN:
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> _register_word_counters")
         self._register_word_counters(features, labels)
 
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> dispatching shards ... ")
         features_shards = dispatcher.shard(features)
-        labels_shards = dispatcher.shard(labels)
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> features_shards = \n{} ".format(features_shards))
+        if isinstance(labels, tuple):
+          labels_shards = tuple([dispatcher.shard(l) for l in labels])
+        else:
+          labels_shards = dispatcher.shard(labels)
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> labels_shards = \n{} ".format(labels_shards))
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Creating loss_ops ...")
         with tf.variable_scope(self.name, initializer=self._initializer(params), reuse=tf.AUTO_REUSE):
-          losses_shards = dispatcher(_loss_op, features_shards, labels_shards, params, mode, config)
+          losses_shards, logits_shards = dispatcher(_loss_op, features_shards, labels_shards, params, mode, config)
+
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> logits_shards = {}".format(logits_shards))
+        add_dict_to_collection("debug", {"logit_shape":tf.shape(logits_shards[0][0]), "logit_sub_shape":tf.shape(logits_shards[0][1])})
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Extracts and summarizes the loss ...")
         loss = _extract_loss(losses_shards)
@@ -143,6 +172,8 @@ class Model(object):
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
           logits, predictions = self._build(features, labels, params, mode, config=config)
 
+          # TODO: modify for eval
+
           tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing loss ...")
           loss = self._compute_loss(features, labels, logits, params, mode)
 
@@ -164,6 +195,9 @@ class Model(object):
       # ------------------ Pred ----------------- #
       elif mode == tf.estimator.ModeKeys.PREDICT:
         tf.logging.info(" >> [model.py model_fn _model_fn] <PREDICT> Building Graph ...")
+
+        # TODO: modify for pred
+
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
           _, predictions = self._build(features, labels, params, mode, config=config)
 
@@ -259,15 +293,14 @@ class Model(object):
     """Runs model specific initialization (e.g. vocabularies loading).
 
     Args:
-      metadata: A dictionary containing additional metadata set
-        by the user.
+      metadata: A dictionary containing additional metadata set by the user.
     """
     tf.logging.info(" >> [model.py _initialize] Initializing with metadata ... ")
     if self.features_inputter is not None:
-      tf.logging.info(" >> [model.py _initialize] self.features_inputter.initialize(metadata) --- features_inputter %s"%self.features_inputter)
+      tf.logging.info(" >> [model.py _initialize] self.features_inputter.initialize(metadata) --- features_inputter = {}".format(self.features_inputter))
       self.features_inputter.initialize(metadata)
     if self.labels_inputter is not None:
-      tf.logging.info(" >> [model.py _initialize] self.labels_inputter.initialize(metadata) --- labels_inputter %s"%self.labels_inputter)
+      tf.logging.info(" >> [model.py _initialize] self.labels_inputter.initialize(metadata) --- labels_inputter = {}".format(self.labels_inputter))
       self.labels_inputter.initialize(metadata)
 
   def _get_serving_input_receiver(self):
@@ -290,7 +323,7 @@ class Model(object):
       The length as a ``tf.Tensor`` or list of ``tf.Tensor``, or ``None`` if
       length is undefined.
     """
-    tf.logging.info(" >> [model.py _get_features_length]")
+    tf.logging.info(" >> [model.py _get_features_length] features = {}".format(features))
     if self.features_inputter is None:
       return None
     return self.features_inputter.get_length(features)
@@ -304,6 +337,7 @@ class Model(object):
     Returns:
       The length as a ``tf.Tensor``  or ``None`` if length is undefined.
     """
+    tf.logging.info(" >> [model.py _get_labels_length] labels = {}".format(labels))
     if self.labels_inputter is None:
       return None
     return self.labels_inputter.get_length(labels)
@@ -335,6 +369,7 @@ class Model(object):
     tf.logging.info(" >> [model.py _get_features_builder] self.features_inputter.make_dataset(features_file)")
     dataset = self.features_inputter.make_dataset(features_file)
     process_fn = self.features_inputter.process
+    tf.logging.info(" >> [model.py _get_features_builder] process_fn = {}".format(process_fn))
     return dataset, process_fn
 
   def _get_labels_builder(self, labels_file):
@@ -351,6 +386,7 @@ class Model(object):
     tf.logging.info(" >> [model.py _get_labels_builder] self.labels_inputter.make_dataset(labels_file)")
     dataset = self.labels_inputter.make_dataset(labels_file)
     process_fn = self.labels_inputter.process
+    tf.logging.info(" >> [model.py _get_labels_builder] process_fn = {}".format(process_fn))
     return dataset, process_fn
 
   def _input_fn_impl(self,
@@ -368,47 +404,58 @@ class Model(object):
                      prefetch_buffer_size=None,
                      maximum_features_length=None,
                      maximum_labels_length=None):
-    tf.logging.info(" >> [model.py _input_fn_impl] Building input_fn ... ")
+    tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building input_fn ... ")
     tf.logging.info(" >> [model.py _input_fn_impl] Metadata: ")
     pp.pprint(metadata)
     tf.logging.info(" >> [model.py _input_fn_impl] self._initialize ... ")
     self._initialize(metadata)
 
     # features_file: self._config["data"]["train_features_file"]
-    tf.logging.info(" >> [model.py _input_fn_impl] Building features ... ")
+    tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building features ... ")
+    tf.logging.info(" >> [model.py _input_fn_impl] features_file = {}".format(features_file))
     feat_dataset, feat_process_fn = self._get_features_builder(features_file)
+    tf.logging.info(" >> [model.py _input_fn_impl] feat_dataset = {} ".format(feat_dataset))
 
     if labels_file is None:
       dataset = feat_dataset
       # Parallel inputs must be caught in a single tuple and not considered as multiple arguments.
       process_fn = lambda *arg: feat_process_fn(item_or_tuple(arg))
     else:
-      tf.logging.info(" >> [model.py _input_fn_impl] Building labels ... ")
+      tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building labels ... ")
       labels_dataset, labels_process_fn = self._get_labels_builder(labels_file)
+      tf.logging.info(" >> [model.py _input_fn_impl] labels_dataset = {} ".format(labels_dataset))
 
+      tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building pipelines ... ")
       dataset = tf.data.Dataset.zip((feat_dataset, labels_dataset))
-      process_fn = lambda features, labels: (
-          feat_process_fn(features), labels_process_fn(labels))
 
-    tf.logging.info(" >> [model.py _input_fn_impl] Building dataset ... ")
+      tf.logging.info(" >> [model.py _input_fn_impl] dataset = {} ".format(dataset))
+      tf.logging.info(" >> [model.py _input_fn_impl] feat_process_fn = {} ".format(feat_process_fn))
+      tf.logging.info(" >> [model.py _input_fn_impl] labels_process_fn = {} ".format(labels_process_fn))
+
+      process_fn = lambda features, labels: (feat_process_fn(features), labels_process_fn(labels))
+
+      tf.logging.info(" >> [model.py _input_fn_impl] maximum_labels_length = {} ".format(maximum_labels_length))
+
     if mode == tf.estimator.ModeKeys.TRAIN:
+      tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building training_pipeline ... ")
       dataset = data.training_pipeline(
-          dataset,
-          batch_size,
-          batch_type=batch_type,
-          batch_multiplier=batch_multiplier,
-          bucket_width=bucket_width,
-          single_pass=single_pass,
-          process_fn=process_fn,
-          num_threads=num_threads,
-          shuffle_buffer_size=sample_buffer_size,
-          prefetch_buffer_size=prefetch_buffer_size,
-          dataset_size=self._get_dataset_size(features_file),
-          maximum_features_length=maximum_features_length,
-          maximum_labels_length=maximum_labels_length,
-          features_length_fn=self._get_features_length,
-          labels_length_fn=self._get_labels_length)
+        dataset,
+        batch_size,
+        batch_type=batch_type,
+        batch_multiplier=batch_multiplier,
+        bucket_width=bucket_width,
+        single_pass=single_pass,
+        process_fn=process_fn,
+        num_threads=num_threads,
+        shuffle_buffer_size=sample_buffer_size,
+        prefetch_buffer_size=prefetch_buffer_size,
+        dataset_size=self._get_dataset_size(features_file),
+        maximum_features_length=maximum_features_length,
+        maximum_labels_length=maximum_labels_length,
+        features_length_fn=self._get_features_length,
+        labels_length_fn=self._get_labels_length)
     else:
+      tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building inference_pipeline ... ")
       dataset = data.inference_pipeline(
           dataset,
           batch_size,
@@ -470,20 +517,21 @@ class Model(object):
       ``tf.estimator.Estimator``.
     """
     '''
-        tf.estimator.ModeKeys.TRAIN,
-        self._config["train"]["batch_size"],
-        self._config["data"], #metadata
-        self._config["data"]["train_features_file"],
-        labels_file=self._config["data"]["train_labels_file"],
-        batch_type=self._config["train"].get("batch_type", "examples"),
-        batch_multiplier=self._num_devices,
-        bucket_width=self._config["train"].get("bucket_width", 5),
-        single_pass=self._config["train"].get("single_pass", False),
-        num_threads=self._config["train"].get("num_threads"),
-        sample_buffer_size=self._config["train"].get("sample_buffer_size", 500000),
-        prefetch_buffer_size=self._config["train"].get("prefetch_buffer_size"),
-        maximum_features_length=self._config["train"].get("maximum_features_length"),
-        maximum_labels_length=self._config["train"].get("maximum_labels_length")),
+    Args:
+      mode                   : tf.estimator.ModeKeys.TRAIN,
+      batch_size             : self._config["train"]["batch_size"],
+      metadata               : self._config["data"], #metadata
+      features_file          : self._config["data"]["train_features_file"],
+      labels_file            : self._config["data"]["train_labels_file"],
+      batch_type             : self._config["train"].get("batch_type", "examples"),
+      batch_multiplier       : self._num_devices,
+      bucket_width           : self._config["train"].get("bucket_width", 5),
+      single_pass            : self._config["train"].get("single_pass", False),
+      num_threads            : self._config["train"].get("num_threads"),
+      sample_buffer_size     : self._config["train"].get("sample_buffer_size", 500000),
+      prefetch_buffer_size   : self._config["train"].get("prefetch_buffer_size"),
+      maximum_features_length: self._config["train"].get("maximum_features_length"),
+      maximum_labels_length  : self._config["train"].get("maximum_labels_length")),
     '''
 
     if mode != tf.estimator.ModeKeys.PREDICT and labels_file is None:

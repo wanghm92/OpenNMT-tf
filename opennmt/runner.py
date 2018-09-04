@@ -106,7 +106,7 @@ class Runner(object):
             keys are names of parameters, values are basic python types
     '''
 
-    # TODO: model_fn
+    # TODO: come back here
     self._estimator = tf.estimator.Estimator(
         self._model.model_fn(num_devices=self._num_devices),
         config=run_config,
@@ -115,7 +115,7 @@ class Runner(object):
   def _build_train_spec(self):
     """
     :return: Configuration for the "train" part for the train_and_evaluate call
-    tf.estimator.TrainSpec: input data for the training, as well as the duration
+                tf.estimator.TrainSpec: input data for the training, as well as the duration
     """
     tf.logging.info(" >> [runner.py _build_train_spec] Building train_spec ...")
 
@@ -128,7 +128,6 @@ class Runner(object):
     '''
     input_fn: A function that provides input data for training as minibatches.
     '''
-    # TODO: input_fn
     tf.logging.info(" >> [runner.py _build_train_spec] Creating model.input_fn ...")
     train_spec = tf.estimator.TrainSpec(
         input_fn=self._model.input_fn(
@@ -170,7 +169,6 @@ class Runner(object):
               self._config["data"]["eval_labels_file"],
               output_dir=self._estimator.model_dir)))
 
-    # TODO: input_fn
     eval_spec = tf.estimator.EvalSpec(
         input_fn=self._model.input_fn(
             tf.estimator.ModeKeys.EVAL,
@@ -206,7 +204,7 @@ class Runner(object):
     self._maybe_average_checkpoints()
 
   def train(self):
-    """Runs the training loop. Trains a model given training data input_fn"""
+    """Runs the training loop. Trains a model given training data from input_fn"""
     tf.logging.info(">> [runner.py train] Runs the training loop. Trains a model given training data input_fn")
     train_spec = self._build_train_spec()
     self._estimator.train(train_spec.input_fn, hooks=train_spec.hooks, max_steps=train_spec.max_steps)

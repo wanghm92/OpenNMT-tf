@@ -6,6 +6,7 @@ import io
 import os
 import shutil
 import six
+import sys
 
 import numpy as np
 import tensorflow as tf
@@ -35,7 +36,7 @@ def visualize_embeddings(log_dir, embedding_var, vocabulary_file, num_oov_bucket
     vocabulary_file: The associated vocabulary file.
     num_oov_buckets: The number of additional unknown tokens.
   """
-  tf.logging.info(" >>>> [text_inputter.py visualize_embeddings] embedding_var.name = %s"%embedding_var.name)
+  tf.logging.info(" >>>> [text_inputter.py visualize_embeddings] embedding_var.name = {}".format(embedding_var.name))
 
   # Copy vocabulary file to log_dir.
   basename = os.path.basename(vocabulary_file)
@@ -227,11 +228,11 @@ class TextInputter(Inputter):
     self.tokenizer = tokenizer
 
   def get_length(self, data):
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter] get_length: return data[\"length\"]")
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter get_length] return data[\"length\"]")
     return data["length"]
 
   def make_dataset(self, data_file):
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter] make_dataset: return tf.data.TextLineDataset(data_file)")
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter make_dataset] return tf.data.TextLineDataset(data_file)")
     '''
     A Dataset comprising lines from one or more text files
     '''
@@ -241,14 +242,14 @@ class TextInputter(Inputter):
     return count_lines(data_file)
 
   def initialize(self, metadata):
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter initialize]")
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter initialize] self.tokenizer.initialize(metadata)")
     self.tokenizer.initialize(metadata)
 
   def _process(self, data):
     """Tokenizes raw text."""
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] Tokenizes raw text (default: split by space)")
-
     data = super(TextInputter, self)._process(data)
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] BEFORE: data = {}".format(data))
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] Tokenizes raw text (default: split by space) set_data_field(\"tokens\", \"length\")")
     if "tokens" not in data:
       text = data["raw"]
       tokens = self.tokenizer.tokenize(text)
@@ -256,7 +257,7 @@ class TextInputter(Inputter):
 
       data = self.set_data_field(data, "tokens", tokens)
       data = self.set_data_field(data, "length", length)
-
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] AFTER: data = {}".format(data))
     return data
 
   @abc.abstractmethod
@@ -271,6 +272,8 @@ class TextInputter(Inputter):
   def transform(self, inputs, mode):
     raise NotImplementedError()
 
+  def get_vocab_size(self):
+    return self.vocabulary_size
 
 class WordEmbedder(TextInputter):
   """Simple word embedder."""
@@ -334,7 +337,12 @@ class WordEmbedder(TextInputter):
 
     self.vocabulary_size = count_lines(self.vocabulary_file) + self.num_oov_buckets
     tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder initialize] Building lookup table from vocab")
-    # Returns a lookup table that converts a string tensor into int64 IDs
+    '''
+    Returns a lookup table that converts a string tensor into int64 IDs
+    The mapping can be initialized from a vocabulary file specified in vocabulary_file, 
+        where the whole line is the key and the zero-based line number is the ID.
+    Any lookup of an OOV token will return a bucket ID based on its hash if num_oov_buckets > 0
+    '''
     self.vocabulary = tf.contrib.lookup.index_table_from_file(
         self.vocabulary_file,
         vocab_size=self.vocabulary_size - self.num_oov_buckets,
@@ -358,11 +366,11 @@ class WordEmbedder(TextInputter):
 
     if "ids" not in data:
       tokens = data["tokens"]
-      tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] ids = self.vocabulary.lookup(tokens)")
+      tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] self.vocabulary = {}".format(self.vocabulary))
       ids = self.vocabulary.lookup(tokens)
-
+      tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] ids = {}".format(ids))
       data = self.set_data_field(data, "ids", ids)
-
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] data = {}".format(data))
     return data
 
   def visualize(self, log_dir):
@@ -380,12 +388,11 @@ class WordEmbedder(TextInputter):
     return self.transform(data["ids"], mode)
 
   def transform(self, inputs, mode):
-    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform]")
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] inputs = {}".format(inputs))
     try:
       embeddings = tf.get_variable("w_embs", dtype=self.dtype, trainable=self.trainable)
       tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] embeddings reused")
     except ValueError:
-      # Variable does not exist yet.
       tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] embeddings does not exist yet")
       if self.embedding_file:
         tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] loading pretrained embedding from %s"%self.embedding_file)

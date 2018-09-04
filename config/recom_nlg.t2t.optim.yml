@@ -33,3 +33,4 @@ eval:
 
 infer:
   batch_size: 32
+  n_best: 4

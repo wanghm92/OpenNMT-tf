@@ -4,6 +4,8 @@ import tensorflow as tf
 import numpy as np
 import sys
 
+log_separator = "\nINFO:tensorflow:{}\n".format("*"*50)
+
 def get_padded_shapes(dataset):
   """Returns the padded shapes for ``tf.data.Dataset.padded_batch``.
 
@@ -76,29 +78,39 @@ def filter_examples_by_length(maximum_features_length=None,
 
   def _length_constraints(length, maximum_length):
     # Work with lists of lengths which correspond to the general multi source case.
+    tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _length_constraints] BEFORE length = {}".format(length))
+    tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _length_constraints] BEFORE maximum_length = {}".format(maximum_length))
     if not isinstance(length, list):
       length = [length]
     if not isinstance(maximum_length, list):
       maximum_length = [maximum_length]
     # Unset maximum lengths are set to None (i.e. no constraint).
     maximum_length += [None] * (len(length) - len(maximum_length))
+    tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _length_constraints] AFTER length = {}".format(length))
+    tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _length_constraints] AFTER maximum_length = {}".format(maximum_length))
     constraints = []
     for l, maxlen in zip(length, maximum_length):
       constraints.append(tf.greater(l, 0))
       if maxlen is not None:
         constraints.append(tf.less_equal(l, maxlen))
+    tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _length_constraints] constraints = {}".format(constraints))
     return constraints
 
   def _predicate(features, labels):
     cond = []
     features_length = features_length_fn(features) if features_length_fn is not None else None
+    tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _predicate] features_length = {}".format(features_length))
     labels_length = labels_length_fn(labels) if labels_length_fn is not None else None
+    tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _predicate] labels_length = {}".format(labels_length))
     if features_length is not None:
       cond.extend(_length_constraints(features_length, maximum_features_length))
     if labels_length is not None:
       cond.extend(_length_constraints(labels_length, maximum_labels_length))
     # "logical and" of elements across dimensions of a tensor
-    return tf.reduce_all(cond)
+    tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _predicate] cond = {}".format(cond))
+    final_cond = tf.reduce_all(cond)
+    tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _predicate] final_cond = {}".format(final_cond))
+    return final_cond
 
   return lambda dataset: dataset.filter(_predicate)
 
@@ -174,15 +186,22 @@ def batch_parallel_dataset(batch_size,
 
   def _key_func(features, labels):
     features_length = features_length_fn(features) if features_length_fn is not None else None
-    labels_length = labels_length_fn(labels) if labels_length_fn is not None else None
     # For multi inputs, apply bucketing on the target side or none at all.
     if isinstance(features_length, list):
       features_length = None
+
+    labels_length = labels_length_fn(labels) if labels_length_fn is not None else None
+    if isinstance(labels_length, list):
+      labels_length = [x for x in labels_length if not isinstance(x, list)]
+    else:
+      labels_length = [labels_length]
+
     bucket_id = tf.constant(0, dtype=tf.int32)
     if features_length is not None:
       bucket_id = tf.maximum(bucket_id, features_length // bucket_width)
-    if labels_length is not None:
-      bucket_id = tf.maximum(bucket_id, labels_length // bucket_width)
+    for i in labels_length:
+      if labels_length is not None:
+        bucket_id = tf.maximum(bucket_id, i // bucket_width)
     return tf.to_int64(bucket_id)
 
   def _reduce_func(unused_key, dataset):
@@ -256,7 +275,8 @@ def training_pipeline(dataset,
   Returns:
     A ``tf.data.Dataset``.
   """
-  tf.logging.info(" >>>> [utils/data.py training_pipeline] ")
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] dataset = tf.data.Dataset.zip((feat_dataset, labels_dataset)) from runner")
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] dataset = {}".format(dataset))
   # shuffle_buffer_size = sample_buffer_size
   if shuffle_buffer_size is not None and shuffle_buffer_size != 0:
     if dataset_size is not None:
@@ -270,16 +290,20 @@ def training_pipeline(dataset,
         dataset = dataset.apply(random_shard(shuffle_buffer_size, dataset_size))
     tf.logging.info(" >>>> [utils/data.py training_pipeline] Shuffling dataset ...")
     dataset = dataset.shuffle(shuffle_buffer_size)
+
   if process_fn is not None:
-    tf.logging.info(" >>>> [utils/data.py training_pipeline] Applying process_fn ...")
+    tf.logging.info(log_separator+" >>>> [utils/data.py training_pipeline] Applying process_fn {} ...".format(process_fn))
     dataset = dataset.map(process_fn, num_parallel_calls=num_threads or 4)
-  tf.logging.info(" >>>> [utils/data.py training_pipeline] filter_examples_by_length ...")
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] dataset = {}".format(dataset))
+
+  tf.logging.info(log_separator+" >>>> [utils/data.py training_pipeline] filter_examples_by_length ...")
   dataset = dataset.apply(filter_examples_by_length(
       maximum_features_length=maximum_features_length,
       maximum_labels_length=maximum_labels_length,
       features_length_fn=features_length_fn,
       labels_length_fn=labels_length_fn))
-  tf.logging.info(" >>>> [utils/data.py training_pipeline] batch_parallel_dataset ...")
+
+  tf.logging.info("log_separator+>>>> [utils/data.py training_pipeline] batch_parallel_dataset ...")
   dataset = dataset.apply(batch_parallel_dataset(
       batch_size,
       batch_type=batch_type,
@@ -287,12 +311,16 @@ def training_pipeline(dataset,
       bucket_width=bucket_width,
       features_length_fn=features_length_fn,
       labels_length_fn=labels_length_fn))
-  tf.logging.info(" >>>> [utils/data.py training_pipeline] filter_irregular_batches ...")
+
+  tf.logging.info("log_separator+>>>> [utils/data.py training_pipeline] filter_irregular_batches ...")
   dataset = dataset.apply(filter_irregular_batches(batch_multiplier))
   if not single_pass:
     dataset = dataset.repeat()
+
   tf.logging.info(" >>>> [utils/data.py training_pipeline] prefetch_element ...")
   dataset = dataset.apply(prefetch_element(buffer_size=prefetch_buffer_size))
+  tf.logging.info(" >>>> [utils/data.py training_pipeline] training pipeline successfully built !!!")
+
   return dataset
 
 def inference_pipeline(dataset,

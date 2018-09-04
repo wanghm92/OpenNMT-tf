@@ -51,6 +51,7 @@ class RNNDecoder(Decoder):
 
   '''
     Default _build_cell() here for decoder does not pass the memory to cell.build_cell()
+    initial_state is initialized using self.bridge() 
   '''
   def _build_cell(self,
                   mode,
@@ -93,6 +94,16 @@ class RNNDecoder(Decoder):
     """
     Decodes a full input sequence.
     Usually used for training and evaluation where target sequences are known.
+    Args:
+      inputs = target_inputs,
+      sequence_length = self._get_labels_length(labels),
+      vocab_size=target_vocab_size,
+      initial_state=encoder_state,
+      sampling_probability=sampling_probability,
+      embedding=target_embedding_fn,
+      mode=mode,
+      memory=encoder_outputs,
+      memory_sequence_length=encoder_sequence_length)
     Returns:
       A tuple ``(outputs, state, sequence_length)``.
     """
@@ -175,7 +186,7 @@ class RNNDecoder(Decoder):
     inputs_len = tf.shape(inputs)[1]
     logits = align_in_time(logits, inputs_len)
 
-    return (logits, state, length)
+    return (logits, outputs.rnn_output, state, length)
 
   def dynamic_decode(self,
                      embedding,
@@ -192,7 +203,19 @@ class RNNDecoder(Decoder):
                      return_alignment_history=False):
     """Decodes dynamically from :obj:`start_tokens` with greedy search.
 
-    Usually used for inference. (decode use TrainingHelpers)
+    Usually used for inference. (decode() uses TrainingHelpers)
+    Args:
+      embedding=target_embedding_fn,
+      start_tokens=start_tokens,
+      end_token=end_token,
+      vocab_size=target_vocab_size,
+      initial_state=encoder_state,
+      maximum_iterations=maximum_iterations,
+      mode=mode,
+      memory=encoder_outputs,
+      memory_sequence_length=encoder_sequence_length,
+      dtype=target_dtype,
+      return_alignment_history=True)
     Returns:
       A tuple ``(predicted_ids, state, sequence_length, log_probs)`` or
       ``(predicted_ids, state, sequence_length, log_probs, alignment_history)``
@@ -260,6 +283,20 @@ class RNNDecoder(Decoder):
     """Decodes dynamically from :obj:`start_tokens` with beam search.
 
     Usually used for inference.
+    Args:
+      embedding=target_embedding_fn,
+      start_tokens=start_tokens,
+      end_token=end_token,
+      vocab_size=target_vocab_size,
+      initial_state=encoder_state,
+      beam_width=beam_width,
+      length_penalty=length_penalty,
+      maximum_iterations=maximum_iterations,
+      mode=mode,
+      memory=encoder_outputs,
+      memory_sequence_length=encoder_sequence_length,
+      dtype=target_dtype,
+      return_alignment_history=True))
     Returns:
       A tuple ``(predicted_ids, state, sequence_length, log_probs)`` or
       ``(predicted_ids, state, sequence_length, log_probs, alignment_history)``
@@ -427,6 +464,7 @@ class AttentionalRNNDecoder(RNNDecoder):
         batch_size,
         initial_state=initial_state,
         dtype=memory.dtype)
+    tf.logging.info(" >> [rnn_decoder.py class AttentionalRNNDecoder _build_cell] initial_cell_state (bridged) = {}".format(initial_cell_state))
 
     cell = tf.contrib.seq2seq.AttentionWrapper(
         cell,

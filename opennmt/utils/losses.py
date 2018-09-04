@@ -48,8 +48,12 @@ def cross_entropy_sequence_loss(logits,
   Returns:
     A tuple (cumulated loss, loss normalizer, token-level normalizer).
   """
+  tf.logging.info(" >> [losses.py cross_entropy_sequence_loss] logits = {}".format(logits))
+  tf.logging.info(" >> [losses.py cross_entropy_sequence_loss] labels = {}".format(labels))
+  tf.logging.info(" >> [losses.py cross_entropy_sequence_loss] sequence_length = {}".format(sequence_length))
+
   batch_size = tf.shape(logits)[0]
-  max_time = tf.shape(logits)[1]
+  max_time = tf.shape(logits)[-2]
 
   cross_entropy = _softmax_cross_entropy(logits, labels, label_smoothing, mode)
   weights = tf.sequence_mask(
