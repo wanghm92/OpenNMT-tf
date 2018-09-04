@@ -5,11 +5,11 @@ from __future__ import print_function
 import io
 import time
 import six
-
+import pprint
 import tensorflow as tf
 
 from opennmt.utils import misc
-
+pp = pprint.PrettyPrinter(indent=4)
 
 class LogParametersCountHook(tf.train.SessionRunHook):
   """Simple hook that logs the number of trainable parameters."""
@@ -52,7 +52,7 @@ class CountersHook(tf.train.SessionRunHook):
   """
   '''
   The run_values argument contains results of requested ops/tensors by before_run().
-  The run_context argument is the same one send to before_run call. run_context.request_stop() can be called to stop the iteration.
+  The run_context argument is 
   '''
   def __init__(self,
                every_n_steps=100,
@@ -81,16 +81,49 @@ class CountersHook(tf.train.SessionRunHook):
     if self._global_step is None:
       raise RuntimeError("Global step should be created to use WordCounterHook.")
 
+    self._debug_ops = misc.get_dict_from_collection("debug")
+
   def before_run(self, run_context):  # pylint: disable=unused-argument
+    '''
+    Called before each call to run().
+    You can return from this call a SessionRunArgs object indicating ops or tensors to add to the upcoming run() call.
+    These ops/tensors will be run together with the ops/tensors originally passed to the original run() call.
+    The run args you return can also contain feeds to be added to the run() call.
+    SessionRunArgs Represents arguments to be added to a Session.run() call
+      fetches: Exactly like the 'fetches' argument to Session.Run().
+        Can be a single tensor or op, a list of 'fetches' or a dictionary of fetches.
+          For example: fetches = global_step_tensor
+                       fetches = [train_op, summary_op, global_step_tensor]
+                       fetches = {'step': global_step_tensor, 'summ': summary_op}
+                       fetches = {'step': global_step_tensor, 'ops': [train_op, check_nan_op]}
+      feed_dict: Exactly like the feed_dict argument to Session.Run()
+      options: Exactly like the options argument to Session.run(), i.e., a config_pb2.RunOptions proto.
+
+    The run_context argument is a SessionRunContext that provides information about the upcoming run() call:
+        the originally requested op/tensors, the TensorFlow Session.
+
+    At this point graph is finalized and you can not add ops.
+    '''
     if not self._counters:
       return None
-    return tf.train.SessionRunArgs([self._counters, self._global_step])
+    return tf.train.SessionRunArgs([self._counters, self._global_step, self._debug_ops])
 
   def after_run(self, run_context, run_values):  # pylint: disable=unused-argument
+    '''
+    Called after each call to run().
+    If session.run() raises any exceptions then after_run() is not called.
+    :param run_context: the same one send to before_run call. run_context.request_stop() can be called to stop the iteration.
+    :param run_values: results of requested ops/tensors by before_run()
+    '''
+
     if not self._counters:
       return
 
-    counters, step = run_values.results
+    counters, step, debug_ops = run_values.results
+
+    # tf.logging.info(" ********** [hooks.py class CountersHook after_run] debug_ops :")
+    # pp.pprint(debug_ops)
+    
     if self._timer.should_trigger_for_step(step):
       elapsed_time, _ = self._timer.update_last_triggered_step(step)
       if elapsed_time is not None:
@@ -154,6 +187,14 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
     self._post_evaluation_fn = post_evaluation_fn
 
   def begin(self):
+    '''
+    Called once before using the session.
+      When called, the default graph is the one that will be launched in the session.
+      The hook can modify the graph by adding new operations to it.
+      After the begin() call the graph will be finalized
+      and the other callbacks can not modify the graph anymore.
+      Second call of begin() on the same graph, should not change the graph.
+    '''
     self._predictions = misc.get_dict_from_collection("predictions")
     if not self._predictions:
       raise RuntimeError("The model did not define any predictions.")

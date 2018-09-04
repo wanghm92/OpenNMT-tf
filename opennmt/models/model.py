@@ -69,7 +69,7 @@ class Model(object):
       tf.logging.info(" >> [model.py model_fn _loss_op] <TRAIN> Building Graph ... ")
       logits, _ = self._build(features, labels, params, mode, config=config) # logits, predictions
       tf.logging.info(" >> [model.py model_fn _loss_op] <TRAIN> Computing loss ... ... ")
-      return self._compute_loss(features, labels, logits, params, mode)
+      return self._compute_loss(features, labels, logits, params, mode), logits
 
     def _normalize_loss(num, den=None):
       """Normalizes the loss."""
@@ -145,7 +145,10 @@ class Model(object):
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Creating loss_ops ...")
         with tf.variable_scope(self.name, initializer=self._initializer(params), reuse=tf.AUTO_REUSE):
-          losses_shards = dispatcher(_loss_op, features_shards, labels_shards, params, mode, config)
+          losses_shards, logits_shards = dispatcher(_loss_op, features_shards, labels_shards, params, mode, config)
+
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> logits_shards = {}".format(logits_shards))
+        add_dict_to_collection("debug", {"logit_shape":tf.shape(logits_shards[0][0]), "logit_sub_shape":tf.shape(logits_shards[0][1])})
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Extracts and summarizes the loss ...")
         loss = _extract_loss(losses_shards)

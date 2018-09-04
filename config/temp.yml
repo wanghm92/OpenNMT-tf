@@ -33,9 +33,9 @@ data:
   words_embedding: ../recom_nlg/temp/emb.vec
 
 train:
-  save_checkpoints_steps: 1
-  save_summary_steps: 1
-  train_steps: 1
+  save_checkpoints_steps: 2
+  save_summary_steps: 2
+  train_steps: 10
 
 eval:
   # (optional) Evaluate every this many seconds (default: 18000).
