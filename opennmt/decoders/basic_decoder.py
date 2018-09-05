@@ -137,7 +137,7 @@ class BasicDecoder(TfContribSeq2seqDecoder):
       `(outputs, next_state, next_inputs, finished)`.
     """
     tf.logging.info(" >> [basic_decoder.py BasicDecoder step] inputs = {}".format(inputs))
-    tf.logging.info(">> [basic_decoder.py BasicDecoder step]\n state = {}\n".format(state))
+    tf.logging.info(">> [basic_decoder.py BasicDecoder step]\n state = {}".format(state))
     with ops.name_scope(name, "BasicDecoderStep", (time, inputs, state)):
       cell_outputs, cell_state = self._cell(inputs, state)
       if self._output_layer is not None:
@@ -152,6 +152,9 @@ class BasicDecoder(TfContribSeq2seqDecoder):
     outputs = BasicDecoderOutput(cell_outputs, sample_ids)
     return outputs, next_state, next_inputs, finished
 
+  def finalize(self, outputs, final_state, sequence_lengths, sequence_mask_sub):
+    raise NotImplementedError
+
 class BasicSubDecoder(BasicDecoder):
 
     def initialize(self, initial_state, master_time=None, name=None):
@@ -164,13 +167,14 @@ class BasicSubDecoder(BasicDecoder):
           `(finished, first_inputs, initial_state)`.
         """
         # TODO: initial_state from master decoder may need to be stored in a TensorArray
+        tf.logging.info(" >> [basic_decoder.py BasicDecoder initialize] master_time = {}".format(master_time))
+        tf.logging.info(" >> [basic_decoder.py BasicDecoder initialize] self._helper = {}".format(self._helper))
         self._initial_state = initial_state
-        if master_time is not None:
-            tf.logging.info(" >> [basic_decoder.py BasicDecoder initialize] master_time = {}".format(master_time))
-            return self._helper.initialize(master_time) + (self._initial_state,) # for HierarchicalTrainingHelper
-        else:
-            return self._helper.initialize() + (self._initial_state,) # for GreedyEmbeddingHelper
+        return self._helper.initialize(master_time) + (self._initial_state,)
 
     @property
     def sub_time(self):
-        return self._helper.sub_time
+        return self._helper.sub_time if hasattr(self._helper, 'sub_time') else None
+
+    def finalize(self, outputs, final_state, sequence_lengths):
+        raise NotImplementedError

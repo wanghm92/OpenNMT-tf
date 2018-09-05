@@ -39,13 +39,13 @@ data:
   words_embedding: ../recom_nlg/temp/emb.vec
 
 train:
-  save_checkpoints_steps: 2
-  save_summary_steps: 2
-  train_steps: 10
+  save_checkpoints_steps: 1
+  save_summary_steps: 1
+  train_steps: 2
 
 eval:
   # (optional) Evaluate every this many seconds (default: 18000).
-  eval_delay: 30
+  eval_delay: 10
 
 params:
   beam_width: 1

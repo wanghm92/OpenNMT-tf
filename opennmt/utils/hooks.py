@@ -119,8 +119,8 @@ class CountersHook(tf.train.SessionRunHook):
 
     if not self._counters:return
     counters, step, debug_ops = run_values.results
-    # tf.logging.info(" >> [hooks.py class CountersHook after_run] debug_ops :")
-    # pp.pprint(debug_ops)
+    tf.logging.info(" >> [hooks.py class CountersHook after_run] debug_ops :")
+    pp.pprint(debug_ops)
     if self._timer.should_trigger_for_step(step):
       elapsed_time, _ = self._timer.update_last_triggered_step(step)
       if elapsed_time is not None:

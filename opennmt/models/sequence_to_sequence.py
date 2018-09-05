@@ -163,6 +163,7 @@ class SequenceToSequence(Model):
           scope=target_input_scope)
 
       tf.logging.info(" >> [sequence_to_sequence.py _build] target_inputter = %s" % self.target_inputter)
+      tf.logging.info(" >> [sequence_to_sequence.py _build] labels = {}".format(labels))
       if labels is not None:
           target_inputs = _maybe_reuse_embedding_fn(
               lambda ids: self.target_inputter.transform_data(ids, mode=mode, log_dir=log_dir),

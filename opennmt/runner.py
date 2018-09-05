@@ -166,8 +166,10 @@ class Runner(object):
           os.path.join(save_path, "predictions.txt"),
           post_evaluation_fn=external_evaluation_fn(
               self._config["eval"].get("external_evaluators"),
-              self._config["data"]["eval_labels_file"],
+              self._config["data"]["eval_labels_file"][0],
               output_dir=self._estimator.model_dir)))
+
+    # TODO: change the eval_labels_file back
 
     eval_spec = tf.estimator.EvalSpec(
         input_fn=self._model.input_fn(

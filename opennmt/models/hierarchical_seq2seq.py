@@ -11,6 +11,7 @@ from opennmt.utils.misc import print_bytes
 from opennmt.decoders.decoder import get_sampling_probability
 from opennmt.utils.hooks import add_counter
 from opennmt.models.sequence_to_sequence import _maybe_reuse_embedding_fn, EmbeddingsSharingLevel, shift_target_sequence
+from opennmt.utils.misc import add_dict_to_collection
 
 log_separator = "\nINFO:tensorflow:{}\n".format("*"*50)
 
@@ -88,13 +89,12 @@ class HierarchicalSequenceToSequence(Model):
 
   def _build(self, features, labels, params, mode, config=None):
 
-      tf.logging.info(log_separator+" >> [hierarchical_seq2seq.py _build] mode = <{}>".format(mode))
+      tf.logging.info(log_separator+" >> [hierarchical_seq2seq.py _build] mode = {}".format(mode))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] features = \n{}".format(features))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] labels = \n{}".format(labels))
 
-      # This is pretty ugly
-      labels = (labels[0][0], labels[1][0])
-      master_labels, sub_labels = labels
+      if mode == tf.estimator.ModeKeys.TRAIN:
+          labels = (labels[0][0], labels[1][0])
 
       features_length = self._get_features_length(features)
       log_dir = config.model_dir if config is not None else None
@@ -133,7 +133,9 @@ class HierarchicalSequenceToSequence(Model):
 
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_embedding_fn = {}".format(target_embedding_fn))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_inputter = {}".format(self.target_inputter))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] labels = {}".format(labels))
       if labels is not None:
+          master_labels, sub_labels = labels
           target_inputs = _maybe_reuse_embedding_fn(
               lambda ids: self.target_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
               scope=target_input_scope)(master_labels)
@@ -154,7 +156,7 @@ class HierarchicalSequenceToSequence(Model):
                       schedule_type=params.get("scheduled_sampling_type"),
                       k=params.get("scheduled_sampling_k"))
 
-              logits, logits_sub, state, length = self.decoder.decode(
+              logits, logits_sub, state, length, sequence_mask_sub = self.decoder.decode(
                   (target_inputs, sub_target_inputs),
                   self._get_labels_length(labels, to_reduce=True),
                   vocab_size_master=master_target_vocab_size,
@@ -169,11 +171,12 @@ class HierarchicalSequenceToSequence(Model):
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] logits_sub = {}".format(logits_sub))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] state = {}".format(state))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] length = {}".format(length))
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] sequence_mask_sub = {}".format(sequence_mask_sub))
+          add_dict_to_collection("debug", {"logits_sub": tf.shape(logits_sub)})
       else:
           logits = None
           logits_sub = None
-
-      # TODO: now inference time !!!
+          sequence_mask_sub = None
 
       if mode != tf.estimator.ModeKeys.TRAIN:
           with tf.variable_scope("decoder", reuse=labels is not None):
@@ -181,7 +184,7 @@ class HierarchicalSequenceToSequence(Model):
               batch_size = tf.shape(encoder_sequence_length)[0]
               beam_width = params.get("beam_width", 1)
               tf.logging.info(" >> [hierarchical_seq2seq.py _build] beam_width = %d"%beam_width)
-              maximum_iterations = params.get("maximum_iterations", 250)
+              maximum_iterations = params.get("maximum_iterations", 5)
               start_tokens = tf.fill([batch_size], constants.START_OF_SENTENCE_ID)
               end_token = constants.END_OF_SENTENCE_ID
 
@@ -191,7 +194,8 @@ class HierarchicalSequenceToSequence(Model):
                       target_embedding_fn,
                       start_tokens,
                       end_token,
-                      vocab_size=master_target_vocab_size,
+                      vocab_size_master=master_target_vocab_size,
+                      vocab_size_sub=sub_target_vocab_size,
                       initial_state=encoder_state,
                       maximum_iterations=maximum_iterations,
                       mode=mode,
@@ -257,7 +261,7 @@ class HierarchicalSequenceToSequence(Model):
       else:
           predictions = None
 
-      return (logits, logits_sub), predictions
+      return (logits, logits_sub, sequence_mask_sub), predictions
 
   def _initialize(self, metadata):
     """Runs model specific initialization (e.g. vocabularies loading).
@@ -350,8 +354,8 @@ class HierarchicalSequenceToSequence(Model):
         add_counter("sub_labels", tf.reduce_sum(sub_length))
 
   def _compute_loss_impl(self, logits, labels, sequence_length, params, mode):
-    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] labels = {}".format(labels))
-    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] labels[\"ids_out\"] = {}".format(labels["ids_out"]))
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss_impl] labels = {}".format(labels))
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss_impl] labels[\"ids_out\"] = {}".format(labels["ids_out"]))
     return cross_entropy_sequence_loss(
         logits,
         labels["ids_out"],
@@ -363,9 +367,10 @@ class HierarchicalSequenceToSequence(Model):
   def _compute_loss(self, features, labels, outputs, params, mode):
 
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] outputs = {}".format(outputs))
-    labels = (labels[0][0], labels[1][0])
+    if mode == tf.estimator.ModeKeys.TRAIN:
+        labels = (labels[0][0], labels[1][0])
     master_labels, sub_labels = labels
-    master_logits, sub_logits = outputs
+    master_logits, sub_logits, sequence_mask_sub = outputs
     master_length, sub_length = self._get_labels_length(labels, to_reduce=True)
 
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] \nmaster_labels : \n{}".format("\n".join(["{}".format(x) for x in master_labels.items()])))

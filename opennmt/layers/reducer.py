@@ -74,6 +74,14 @@ def align_in_time(x, length):
       true_fn=lambda: pad_in_time(x, length - time_dim),
       false_fn=lambda: x[:, :length])
 
+def align_in_master_time(x, length):
+  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
+  time_dim = tf.shape(x)[1]
+  return tf.cond(
+      tf.less(time_dim, length),
+      true_fn=lambda: tf.pad(x, [[0, 0], [0, length - time_dim]]),
+      false_fn=lambda: x[:, :length])
+
 def align_in_sub_time(x, length):
   """Aligns the time dimension of :obj:`x` with :obj:`length`."""
   time_dim = tf.shape(x)[-1]

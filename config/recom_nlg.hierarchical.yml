@@ -83,7 +83,7 @@ params:
   # (optional) Length penaly weight to apply on hypotheses (default: 0).
   length_penalty: 0.2
   # (optional) Maximum decoding iterations before stopping (default: 250).
-  maximum_iterations: 200
+  maximum_iterations: 5
   # (optional) Replace unknown target tokens by the original source token with the
   # highest attention (default: false).
   replace_unknown_target: true

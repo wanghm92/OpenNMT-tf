@@ -47,6 +47,7 @@ __all__ = [
     "ScheduledOutputTrainingHelper",
     "InferenceHelper",
     "HierarchicalTrainingHelper",
+    "HierarchicalGreedyEmbeddingHelper",
 ]
 
 _transpose_batch_time = rnn._transpose_batch_time  # pylint: disable=protected-access
@@ -675,6 +676,11 @@ class GreedyEmbeddingHelper(Helper):
         lambda: self._embedding_fn(sample_ids))
     return finished, next_inputs, state
 
+class HierarchicalGreedyEmbeddingHelper(GreedyEmbeddingHelper):
+  def initialize(self, master_time, name=None):
+    del master_time
+    finished = array_ops.tile([False], [self._batch_size])
+    return (finished, self._start_inputs)
 
 class SampleEmbeddingHelper(GreedyEmbeddingHelper):
   """A helper for use during inference.
