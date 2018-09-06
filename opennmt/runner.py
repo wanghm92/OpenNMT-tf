@@ -106,7 +106,6 @@ class Runner(object):
             keys are names of parameters, values are basic python types
     '''
 
-    # TODO: come back here
     self._estimator = tf.estimator.Estimator(
         self._model.model_fn(num_devices=self._num_devices),
         config=run_config,

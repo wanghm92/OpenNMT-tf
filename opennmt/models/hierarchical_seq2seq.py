@@ -75,7 +75,6 @@ class HierarchicalSequenceToSequence(Model):
     self.sub_target_inputter = sub_target_inputter
     self.debug = []
 
-    # TODO: add process hook for sub_target_inputter as well
     tf.logging.info(" >> [hierarchical_seq2seq.py __init__] self.target_inputter.add_process_hooks([shift_target_sequence])")
     self.target_inputter.add_process_hooks([shift_target_sequence])
     self.sub_target_inputter.add_process_hooks([shift_target_sequence])

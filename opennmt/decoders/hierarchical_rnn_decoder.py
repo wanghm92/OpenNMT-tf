@@ -3,7 +3,7 @@
 import tensorflow as tf
 
 from opennmt.decoders.decoder import build_output_layer, logits_to_cum_log_probs
-from opennmt.layers.reducer import align_in_time, align_in_time_2d, align_in_master_time
+from opennmt.layers.reducer import align_in_time, align_in_time_2d
 from opennmt.decoders.rnn_decoder import RNNDecoder, AttentionalRNNDecoder, _build_attention_mechanism, _get_alignment_history
 from opennmt.decoders.basic_decoder import BasicDecoder, BasicSubDecoder
 from opennmt.decoders.tf_contrib_seq2seq_decoder import hierarchical_dynamic_decode
@@ -20,6 +20,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                num_layers,
                num_units,
                bridge=None,
+               sub_bridge=None,
                attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
                output_is_attention=True,
                cell_class=tf.contrib.rnn.LSTMCell,
@@ -54,6 +55,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         cell_class=cell_class,
         dropout=dropout,
         residual_connections=residual_connections)
+    self._sub_bridge = sub_bridge
 
   def decode(self,
              inputs,
@@ -155,11 +157,12 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
 
     # TODO: remember to wrap using _build_attention_mechanism()/AttentionWrapper() during decode, decoder state as the initial state
         # memory = encoder/master_decoder?
-    sub_cell, initial_state_sub = RNNDecoder._build_cell(
-        self,
+    sub_cell, initial_state_sub = self._build_cell(
         mode,
         batch_size,
         initial_state=initial_state,
+        memory=memory,
+        memory_sequence_length=memory_sequence_length,
         dtype=sub_inputs.dtype)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] sub_cell = {}".format(sub_cell))
@@ -177,15 +180,16 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     master and sub-sequence sampling decoder.
     '''
     master_decoder = BasicDecoder(
-        master_cell,
-        master_helper,
-        initial_state_master,
+        cell=master_cell,
+        helper=master_helper,
+        initial_state=initial_state_master,
         output_layer=output_layer_master if not fused_projection else None)
 
     sub_decoder = BasicSubDecoder(
-        sub_cell,
-        sub_helper,
-        initial_state_sub,
+        cell=sub_cell,
+        helper=sub_helper,
+        initial_state=initial_state_sub,
+        bridge=self._sub_bridge,
         output_layer=output_layer_sub if not fused_projection else None)
 
     '''
@@ -306,8 +310,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] initial_state_master = {}".format(initial_state_master))
 
     # TODO: remember to wrap using _build_attention_mechanism()/AttentionWrapper() during decode, decoder state as the initial state
-    sub_cell, initial_state_sub = RNNDecoder._build_cell(
-        self,
+    sub_cell, initial_state_sub = self._build_cell(
         mode,
         batch_size,
         initial_state=initial_state,
@@ -329,15 +332,16 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] output_layer_sub = {}".format(output_layer_sub))
 
     master_decoder = BasicDecoder(
-        master_cell,
-        master_helper,
-        initial_state_master,
+        cell=master_cell,
+        helper=master_helper,
+        initial_state=initial_state_master,
         output_layer=output_layer_master)
 
     sub_decoder = BasicSubDecoder(
-        sub_cell,
-        sub_helper,
-        initial_state_sub,
+        cell=sub_cell,
+        helper=sub_helper,
+        initial_state=initial_state_sub,
+        bridge=self._sub_bridge,
         output_layer=output_layer_sub)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_decoder = {}".format(master_decoder))

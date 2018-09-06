@@ -50,6 +50,9 @@ class Model(object):
     """
     return self._build(features, labels, params, mode, config=config)
 
+  # ----------------------------------------------------------------------------------------- #
+  # --------------------------------------- model_fn ---------------------------------------- #
+  # ----------------------------------------------------------------------------------------- #
   def model_fn(self, num_devices=1):
     """Returns the model function.
 
@@ -136,7 +139,10 @@ class Model(object):
       :return: ops necessary to perform training, evaluation, or predictions.
       """
       tf.logging.info(log_separator+" >> [model.py model_fn _model_fn] \n---\nfeatures = {}\n---\nlabels = {}".format(features, labels))
-      # ------------------ Train ----------------- #
+
+      # *********************************************************************** #
+      # ******************************** Train ******************************** #
+      # *********************************************************************** #
       if mode == tf.estimator.ModeKeys.TRAIN:
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> _register_word_counters")
         self._register_word_counters(features, labels)
@@ -169,15 +175,15 @@ class Model(object):
             loss=loss,
             train_op=train_op)
 
-      # ------------------ Eval ----------------- #
+      # ********************************************************************** #
+      # ******************************** Eval ******************************** #
+      # ********************************************************************** #
       elif mode == tf.estimator.ModeKeys.EVAL:
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Building Graph ...")
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> features = \n{} ".format(features))
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> labels = \n{} ".format(labels))
 
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
-          # TODO: come back here
-          # TODO: predictions needs to be done
           logits, predictions = self._build(features, labels, params, mode, config=config)
           tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing loss ...")
           loss = self._compute_loss(features, labels, logits, params, mode)
@@ -186,7 +192,6 @@ class Model(object):
         loss = _extract_loss(loss)
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing Metrics ...")
-        # TODO: come back here
         eval_metric_ops = self._compute_metrics(features, labels, predictions)
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> eval_metric_ops = {}".format(eval_metric_ops))
 
@@ -199,7 +204,9 @@ class Model(object):
             loss=loss,
             eval_metric_ops=eval_metric_ops)
 
-      # ------------------ Pred ----------------- #
+      # ********************************************************************** #
+      # ******************************** Pred ******************************** #
+      # ********************************************************************** #
       elif mode == tf.estimator.ModeKeys.PREDICT:
         tf.logging.info(" >> [model.py model_fn _model_fn] <PREDICT> Building Graph ...")
 
@@ -219,6 +226,9 @@ class Model(object):
 
     return _model_fn
 
+  # ----------------------------------------------------------------------------------------- #
+  # --------------------------------------- fns --------------------------------------------- #
+  # ----------------------------------------------------------------------------------------- #
   def _initializer(self, params):
     """Returns the global initializer for this model.
 
@@ -394,6 +404,9 @@ class Model(object):
     tf.logging.info(" >> [model.py _get_labels_builder] process_fn = {}".format(process_fn))
     return dataset, process_fn
 
+  # ----------------------------------------------------------------------------------------- #
+  # ------------------------------------ _input_fn_impl ------------------------------------- #
+  # ----------------------------------------------------------------------------------------- #
   def _input_fn_impl(self,
                      mode,
                      batch_size,
@@ -440,6 +453,7 @@ class Model(object):
       process_fn = lambda features, labels: (feat_process_fn(features), labels_process_fn(labels))
 
       tf.logging.info(" >> [model.py _input_fn_impl] maximum_labels_length = {} ".format(maximum_labels_length))
+      add_dict_to_collection("debug", {"maximum_labels_length": maximum_labels_length})
 
     if mode == tf.estimator.ModeKeys.TRAIN:
       tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building training_pipeline ... ")
@@ -461,6 +475,7 @@ class Model(object):
         labels_length_fn=self._get_labels_length)
     else:
       tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building inference_pipeline ... ")
+      # TODO: check this
       dataset = data.inference_pipeline(
           dataset,
           batch_size,

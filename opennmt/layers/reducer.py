@@ -74,22 +74,6 @@ def align_in_time(x, length):
       true_fn=lambda: pad_in_time(x, length - time_dim),
       false_fn=lambda: x[:, :length])
 
-def align_in_master_time(x, length):
-  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
-  time_dim = tf.shape(x)[1]
-  return tf.cond(
-      tf.less(time_dim, length),
-      true_fn=lambda: tf.pad(x, [[0, 0], [0, length - time_dim]]),
-      false_fn=lambda: x[:, :length])
-
-def align_in_sub_time(x, length):
-  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
-  time_dim = tf.shape(x)[-1]
-  return tf.cond(
-      tf.less(time_dim, length),
-      true_fn=lambda: tf.pad(x, [[0, 0], [0, 0], [0, length - time_dim]]),
-      false_fn=lambda: x[:, :length])
-
 def align_in_time_2d(x, master_length, sub_length):
   """Aligns the time dimension of :obj:`x` with :obj:`length`."""
   master_time = tf.shape(x)[1]
@@ -259,29 +243,26 @@ class PackReducer(ConcatReducer):
     self.axis = axis
 
   def reduce(self, inputs, has_depth=True):
-    if has_depth:
-      axis = self.axis % inputs[0].shape.ndims
-    else:
-      axis = self.axis
-
+    axis = self.axis if has_depth else self.axis % inputs[0].shape.ndims
+    tf.logging.info(" >> [reducer.py class PackReducer reduce] has_depth = {}, axis = {}".format(has_depth, axis))
+    if len(inputs) <= 1:
+      raise ValueError("inputs should be a list of with length >1")
     if axis == 1:
       # Align all input tensors to the maximum combined length.
+      depth = inputs[0].get_shape().as_list()[-1] # get static instead of dynamic shape
       batch_size = tf.shape(inputs[0])[0]
-      if has_depth:
-        depth = inputs[0].get_shape().as_list()[-1] # get static instead of dynamic shape
-        maxlen = tf.reduce_max([tf.shape(x)[1] for x in inputs])
-        aligned = tf.concat([align_in_time(x, maxlen) for x in inputs], axis=1) # batch * (len(inputs)*maxlen) * depth
-        packed = tf.reshape(aligned, [batch_size, len(inputs), maxlen, depth])
-      else:
-        maxlen = tf.reduce_max([tf.shape(x)[-1] for x in inputs])
-        aligned = tf.concat([align_in_sub_time(x, maxlen) for x in inputs], axis=1)  # batch * len(inputs) * maxlen
-        packed = tf.reshape(aligned, [batch_size, len(inputs), maxlen])
+      maxlen = tf.reduce_max([tf.shape(x)[1] for x in inputs])
+      aligned = [align_in_time(x, maxlen)for x in inputs] # [batch * maxlen * depth]
+      packed = tf.concat([tf.expand_dims(x, axis=1) for x in aligned], axis=1) # batch * len(inputs) * maxlen * depth
+      packed = tf.reshape(packed, [batch_size, len(inputs), maxlen, depth]) # optional, just to make dimensions right
       tf.logging.info(" >> [reducer.py class PackReducer reduce] packed = {}".format(packed))
       return packed
 
     else:
       raise ValueError("Currently only supoort pack_reduce on axis =1 (but received {})".format(axis))
+
   def pack_sequence_lengths(self, sequence_lengths):
+    tf.logging.info(" >> [reducer.py class PackReducer pack_sequence_lengths] sequence_lengths = {}".format(sequence_lengths))
     return tf.concat([tf.expand_dims(x, axis=-1) for x in sequence_lengths], axis=-1)
 
 class JoinReducer(Reducer):

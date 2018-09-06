@@ -8,6 +8,7 @@ from opennmt.layers.reducer import JoinReducer
 from opennmt.layers.bridge import CopyBridge
 from opennmt.layers.bridge import ZeroBridge
 from opennmt.layers.bridge import DenseBridge
+from opennmt.layers.bridge import AttentionWrapperStateDenseBridge
 
 from opennmt.layers.position import PositionEmbedder
 from opennmt.layers.position import SinusoidalPositionEncoder

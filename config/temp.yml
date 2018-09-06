@@ -45,7 +45,7 @@
 
 # eval:
 #   # (optional) Evaluate every this many seconds (default: 18000).
-#   eval_delay: 150
+#   eval_delay: 10
 
 params:
   beam_width: 1

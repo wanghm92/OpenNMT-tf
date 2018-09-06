@@ -156,6 +156,19 @@ class BasicDecoder(TfContribSeq2seqDecoder):
     raise NotImplementedError
 
 class BasicSubDecoder(BasicDecoder):
+    def __init__(self, cell, helper, initial_state, bridge=None, output_layer=None):
+      super(BasicSubDecoder, self).__init__(cell, helper, initial_state, output_layer)
+      self._initial_zero_state = initial_state
+      self._bridge = bridge
+      tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._bridge = {}".format(self._bridge))
+
+    def _init_sub_state(self, zero_state, initial_state=None):
+        if initial_state is None:
+            return zero_state
+        elif self._bridge is None:
+            raise ValueError("A sub_bridge must be configured when passing encoder state")
+        else:
+            return self._bridge(initial_state, zero_state)
 
     def initialize(self, initial_state, master_time=None, name=None):
         """Initialize the decoder.
@@ -167,9 +180,12 @@ class BasicSubDecoder(BasicDecoder):
           `(finished, first_inputs, initial_state)`.
         """
         # TODO: initial_state from master decoder may need to be stored in a TensorArray
-        tf.logging.info(" >> [basic_decoder.py BasicDecoder initialize] master_time = {}".format(master_time))
-        tf.logging.info(" >> [basic_decoder.py BasicDecoder initialize] self._helper = {}".format(self._helper))
-        self._initial_state = initial_state
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] master_time = {}".format(master_time))
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] self._helper = {}".format(self._helper))
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] BEFORE _initial_state = {}".format(self._initial_state))
+        self._initial_state = self._init_sub_state(zero_state=self._initial_zero_state, initial_state=initial_state)
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] AFTER _initial_state = {}".format(self._initial_state))
+
         return self._helper.initialize(master_time) + (self._initial_state,)
 
     @property

@@ -106,8 +106,8 @@ def filter_examples_by_length(maximum_features_length=None,
       cond.extend(_length_constraints(features_length, maximum_features_length))
     if labels_length is not None:
       cond.extend(_length_constraints(labels_length, maximum_labels_length))
-    # "logical and" of elements across dimensions of a tensor
     tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _predicate] cond = {}".format(cond))
+    # "logical and" of elements across dimensions of a tensor
     final_cond = tf.reduce_all(cond)
     tf.logging.info(" >>>> [utils/data.py filter_examples_by_length -> _predicate] final_cond = {}".format(final_cond))
     return final_cond
