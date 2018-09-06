@@ -172,7 +172,6 @@ class HierarchicalSequenceToSequence(Model):
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] state = {}".format(state))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] length = {}".format(length))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] sequence_mask_sub = {}".format(sequence_mask_sub))
-          add_dict_to_collection("debug", {"logits_sub": tf.shape(logits_sub)})
       else:
           logits = None
           logits_sub = None
@@ -222,15 +221,28 @@ class HierarchicalSequenceToSequence(Model):
                           dtype=target_dtype,
                           return_alignment_history=True))
 
+          # TODO: target_vocab_rev is shared for now, need to be compatible with embedding sharing
           target_vocab_rev = tf.contrib.lookup.index_to_string_table_from_file(
               self.target_inputter.vocabulary_file,
               vocab_size=master_target_vocab_size - self.target_inputter.num_oov_buckets,
               default_value=constants.UNKNOWN_TOKEN)
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] index_to_string_table_from_file")
-          target_tokens = target_vocab_rev.lookup(tf.cast(sampled_ids, tf.int64))
+          tf.logging.info(" >> [hierarchical_seq2seq.py dynamic_decode] sampled_ids = {}".format(sampled_ids))
+          if isinstance(sampled_ids, tuple):
+            assert isinstance(sampled_length, tuple)
+            sampled_length, sub_sampled_length = sampled_length
+            master_ids, sub_ids = sampled_ids
+            target_tokens = target_vocab_rev.lookup(tf.cast(master_ids, tf.int64))
+            target_tokens_sub = target_vocab_rev.lookup(tf.cast(sub_ids, tf.int64))
+          else:
+            target_tokens = target_vocab_rev.lookup(tf.cast(sampled_ids, tf.int64))
+            target_tokens_sub = None
+            sub_sampled_length = None
+
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_vocab_rev.lookup")
 
           if params.get("replace_unknown_target", False):
+              tf.logging.info(" >> [hierarchical_seq2seq.py _build] replace_unknown_target ... ")
               if alignment is None:
                   raise TypeError("replace_unknown_target is not compatible with decoders "
                                   "that don't return alignment history")
@@ -256,6 +268,10 @@ class HierarchicalSequenceToSequence(Model):
               "length": sampled_length,
               "log_probs": log_probs
           }
+          if target_tokens_sub is not None:
+              predictions["tokens_sub"] = target_tokens_sub
+          if sub_sampled_length is not None:
+              predictions["length_sub"] = sub_sampled_length
           if alignment is not None:
               predictions["alignment"] = alignment
       else:
@@ -389,7 +405,7 @@ class HierarchicalSequenceToSequence(Model):
 
     return (master_loss, sub_loss)
 
-  def print_prediction(self, prediction, params=None, stream=None):
+  def print_prediction(self, prediction, params=None, stream=None, sub_stream=None):
     n_best = params and params.get("n_best")
     n_best = n_best or 1
 
@@ -400,6 +416,10 @@ class HierarchicalSequenceToSequence(Model):
       tokens = prediction["tokens"][i][:prediction["length"][i] - 1] # Ignore </s>.
       sentence = self.target_inputter.tokenizer.detokenize(tokens)
       print_bytes(tf.compat.as_bytes(sentence), stream=stream)
+      if sub_stream is not None:
+        sub_tokens = prediction["tokens_sub"][i][:prediction["length_sub"][i]]
+        sub_sentence = self.target_inputter.tokenizer.detokenize(sub_tokens)
+        print_bytes(tf.compat.as_bytes(sub_sentence), stream=sub_stream)
 
 def align_tokens_from_attention(tokens, attention):
   """Returns aligned tokens from the attention.

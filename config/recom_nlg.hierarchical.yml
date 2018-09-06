@@ -20,9 +20,15 @@ data:
                     
   # (required for train_end_eval and eval run types).
   eval_features_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/recom_text.words.val
-    - ../recom_nlg/onmt/clothes/one_per_sku/recom_text.tags.val
-  eval_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/recom_text.outs.val
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.words.train.filter.seg
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.tags.train.filter.seg
+  eval_labels_file:
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.attr_one
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.1
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.2
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.3
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.4
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.5
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
   source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
@@ -127,7 +133,7 @@ train:
 # (optional) Evaluation options.
 eval:
   # (optional) The batch size to use (default: 32).
-  batch_size: 30
+  batch_size: 4
   # (optional) The number of threads to use for processing data in parallel (default: 1).
   num_threads: 1
   # (optional) The number of batches to prefetch asynchronously (default: 1).

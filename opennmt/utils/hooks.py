@@ -81,7 +81,7 @@ class CountersHook(tf.train.SessionRunHook):
     if self._global_step is None:
       raise RuntimeError("Global step should be created to use WordCounterHook.")
 
-    self._debug_ops = misc.get_dict_from_collection("debug")
+    # self._debug_ops = misc.get_dict_from_collection("debug")
 
   def before_run(self, run_context):  # pylint: disable=unused-argument
     '''
@@ -106,7 +106,8 @@ class CountersHook(tf.train.SessionRunHook):
     '''
     if not self._counters:
       return None
-    return tf.train.SessionRunArgs([self._counters, self._global_step, self._debug_ops])
+    return tf.train.SessionRunArgs([self._counters, self._global_step])
+    # return tf.train.SessionRunArgs([self._counters, self._global_step, self._debug_ops])
 
   def after_run(self, run_context, run_values):  # pylint: disable=unused-argument
     '''
@@ -118,9 +119,10 @@ class CountersHook(tf.train.SessionRunHook):
     '''
 
     if not self._counters:return
-    counters, step, debug_ops = run_values.results
-    tf.logging.info(" >> [hooks.py class CountersHook after_run] debug_ops :")
-    pp.pprint(debug_ops)
+    counters, step = run_values.results
+    # counters, step, debug_ops = run_values.results
+    # tf.logging.info(" >> [hooks.py class CountersHook after_run] debug_ops : ")
+    # pp.pprint(debug_ops)
     if self._timer.should_trigger_for_step(step):
       elapsed_time, _ = self._timer.update_last_triggered_step(step)
       if elapsed_time is not None:
@@ -142,15 +144,18 @@ class LogPredictionTimeHook(tf.train.SessionRunHook):
     self._total_time = 0
     self._total_tokens = 0
     self._total_examples = 0
+    self._debug_ops = misc.get_dict_from_collection("debug")
 
   def before_run(self, run_context):
     self._run_start_time = time.time()
     predictions = run_context.original_args.fetches
-    return tf.train.SessionRunArgs(predictions)
+    return tf.train.SessionRunArgs([predictions, self._debug_ops])
 
   def after_run(self, run_context, run_values):  # pylint: disable=unused-argument
     self._total_time += time.time() - self._run_start_time
-    predictions = run_values.results
+    predictions, debug_ops = run_values.results
+    tf.logging.info(" >> [hooks.py class LogPredictionTimeHook after_run] debug_ops :")
+    pp.pprint(debug_ops)
     batch_size = next(six.itervalues(predictions)).shape[0]
     self._total_examples += batch_size
     length = predictions.get("length")
@@ -198,17 +203,28 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
     self._global_step = tf.train.get_global_step()
     if self._global_step is None:
       raise RuntimeError("Global step should be created to use SaveEvaluationPredictionHook.")
+    # self._debug_ops = misc.get_dict_from_collection("debug")
 
   def before_run(self, run_context):  # pylint: disable=unused-argument
+    # return tf.train.SessionRunArgs([self._predictions, self._global_step])
     return tf.train.SessionRunArgs([self._predictions, self._global_step])
+    # return tf.train.SessionRunArgs([self._predictions, self._global_step, self._debug_ops])
 
   def after_run(self, run_context, run_values):  # pylint: disable=unused-argument
     predictions, self._current_step = run_values.results
+    # tf.logging.info(" >> [hooks.py class SaveEvaluationPredictionHook after_run] debug_ops")
+    # pp.pprint(debug_ops)
+    # predictions, self._current_step = run_values.results
     self._output_path = "{}.{}".format(self._output_file, self._current_step)
     with io.open(self._output_path, encoding="utf-8", mode="a") as output_file:
-      # TODO: check this hook !!!
+      if "tokens_sub" in six.iterkeys(predictions):
+        self._output_path_sub = "{}.sub.{}".format(self._output_file, self._current_step)
+        output_file_sub = io.open(self._output_path_sub, encoding="utf-8", mode="a")
+      else:
+        output_file_sub = None
       for prediction in misc.extract_batches(predictions):
-        self._model.print_prediction(prediction, stream=output_file)
+        self._model.print_prediction(prediction, stream=output_file, sub_stream=output_file_sub)
+      output_file_sub.close()
 
   def end(self, session):
     tf.logging.info("Running _post_evaluation_fn (BLEU); Evaluation predictions saved to %s", self._output_path)

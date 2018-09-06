@@ -9,7 +9,7 @@ from opennmt.layers.common import embedding_lookup
 from opennmt.utils.beam_search import get_state_shape_invariants
 
 
-def logits_to_cum_log_probs(logits, sequence_length):
+def logits_to_cum_log_probs(logits, mask_or_sequence_length):
   """Returns the cumulated log probabilities of sequences.
 
   Args:
@@ -19,14 +19,22 @@ def logits_to_cum_log_probs(logits, sequence_length):
   Returns:
     The cumulated log probability of each sequence.
   """
-  mask = tf.sequence_mask(
-      sequence_length, maxlen=tf.shape(logits)[1], dtype=logits.dtype)
+  tf.logging.info(" >> [decoder.py logits_to_cum_log_probs] mask_or_sequence_length = {}".format(mask_or_sequence_length.shape.ndims))
+  if mask_or_sequence_length.shape.ndims > 1:
+    mask = mask_or_sequence_length
+  else:
+    mask = tf.sequence_mask(mask_or_sequence_length, maxlen=tf.shape(logits)[1], dtype=logits.dtype)
+
+  tf.logging.info(" >> [decoder.py logits_to_cum_log_probs] BEFORE mask = {}".format(mask))
   mask = tf.expand_dims(mask, -1)
+  tf.logging.info(" >> [decoder.py logits_to_cum_log_probs] AFTER mask = {}".format(mask))
 
   log_probs = tf.nn.log_softmax(logits)
   log_probs = log_probs * mask
+  tf.logging.info(" >> [decoder.py logits_to_cum_log_probs] BEFORE log_probs = {}".format(log_probs))
   log_probs = tf.reduce_max(log_probs, axis=-1)
   log_probs = tf.reduce_sum(log_probs, axis=1)
+  tf.logging.info(" >> [decoder.py logits_to_cum_log_probs] AFTER log_probs = {}".format(log_probs))
 
   return log_probs
 

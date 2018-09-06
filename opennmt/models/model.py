@@ -188,6 +188,7 @@ class Model(object):
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing Metrics ...")
         # TODO: come back here
         eval_metric_ops = self._compute_metrics(features, labels, predictions)
+        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> eval_metric_ops = {}".format(eval_metric_ops))
 
         if predictions is not None:
           # Register predictions in a collection so that hooks can easily fetch them.

@@ -306,7 +306,8 @@ def hierarchical_dynamic_decode(
           dtype=d,
           size=0 if dynamic_size else maximum_iterations,
           dynamic_size=dynamic_size,
-          element_shape=tensor_shape.TensorShape(None))
+          element_shape=tensor_shape.TensorShape(None),
+          infer_shape=False)
 
     # store the sequence_length ([batch]) tensors for sub-decoder
     initial_sequence_mask_ta_sub = nest.map_structure(_create_ta_general, tf.float32)
@@ -380,12 +381,14 @@ def hierarchical_dynamic_decode(
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] next_sequence_lengths = {}".format(next_sequence_lengths))
 
       # TODO: do not need to sub_decode when finished, zero_outputs = _create_zero_outputs()
+        # hard coded below: change it !!!
+      sub_maximum_iterations = sub_decoder.sub_time if not dynamic else 100
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] next_state = {}".format(next_state))
       sub_outputs, sub_state, sub_length, sub_final_time = sub_dynamic_decode(sub_decoder,
-                                                                           master_time=time,
-                                                                           initial_state=next_state.cell_state,
-                                                                           maximum_iterations=sub_decoder.sub_time,
-                                                                           dynamic=dynamic)
+                                                                              master_time=time,
+                                                                              initial_state=next_state.cell_state,
+                                                                              maximum_iterations=sub_maximum_iterations,
+                                                                              dynamic=dynamic)
 
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_length = {}".format(sub_length))
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_final_time = {}".format(sub_final_time))
