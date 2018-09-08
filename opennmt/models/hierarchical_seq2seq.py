@@ -90,10 +90,9 @@ class HierarchicalSequenceToSequence(Model):
 
       tf.logging.info(log_separator+" >> [hierarchical_seq2seq.py _build] mode = {}".format(mode))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] features = \n{}".format(features))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] len(features) = {}\n".format(len(features)))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] labels = \n{}".format(labels))
-
-      if mode == tf.estimator.ModeKeys.TRAIN:
-          labels = (labels[0][0], labels[1][0])
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] len(labels) = {}".format(len(labels) if labels is not None else None))
 
       features_length = self._get_features_length(features)
       log_dir = config.model_dir if config is not None else None
@@ -132,7 +131,6 @@ class HierarchicalSequenceToSequence(Model):
 
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_embedding_fn = {}".format(target_embedding_fn))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_inputter = {}".format(self.target_inputter))
-      tf.logging.info(" >> [hierarchical_seq2seq.py _build] labels = {}".format(labels))
       if labels is not None:
           master_labels, sub_labels = labels
           target_inputs = _maybe_reuse_embedding_fn(
@@ -171,6 +169,11 @@ class HierarchicalSequenceToSequence(Model):
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] state = {}".format(state))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] length = {}".format(length))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] sequence_mask_sub = {}".format(sequence_mask_sub))
+          add_dict_to_collection("debug", {"decoder_logits": tf.shape(logits),
+                                           "decoder_logits_sub": tf.shape(logits_sub),
+                                           "decoder_length": tf.shape(length),
+                                           "sequence_mask_sub": tf.shape(sequence_mask_sub)
+                                           })
       else:
           logits = None
           logits_sub = None
@@ -201,6 +204,13 @@ class HierarchicalSequenceToSequence(Model):
                       memory_sequence_length=encoder_sequence_length,
                       dtype=target_dtype,
                       return_alignment_history=True)
+                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] sampled_ids = {}".format(sampled_ids))
+                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] sampled_length = {}".format(sampled_length))
+                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] log_probs = {}".format(log_probs))
+                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] alignment = {}".format(alignment))
+                  add_dict_to_collection("debug", {"log_probs": tf.shape(log_probs),
+                                                   "alignment": tf.shape(alignment)
+                                                   })
               else:
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] dynamic_decode ...")
                   length_penalty = params.get("length_penalty", 0)
@@ -231,6 +241,12 @@ class HierarchicalSequenceToSequence(Model):
             assert isinstance(sampled_length, tuple)
             sampled_length, sub_sampled_length = sampled_length
             master_ids, sub_ids = sampled_ids
+            add_dict_to_collection("debug", {"sampled_length": tf.shape(sampled_length),
+                                             "sub_sampled_length": tf.shape(sub_sampled_length),
+                                             "master_ids": tf.shape(master_ids),
+                                             "sub_ids": tf.shape(sub_ids)
+                                             })
+
             target_tokens = target_vocab_rev.lookup(tf.cast(master_ids, tf.int64))
             target_tokens_sub = target_vocab_rev.lookup(tf.cast(sub_ids, tf.int64))
           else:
@@ -339,8 +355,7 @@ class HierarchicalSequenceToSequence(Model):
     """
     tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_length] labels = {}".format(labels))
     tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_length] len(labels) = {}".format(len(labels)))
-    master_labels = labels[0]
-    sub_labels = labels[1]
+    master_labels, sub_labels = labels
     tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_length] master_labels = {}".format(master_labels))
     tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_length] sub_labels = {}".format(sub_labels))
 
@@ -382,23 +397,28 @@ class HierarchicalSequenceToSequence(Model):
   def _compute_loss(self, features, labels, outputs, params, mode):
 
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] outputs = {}".format(outputs))
-    if mode == tf.estimator.ModeKeys.TRAIN:
-        labels = (labels[0][0], labels[1][0])
     master_labels, sub_labels = labels
     master_logits, sub_logits, sequence_mask_sub = outputs
     master_length, sub_length = self._get_labels_length(labels, to_reduce=True)
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_length = {}".format(master_length))
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] sub_length = {}".format(sub_length))
 
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] \nmaster_labels : \n{}".format("\n".join(["{}".format(x) for x in master_labels.items()])))
-
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] BEFORE \nsub_labels : \n{}".format("\n".join(["{}".format(x) for x in sub_labels.items()])))
     sub_labels = self.sub_target_inputter._transform_sub_labels(sub_labels)
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] AFTER \nsub_labels : \n{}".format("\n".join(["{}".format(x) for x in sub_labels.items()])))
 
-    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] sub_length = {}".format(sub_length))
+    add_dict_to_collection("debug", {"master_length": tf.shape(master_length),
+                                     "sub_length": tf.shape(sub_length),
+                                     "master_logits": tf.shape(master_logits),
+                                     "sub_logits": tf.shape(sub_logits),
+                                     "sequence_mask_sub_shape": tf.shape(sequence_mask_sub),
+                                     "sequence_mask_sub": sequence_mask_sub
+                                     })
+
     sub_loss = self._compute_loss_impl(sub_logits, sub_labels, sub_length, params, mode)
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] sub_loss = {}".format(sub_loss))
 
-    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_length = {}".format(master_length))
     master_loss = self._compute_loss_impl(master_logits, master_labels, master_length, params, mode)
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_loss = {}".format(master_loss))
 

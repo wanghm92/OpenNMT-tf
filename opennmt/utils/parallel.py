@@ -99,6 +99,11 @@ class GraphDispatcher(object):
     funs = self.repeat(fun)
     args, kwargs = self._parallel_args(*args, **kwargs)
 
+    tf.logging.info(" >> [parallel.py __call__] *args = {}".format(*args))
+    tf.logging.info(" >> [parallel.py __call__] args = {}".format(args))
+    tf.logging.info(" >> [parallel.py __call__] len(args) = {}".format(len(args)))
+    tf.logging.info(" >> [parallel.py __call__] self._daisy_chain_variables = {}".format(self._daisy_chain_variables))
+
     outputs = []
     cache = {}
     tensor_to_var = {}
@@ -147,9 +152,17 @@ class GraphDispatcher(object):
             with tf.device(device):
               outputs.append(funs[i](*args[i], **kwargs[i]))
 
+    tf.logging.info(" >> [parallel.py __call__] outputs = {}".format(outputs))
+    tf.logging.info(" >> [parallel.py __call__] len(outputs) = {}".format(len(outputs)))
+    tf.logging.info(" >> [parallel.py __call__] zip(*outputs) = {}".format(zip(*outputs)))
+    tf.logging.info(" >> [parallel.py __call__] len(zip(*outputs)) = {}".format(len(zip(*outputs))))
+
     # If the function returned a tuple, also return a tuple of sharded results.
+    # list of tuple --> tuple of list
     if isinstance(outputs[0], tuple):
       outputs = tuple(list(output) for output in zip(*outputs))
+
+    tf.logging.info(" >> [parallel.py __call__] AFTER outputs = {}".format(outputs))
 
     return outputs
 

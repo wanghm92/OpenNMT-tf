@@ -210,17 +210,17 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] state = {}".format(state))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] length = {}".format(length))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] final_time = {}".format(final_time))
-    # add_dict_to_collection("debug", {"final_time": final_time,
-    #                                  "sequence_mask_sub_shape": tf.shape(sequence_mask_sub),
-                                     # "outputs.rnn_output shape": tf.shape(outputs.rnn_output),
-                                     # "outputs_sub.rnn_output shape": tf.shape(outputs_sub.rnn_output),
-                                     # "cell_state_c": tf.shape(state.cell_state.c),
-                                     # "cell_state_h": tf.shape(state.cell_state.h),
-                                     # "attention": tf.shape(state.attention),
-                                     # "time": state.time,
-                                     # "alignments": tf.shape(state.alignments),
-                                     # "attention_state": tf.shape(state.attention_state),
-                                     # })
+    add_dict_to_collection("debug", {"final_time": final_time,
+                                     "sequence_mask_sub_shape": tf.shape(sequence_mask_sub),
+                                     "outputs.rnn_output shape": tf.shape(outputs.rnn_output),
+                                     "outputs_sub.rnn_output shape": tf.shape(outputs_sub.rnn_output),
+                                     "cell_state_c": tf.shape(state.cell_state.c),
+                                     "cell_state_h": tf.shape(state.cell_state.h),
+                                     "attention": tf.shape(state.attention),
+                                     "time": state.time,
+                                     "alignments": tf.shape(state.alignments),
+                                     "attention_state": tf.shape(state.attention_state),
+                                     })
 
     if fused_projection and output_layer_master is not None:
         logits = output_layer_master(outputs.rnn_output)

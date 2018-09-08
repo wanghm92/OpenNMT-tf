@@ -1,6 +1,7 @@
 """Define losses."""
 
 import tensorflow as tf
+from opennmt.utils.misc import add_dict_to_collection
 
 
 def _smooth_one_hot_labels(logits, labels, label_smoothing):
@@ -60,6 +61,16 @@ def cross_entropy_sequence_loss(logits,
       sequence_length, maxlen=max_time, dtype=cross_entropy.dtype)
   loss = tf.reduce_sum(cross_entropy * weights)
   loss_token_normalizer = tf.reduce_sum(weights)
+
+  add_dict_to_collection("debug", {"batch_size": batch_size,
+                                   "max_time": max_time,
+                                   "cross_entropy": cross_entropy,
+                                   "cross_entropy_shape": tf.shape(cross_entropy),
+                                   "weights": weights,
+                                   "loss": loss,
+                                   "loss_token_normalizer": loss_token_normalizer,
+                                   "weights_shape": tf.shape(weights),
+                                   })
 
   if average_in_time or mode != tf.estimator.ModeKeys.TRAIN:
     loss_normalizer = loss_token_normalizer

@@ -93,8 +93,8 @@ params:
   # (optional) Replace unknown target tokens by the original source token with the
   # highest attention (default: false).
   replace_unknown_target: true
-  # (optional) share word embedding between the encoder and decoder (default: false).
-#  decoder_share_embedding: true
+  # whether to turn on printing debug_ops in hooks
+  debug: false
 
 # Training options.
 train:

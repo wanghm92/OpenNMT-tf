@@ -71,59 +71,130 @@ class Model(object):
       """Single callable to compute the loss."""
       tf.logging.info(" >> [model.py model_fn _loss_op] <TRAIN> Building Graph ... ")
       logits, _ = self._build(features, labels, params, mode, config=config) # logits, predictions
+      tf.logging.info(" >> [model.py model_fn _loss_op] <TRAIN> Computing loss ... ... logits = {}".format(logits))
       tf.logging.info(" >> [model.py model_fn _loss_op] <TRAIN> Computing loss ... ... ")
       return self._compute_loss(features, labels, logits, params, mode)
 
-    def _normalize_loss(num, den=None):
+    def _normalize_loss_list_or_single(num, den=None):
       """Normalizes the loss."""
-      if isinstance(num, list):  # Sharded mode.
+      # TODO: come back here, it may be tf.reduce_sum([n/d for n,d in zip(num,den)])
+      # sharded mode
+      if isinstance(num, list):
         if den is not None:
           assert isinstance(den, list)
           return tf.add_n(num) / tf.add_n(den)
         else:
           return tf.reduce_mean(num)
+      # non-sharded mode
       elif den is not None:
         return num / den
       else:
         return num
 
     def _extract_loss(loss):
-      """Extracts and summarizes the loss."""
-      tf.logging.info(" >> [model.py model_fn _extract_loss] BEFORE loss = {}".format(loss))
-      if isinstance(loss, list):
-        loss = loss[0]
-      tf.logging.info(" >> [model.py model_fn _extract_loss] AFTER loss = {}".format(loss))
-
-      def _normalize_loss_meta(loss):
-        tf.logging.info(" >> [model.py model_fn _extract_loss] _normalize_loss_meta : loss = {}".format(loss))
-        if not isinstance(loss, tuple):
-          actual_loss = _normalize_loss(loss)
-          tboard_loss = actual_loss
-        else:
-          actual_loss = _normalize_loss(loss[0], den=loss[1])
-          tboard_loss = _normalize_loss(loss[0], den=loss[2]) if len(loss) > 2 else actual_loss
+      """
+      Extracts and summarizes the loss.
+      NOTE: loss is guaranteed to be a tuple by dispatcher if the _compute_loss() returns more than one outputs
+      """
+      def _normalize_loss_tuple(loss):
+        actual_loss = _normalize_loss_list_or_single(loss[0], den=loss[1])
+        tboard_loss = _normalize_loss_list_or_single(loss[0], den=loss[2]) if len(loss) > 2 else actual_loss
         return actual_loss, tboard_loss
 
-      # single loss to be normalized
-      if not isinstance(loss, tuple):
-        actual_loss = _normalize_loss_meta(loss)
-        tboard_loss = actual_loss
-      # multiple losses to be normalized
-      else:
-        master_loss, sub_loss = loss
-        tf.logging.info(" >> [model.py model_fn _extract_loss] master_loss = {}".format(master_loss))
-        tf.logging.info(" >> [model.py model_fn _extract_loss] sub_loss = {}".format(sub_loss))
+      def listoftuple_to_tupleoflist(input):
+        return tuple(list(i) for i in zip(*input))
 
-        master_actual_loss, master_tboard_loss = _normalize_loss_meta(master_loss)
-        sub_actual_loss, sub_tboard_loss = _normalize_loss_meta(sub_loss)
+      def _normalize_master_and_sub_losses(loss):
+        """
+          sharded, multiple losses
+        """
+        master_loss_list, sub_loss_list = loss
+        tf.logging.info(" >> [model.py model_fn _extract_loss] master_loss = {}".format(master_loss_list))
+        tf.logging.info(" >> [model.py model_fn _extract_loss] sub_loss = {}".format(sub_loss_list))
+
+        master_loss_tuple_of_shards = listoftuple_to_tupleoflist(master_loss_list)
+        sub_loss_tuple_of_shards = listoftuple_to_tupleoflist(sub_loss_list)
+
+        tf.logging.info(" >> [model.py model_fn _extract_loss] master_loss_tuple_of_shards = {}".format(master_loss_tuple_of_shards))
+        tf.logging.info(" >> [model.py model_fn _extract_loss] sub_loss_tuple_of_shards = {}".format(sub_loss_tuple_of_shards))
+
+        master_actual_loss, master_tboard_loss = _normalize_loss_tuple(master_loss_tuple_of_shards)
+        sub_actual_loss, sub_tboard_loss = _normalize_loss_tuple(sub_loss_tuple_of_shards)
+
         tf.logging.info(" >> [model.py model_fn _extract_loss] master_actual_loss = {}".format(master_actual_loss))
         tf.logging.info(" >> [model.py model_fn _extract_loss] master_tboard_loss = {}".format(master_tboard_loss))
         tf.logging.info(" >> [model.py model_fn _extract_loss] sub_actual_loss = {}".format(sub_actual_loss))
         tf.logging.info(" >> [model.py model_fn _extract_loss] sub_tboard_loss = {}".format(sub_tboard_loss))
+
+        add_dict_to_collection("debug", {"master_actual_loss": master_actual_loss,
+                                         "master_tboard_loss": master_tboard_loss,
+                                         "sub_actual_loss": sub_actual_loss,
+                                         "sub_tboard_loss": sub_tboard_loss,
+                                         })
+
         actual_loss = tf.reduce_mean([master_actual_loss, sub_actual_loss])
         tboard_loss = tf.reduce_mean([master_tboard_loss, sub_tboard_loss])
 
-      tf.summary.scalar("loss normalized by sequence length)", tboard_loss)
+        tf.summary.scalar("master_actual_loss_loss_normalized_by_length)", master_actual_loss)
+        tf.summary.scalar("master_tboard_loss_normalized_by_length)", master_tboard_loss)
+        tf.summary.scalar("sub_actual_loss_normalized_by_length)", sub_actual_loss)
+        tf.summary.scalar("sub_tboard_loss_normalized_by_length)", sub_tboard_loss)
+
+        return actual_loss, tboard_loss
+
+      tf.logging.info(" >> [model.py model_fn _extract_loss] un-normalized loss = {}".format(loss))
+
+      if not isinstance(loss, tuple):
+        '''
+          loss is a single value, or list of values from shards
+        '''
+        tf.logging.info(" >> [model.py model_fn _extract_loss] loss is not tuple")
+        actual_loss = _normalize_loss_list_or_single(loss)
+        tboard_loss = actual_loss
+
+      else:
+        '''
+          loss is a tuple (_compute_loss() returns more than one output)
+          elements can be lists
+        '''
+        if not isinstance(loss[0], list):
+          '''
+            non-sharded: each element of this tuple is exactly what _compute_loss() returns in the same order
+          '''
+          if not isinstance(loss[0], tuple):
+            '''
+              (loss, loss_normalizer_1, loss_normalizer_2)
+            '''
+            actual_loss, tboard_loss = _normalize_loss_tuple(loss)
+          else:
+            '''
+              (master_loss_tuple, sub_loss_tuple)
+            '''
+            master_loss_tuple, sub_loss_tuple = loss
+            master_actual_loss, master_tboard_loss = _normalize_loss_tuple(master_loss_tuple)
+            sub_actual_loss, sub_tboard_loss = _normalize_loss_tuple(sub_loss_tuple)
+            actual_loss = tf.reduce_mean([master_actual_loss, sub_actual_loss])
+            tboard_loss = tf.reduce_mean([master_tboard_loss, sub_tboard_loss])
+
+        else:
+          '''
+            sharded: each element of this tuple is list of shards (same as what _compute_loss() returns in order)
+          '''
+          # single loss to be normalized
+          if not isinstance(loss[0][0], tuple):
+            '''
+              look at the 0th list, the 0th element, if not a tuple then it is the loss in (loss, loss_normalizer_1, loss_normalizer_2)
+            '''
+            actual_loss, tboard_loss = _normalize_loss_tuple(loss)
+          # multiple losses to be normalized, in this case master_loss and sub_loss
+          else:
+            '''
+              else it is the master_loss_tuple in (master_loss_tuple, sub_loss_tuple)
+            '''
+            actual_loss, tboard_loss = _normalize_master_and_sub_losses(loss)
+
+      tf.summary.scalar("actual_loss", actual_loss)
+      tf.summary.scalar("tboard_loss", tboard_loss)
       return actual_loss
 
     def _model_fn(features, labels, params, mode, config):
@@ -138,7 +209,7 @@ class Model(object):
                         such as num_ps_replicas, or model_dir
       :return: ops necessary to perform training, evaluation, or predictions.
       """
-      tf.logging.info(log_separator+" >> [model.py model_fn _model_fn] \n---\nfeatures = {}\n---\nlabels = {}".format(features, labels))
+      tf.logging.info(log_separator+" >> [model.py model_fn _model_fn] \nfeatures = {}\n---\nlabels = {}".format(features, labels))
 
       # *********************************************************************** #
       # ******************************** Train ******************************** #
@@ -150,16 +221,25 @@ class Model(object):
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> dispatching shards ... ")
         features_shards = dispatcher.shard(features)
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> features_shards = \n{} ".format(features_shards))
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> len(features_shards) = {} ".format(len(features_shards)))
+
         if isinstance(labels, tuple):
-          labels_shards = tuple([dispatcher.shard(l) for l in labels])
+          sharded = (dispatcher.shard(l) for l in labels)
+          tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> sharded = {} \n\n".format(sharded))
+          labels_shards = [x for x in zip(*sharded)]
         else:
           labels_shards = dispatcher.shard(labels)
-        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> labels_shards = \n{} ".format(labels_shards))
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> labels_shards = {} ".format(labels_shards))
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> len(labels_shards) = {} ".format(len(labels_shards)))
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> type(labels_shards[0]) = {} ".format(type(labels_shards[0])))
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> len(labels_shards[0]) = {} ".format(len(labels_shards[0])))
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Creating loss_ops ...")
         with tf.variable_scope(self.name, initializer=self._initializer(params), reuse=tf.AUTO_REUSE):
           losses_shards = dispatcher(_loss_op, features_shards, labels_shards, params, mode, config)
 
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> losses_shards = \n{}".format(losses_shards))
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> len(losses_shards) = {}\n".format(len(losses_shards)))
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Extracts and summarizes the loss ...")
         loss = _extract_loss(losses_shards)
 
@@ -453,7 +533,6 @@ class Model(object):
       process_fn = lambda features, labels: (feat_process_fn(features), labels_process_fn(labels))
 
       tf.logging.info(" >> [model.py _input_fn_impl] maximum_labels_length = {} ".format(maximum_labels_length))
-      add_dict_to_collection("debug", {"maximum_labels_length": maximum_labels_length})
 
     if mode == tf.estimator.ModeKeys.TRAIN:
       tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building training_pipeline ... ")
@@ -475,7 +554,6 @@ class Model(object):
         labels_length_fn=self._get_labels_length)
     else:
       tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building inference_pipeline ... ")
-      # TODO: check this
       dataset = data.inference_pipeline(
           dataset,
           batch_size,

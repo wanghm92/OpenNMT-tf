@@ -122,7 +122,8 @@ class Runner(object):
         hooks.LogParametersCountHook(),
         hooks.CountersHook(
             every_n_steps=self._estimator.config.save_summary_steps,
-            output_dir=self._estimator.model_dir)]
+            output_dir=self._estimator.model_dir,
+            debug=self._config["params"].get("debug"))]
 
     '''
     input_fn: A function that provides input data for training as minibatches.
@@ -166,7 +167,8 @@ class Runner(object):
           post_evaluation_fn=external_evaluation_fn(
               self._config["eval"].get("external_evaluators"),
               self._config["data"]["eval_labels_file"][0],
-              output_dir=self._estimator.model_dir)))
+              output_dir=self._estimator.model_dir),
+          debug=self._config["params"].get("debug")))
 
     # TODO: change the eval_labels_file back
 
@@ -293,7 +295,7 @@ class Runner(object):
 
     infer_hooks = []
     if log_time:
-      infer_hooks.append(hooks.LogPredictionTimeHook())
+      infer_hooks.append(hooks.LogPredictionTimeHook(debug=self._config["params"].get("debug")))
 
     for prediction in self._estimator.predict(
         input_fn=input_fn,
