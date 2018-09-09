@@ -52,7 +52,6 @@ class CountersHook(tf.train.SessionRunHook):
   """
   '''
   The run_values argument contains results of requested ops/tensors by before_run().
-  The run_context argument is 
   '''
   def __init__(self,
                every_n_steps=100,

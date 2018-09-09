@@ -232,7 +232,8 @@ class TextInputter(Inputter):
     return data["length"]
 
   def make_dataset(self, data_file):
-    tf.logging.info(" >>>> [text_inputter.py Class TextInputter make_dataset] return tf.data.TextLineDataset(data_file)")
+    tf.logging.info(" >>>> [text_inputter.py Class TextInputter make_dataset] "
+                    "return tf.data.TextLineDataset(data_file), data_file ={}".format(data_file))
     '''
     A Dataset comprising lines from one or more text files
     '''

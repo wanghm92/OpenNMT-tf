@@ -210,17 +210,6 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] state = {}".format(state))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] length = {}".format(length))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] final_time = {}".format(final_time))
-    add_dict_to_collection("debug", {"final_time": final_time,
-                                     "sequence_mask_sub_shape": tf.shape(sequence_mask_sub),
-                                     "outputs.rnn_output shape": tf.shape(outputs.rnn_output),
-                                     "outputs_sub.rnn_output shape": tf.shape(outputs_sub.rnn_output),
-                                     "cell_state_c": tf.shape(state.cell_state.c),
-                                     "cell_state_h": tf.shape(state.cell_state.h),
-                                     "attention": tf.shape(state.attention),
-                                     "time": state.time,
-                                     "alignments": tf.shape(state.alignments),
-                                     "attention_state": tf.shape(state.attention_state),
-                                     })
 
     if fused_projection and output_layer_master is not None:
         logits = output_layer_master(outputs.rnn_output)
@@ -237,17 +226,29 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     logits = align_in_time(logits, inputs_len)
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] AFTER logits = {}".format(logits))
 
-    # if mode == tf.estimator.ModeKeys.TRAIN:
     # [batch, mt, st, depth], [batch, mt, st]
     logits_sub = align_in_time_2d(logits_sub, sub_inputs.get_shape().as_list()[1], tf.shape(sub_inputs)[2])
     sequence_mask_sub = align_in_time(sequence_mask_sub, sub_inputs.get_shape().as_list()[1])
-    # else:
-    #   # [batch, sum_of_st, depth], [batch, sum_of_st]
-    #   logits_sub = align_in_time_2d(logits_sub, sub_inputs.get_shape().as_list()[1], tf.shape(sub_inputs)[2])
-    #   sequence_mask_sub = align_in_master_time(sequence_mask_sub, sub_inputs.get_shape().as_list()[1])
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] AFTER logits_sub = {}".format(logits_sub))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] AFTER sequence_mask_sub = {}".format(sequence_mask_sub))
+
+    add_dict_to_collection("debug", {"decode_final_time": final_time,
+                                     "decode_sequence_mask_sub_shape": tf.shape(sequence_mask_sub),
+                                     "decode_outputs.rnn_output shape": tf.shape(outputs.rnn_output),
+                                     "decode_outputs_sub.rnn_output shape": tf.shape(outputs_sub.rnn_output),
+                                     "decode_cell_state_c": tf.shape(state.cell_state.c),
+                                     "decode_cell_state_h": tf.shape(state.cell_state.h),
+                                     "decode_attention": tf.shape(state.attention),
+                                     "decode_time": state.time,
+                                     "decode_alignments": tf.shape(state.alignments),
+                                     "decode_inputs_len": inputs_len,
+                                     "decode_logits": tf.shape(logits),
+                                     "decode_logits_sub": tf.shape(logits_sub),
+                                     "decode_sequence_mask_sub": tf.shape(sequence_mask_sub),
+                                     "decode_master_sequence_length": master_sequence_length,
+                                     "decode_sub_sequence_length": sub_sequence_length,
+                                     })
 
     return (logits, logits_sub, state, length, sequence_mask_sub)
 
@@ -371,7 +372,9 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     log_probs_sub = logits_to_cum_log_probs(outputs_sub.rnn_output, sequence_mask_sub)
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] log_probs = {}".format(log_probs))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] log_probs_sub = {}".format(log_probs_sub)) # [batch, sum_of_st, depth]
-    # add_dict_to_collection("debug", {"master_predicted_ids": master_predicted_ids})
+    add_dict_to_collection("debug", {"eval_log_probs": log_probs,
+                                     "eval_log_probs_sub": log_probs_sub,
+                                     })
 
     # Make shape consistent with beam search.
     master_predicted_ids = tf.expand_dims(master_predicted_ids, 1)

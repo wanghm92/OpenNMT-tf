@@ -140,11 +140,14 @@ class AttentionWrapperStateDenseBridge(Bridge):
     tf.logging.info(" >> [bridge.py class AttentionWrapperStateDenseBridge _build] decoder_state_flat = \n{}"
                     .format("\n".join(["{}".format(x) for x in decoder_state_flat])))
 
+    # TODO: may not need to pass on the cell state, c
     encoder_state_concat = tf.concat(encoder_state_flat[:2], 1)
+    tf.logging.info(" >> [bridge.py class AttentionWrapperStateDenseBridge _build] encoder_state_concat = {}".format(encoder_state_concat))
 
     # Extract decoder state sizes.
     decoder_state_size = [x.get_shape().as_list()[-1] for x in decoder_state_flat[:2]]
     decoder_total_size = sum(decoder_state_size)
+    tf.logging.info(" >> [bridge.py class AttentionWrapperStateDenseBridge _build] decoder_state_size = {}".format(decoder_state_size))
 
     # Apply linear transformation.
     transformed = tf.layers.dense(

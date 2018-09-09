@@ -305,7 +305,7 @@ class ParallelInputter(MultiInputter):
       return lengths[0]
 
   def make_dataset(self, data_file):
-    tf.logging.info(" >> [inputter.py class ParallelInputter make_dataset]")
+    tf.logging.info(" >> [inputter.py class ParallelInputter make_dataset] data_file = {}".format(data_file))
     if not isinstance(data_file, list) or len(data_file) != len(self.inputters):
       raise ValueError("The number of data files must be the same as the number of inputters")
     datasets = [
@@ -483,7 +483,8 @@ class HierarchicalInputter(ParallelInputter):
 
   def visualize(self, log_dir):
     tf.logging.info(" >>>> [inputter.py Class HierarchicalInputter visualize]")
-    for inputter in self.inputters: inputter.visualize(log_dir)
+    for inputter in self.inputters:
+      inputter.visualize(log_dir)
 
   def get_length(self, data, to_reduce=False):
     tf.logging.info(" >> [inputter.py class HierarchicalInputter get_length]")

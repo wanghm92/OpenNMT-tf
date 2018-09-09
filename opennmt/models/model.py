@@ -132,13 +132,13 @@ class Model(object):
                                          "sub_tboard_loss": sub_tboard_loss,
                                          })
 
-        actual_loss = tf.reduce_mean([master_actual_loss, sub_actual_loss])
-        tboard_loss = tf.reduce_mean([master_tboard_loss, sub_tboard_loss])
-
         tf.summary.scalar("master_actual_loss_loss_normalized_by_length)", master_actual_loss)
         tf.summary.scalar("master_tboard_loss_normalized_by_length)", master_tboard_loss)
         tf.summary.scalar("sub_actual_loss_normalized_by_length)", sub_actual_loss)
         tf.summary.scalar("sub_tboard_loss_normalized_by_length)", sub_tboard_loss)
+
+        actual_loss = tf.reduce_mean([master_actual_loss, sub_actual_loss])
+        tboard_loss = tf.reduce_mean([master_tboard_loss, sub_tboard_loss])
 
         return actual_loss, tboard_loss
 
@@ -170,12 +170,16 @@ class Model(object):
             '''
               (master_loss_tuple, sub_loss_tuple)
             '''
+            tf.logging.info(" >> [model.py model_fn _extract_loss] (master_loss_tuple, sub_loss_tuple)")
             master_loss_tuple, sub_loss_tuple = loss
             master_actual_loss, master_tboard_loss = _normalize_loss_tuple(master_loss_tuple)
             sub_actual_loss, sub_tboard_loss = _normalize_loss_tuple(sub_loss_tuple)
             actual_loss = tf.reduce_mean([master_actual_loss, sub_actual_loss])
             tboard_loss = tf.reduce_mean([master_tboard_loss, sub_tboard_loss])
-
+            tf.summary.scalar("master_actual_loss_loss_normalized_by_length)", master_actual_loss)
+            tf.summary.scalar("master_tboard_loss_normalized_by_length)", master_tboard_loss)
+            tf.summary.scalar("sub_actual_loss_normalized_by_length)", sub_actual_loss)
+            tf.summary.scalar("sub_tboard_loss_normalized_by_length)", sub_tboard_loss)
         else:
           '''
             sharded: each element of this tuple is list of shards (same as what _compute_loss() returns in order)
@@ -191,6 +195,7 @@ class Model(object):
             '''
               else it is the master_loss_tuple in (master_loss_tuple, sub_loss_tuple)
             '''
+            tf.logging.info(" >> [model.py model_fn _extract_loss] sharded (master_loss_tuple, sub_loss_tuple)")
             actual_loss, tboard_loss = _normalize_master_and_sub_losses(loss)
 
       tf.summary.scalar("actual_loss", actual_loss)
@@ -225,7 +230,7 @@ class Model(object):
 
         if isinstance(labels, tuple):
           sharded = (dispatcher.shard(l) for l in labels)
-          tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> sharded = {} \n\n".format(sharded))
+          tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> sharded = {}".format(sharded))
           labels_shards = [x for x in zip(*sharded)]
         else:
           labels_shards = dispatcher.shard(labels)
@@ -239,7 +244,7 @@ class Model(object):
           losses_shards = dispatcher(_loss_op, features_shards, labels_shards, params, mode, config)
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> losses_shards = \n{}".format(losses_shards))
-        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> len(losses_shards) = {}\n".format(len(losses_shards)))
+        tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> len(losses_shards) = {}".format(len(losses_shards)))
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Extracts and summarizes the loss ...")
         loss = _extract_loss(losses_shards)
 
@@ -519,7 +524,7 @@ class Model(object):
       # Parallel inputs must be caught in a single tuple and not considered as multiple arguments.
       process_fn = lambda *arg: feat_process_fn(item_or_tuple(arg))
     else:
-      tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building labels ... ")
+      tf.logging.info(log_separator+" >> [model.py _input_fn_impl] Building labels ... labels_file = {}".format(labels_file))
       labels_dataset, labels_process_fn = self._get_labels_builder(labels_file)
       tf.logging.info(" >> [model.py _input_fn_impl] labels_dataset = {} ".format(labels_dataset))
 

@@ -267,6 +267,12 @@ class TrainingHelper(Helper):
     with ops.name_scope(name, "TrainingHelperNextInputs",
                         [time, outputs, state]):
       next_time = time + 1
+      '''
+        Decoder input/output sequences are added by <s> and </s> respectively and sequence lengths are added by 1 accordingly,
+        Finished is next_time(time+1) >= sequence_length,
+            when time=4, next_time=5>=6 is False, read from input_ta[5], which is the 6th element in an 0-indexed array
+            when time=5, next_time=6>=6 is True, use zero_inputs
+      '''
       finished = (next_time >= self._sequence_length)
       all_finished = math_ops.reduce_all(finished)
       def read_from_ta(inp):

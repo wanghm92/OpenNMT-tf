@@ -35,7 +35,8 @@ def cross_entropy_sequence_loss(logits,
                                 sequence_length,
                                 label_smoothing=0.0,
                                 average_in_time=False,
-                                mode=tf.estimator.ModeKeys.TRAIN):
+                                mode=tf.estimator.ModeKeys.TRAIN,
+                                master_mask=None):
   """Computes the cross entropy loss of sequences.
 
   Args:
@@ -49,6 +50,7 @@ def cross_entropy_sequence_loss(logits,
   Returns:
     A tuple (cumulated loss, loss normalizer, token-level normalizer).
   """
+  tf.logging.info(" >> [losses.py cross_entropy_sequence_loss] average_in_time = {}".format(average_in_time))
   tf.logging.info(" >> [losses.py cross_entropy_sequence_loss] logits = {}".format(logits))
   tf.logging.info(" >> [losses.py cross_entropy_sequence_loss] labels = {}".format(labels))
   tf.logging.info(" >> [losses.py cross_entropy_sequence_loss] sequence_length = {}".format(sequence_length))
@@ -57,13 +59,21 @@ def cross_entropy_sequence_loss(logits,
   max_time = tf.shape(logits)[-2]
 
   cross_entropy = _softmax_cross_entropy(logits, labels, label_smoothing, mode)
-  weights = tf.sequence_mask(
-      sequence_length, maxlen=max_time, dtype=cross_entropy.dtype)
+  weights = tf.sequence_mask(sequence_length, maxlen=max_time, dtype=cross_entropy.dtype)
+
+  if master_mask is not None:
+    add_dict_to_collection("debug", {"master_mask": master_mask})
+    weights = weights * master_mask
+
   loss = tf.reduce_sum(cross_entropy * weights)
   loss_token_normalizer = tf.reduce_sum(weights)
 
   add_dict_to_collection("debug", {"batch_size": batch_size,
                                    "max_time": max_time,
+                                   # "logits": logits,
+                                   "logits_shape": tf.shape(logits),
+                                   # "labels": labels,
+                                   "labels_shape": tf.shape(labels),
                                    "cross_entropy": cross_entropy,
                                    "cross_entropy_shape": tf.shape(cross_entropy),
                                    "weights": weights,

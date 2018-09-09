@@ -12,6 +12,7 @@ from opennmt.decoders.decoder import get_sampling_probability
 from opennmt.utils.hooks import add_counter
 from opennmt.models.sequence_to_sequence import _maybe_reuse_embedding_fn, EmbeddingsSharingLevel, shift_target_sequence
 from opennmt.utils.misc import add_dict_to_collection
+from opennmt.layers.reducer import align_in_time
 
 log_separator = "\nINFO:tensorflow:{}\n".format("*"*50)
 
@@ -170,6 +171,7 @@ class HierarchicalSequenceToSequence(Model):
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] length = {}".format(length))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] sequence_mask_sub = {}".format(sequence_mask_sub))
           add_dict_to_collection("debug", {"decoder_logits": tf.shape(logits),
+                                           "decoder_target_inputs": tf.shape(target_inputs),
                                            "decoder_logits_sub": tf.shape(logits_sub),
                                            "decoder_length": tf.shape(length),
                                            "sequence_mask_sub": tf.shape(sequence_mask_sub)
@@ -208,11 +210,9 @@ class HierarchicalSequenceToSequence(Model):
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] sampled_length = {}".format(sampled_length))
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] log_probs = {}".format(log_probs))
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] alignment = {}".format(alignment))
-                  add_dict_to_collection("debug", {"log_probs": tf.shape(log_probs),
-                                                   "alignment": tf.shape(alignment)
-                                                   })
+
               else:
-                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] dynamic_decode ...")
+                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] dynamic_decode_and_search ...")
                   length_penalty = params.get("length_penalty", 0)
                   sampled_ids, _, sampled_length, log_probs, alignment = (
                       self.decoder.dynamic_decode_and_search(
@@ -318,8 +318,7 @@ class HierarchicalSequenceToSequence(Model):
       '''
       labels_inputter=target_inputter
       '''
-      master_labels_file = labels_file[0]
-      sub_labels_file = labels_file[1:]
+      master_labels_file, sub_labels_file = labels_file
       tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_builder] master_labels_file = {}".format(master_labels_file))
       tf.logging.info(" >> [hierarchical_seq2seq.py _get_labels_builder] sub_labels_file = {}".format(sub_labels_file))
 
@@ -383,7 +382,7 @@ class HierarchicalSequenceToSequence(Model):
       if sub_length is not None:
         add_counter("sub_labels", tf.reduce_sum(sub_length))
 
-  def _compute_loss_impl(self, logits, labels, sequence_length, params, mode):
+  def _compute_loss_impl(self, logits, labels, sequence_length, params, mode, master_mask=None):
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss_impl] labels = {}".format(labels))
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss_impl] labels[\"ids_out\"] = {}".format(labels["ids_out"]))
     return cross_entropy_sequence_loss(
@@ -392,9 +391,13 @@ class HierarchicalSequenceToSequence(Model):
         sequence_length,
         label_smoothing=params.get("label_smoothing", 0.0),
         average_in_time=params.get("average_loss_in_time", False),
-        mode=mode)
+        mode=mode,
+        master_mask=master_mask)
 
   def _compute_loss(self, features, labels, outputs, params, mode):
+
+    # TODO: sub_decoder loss should also be masked by master sequence mask
+        # or it should be truncated to the same length as the master decoder length (do not decode when master decoder finishes)
 
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] outputs = {}".format(outputs))
     master_labels, sub_labels = labels
@@ -402,25 +405,41 @@ class HierarchicalSequenceToSequence(Model):
     master_length, sub_length = self._get_labels_length(labels, to_reduce=True)
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_length = {}".format(master_length))
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] sub_length = {}".format(sub_length))
-
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] \nmaster_labels : \n{}".format("\n".join(["{}".format(x) for x in master_labels.items()])))
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] BEFORE \nsub_labels : \n{}".format("\n".join(["{}".format(x) for x in sub_labels.items()])))
+
     sub_labels = self.sub_target_inputter._transform_sub_labels(sub_labels)
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] AFTER \nsub_labels : \n{}".format("\n".join(["{}".format(x) for x in sub_labels.items()])))
 
-    add_dict_to_collection("debug", {"master_length": tf.shape(master_length),
-                                     "sub_length": tf.shape(sub_length),
+    master_loss = self._compute_loss_impl(master_logits, master_labels, master_length, params, mode)
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_loss = {}".format(master_loss))
+
+    '''
+     master_length was added by one due to shift_target_sequence, so -1
+    '''
+    master_mask = tf.sequence_mask(master_length-1, maxlen=tf.shape(master_logits)[-2], dtype=tf.float32)
+    master_mask = tf.expand_dims(master_mask, axis=-1)
+    master_mask = align_in_time(master_mask, tf.shape(sub_length)[-1])
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_mask = {}".format(master_mask))
+
+    sub_loss = self._compute_loss_impl(sub_logits, sub_labels, sub_length, params, mode, master_mask=master_mask)
+    sub_loss_value, sub_loss_normalizer1, sub_loss_normalizer2 = sub_loss
+    tf.summary.scalar("sub_loss_value)", sub_loss_value)
+    tf.summary.scalar("sub_loss_normalizer1)", sub_loss_normalizer1)
+    tf.summary.scalar("sub_loss_normalizer2)", sub_loss_normalizer2)
+
+    add_dict_to_collection("debug", {"master_length": master_length,
+                                     "sub_length": sub_length,
                                      "master_logits": tf.shape(master_logits),
                                      "sub_logits": tf.shape(sub_logits),
                                      "sequence_mask_sub_shape": tf.shape(sequence_mask_sub),
-                                     "sequence_mask_sub": sequence_mask_sub
+                                     "sequence_mask_sub": sequence_mask_sub,
+                                     "sub_loss_value": sub_loss_value,
+                                     "sub_loss_normalizer1": sub_loss_normalizer1,
+                                     "sub_loss_normalizer2": sub_loss_normalizer2,
                                      })
 
-    sub_loss = self._compute_loss_impl(sub_logits, sub_labels, sub_length, params, mode)
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] sub_loss = {}".format(sub_loss))
-
-    master_loss = self._compute_loss_impl(master_logits, master_labels, master_length, params, mode)
-    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_loss = {}".format(master_loss))
 
     return (master_loss, sub_loss)
 
@@ -432,7 +451,7 @@ class HierarchicalSequenceToSequence(Model):
       raise ValueError("n_best cannot be greater than beam_width")
 
     for i in range(n_best):
-      tokens = prediction["tokens"][i][:prediction["length"][i] - 1] # Ignore </s>.
+      tokens = prediction["tokens"][i][:prediction["length"][i]-1] # Ignore </s>.
       sentence = self.target_inputter.tokenizer.detokenize(tokens)
       print_bytes(tf.compat.as_bytes(sentence), stream=stream)
       if sub_stream is not None:

@@ -145,7 +145,8 @@ class GraphDispatcher(object):
         with tf.variable_scope(
             tf.get_variable_scope(),
             reuse=True if i > 0 else None,
-            custom_getter=custom_getter):
+            custom_getter=custom_getter
+        ):
           if device is None:
             outputs.append(funs[i](*args[i], **kwargs[i]))
           else:

@@ -13,10 +13,10 @@ data:
   train_labels_file:
     - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.attr_one
     - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.1
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.2
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.3
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.4
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.5
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.2
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.3
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.4
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.5
                     
   # (required for train_end_eval and eval run types).
   eval_features_file:
@@ -25,10 +25,10 @@ data:
   eval_labels_file:
     - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.attr_one
     - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.1
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.2
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.3
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.4
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.5
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.2
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.3
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.4
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.5
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
   source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
@@ -56,7 +56,7 @@ params:
     type: l2  # can be "l1", "l2", "l1_l2" (case-insensitive).
     scale: 1e-4  # if using "l1_l2" regularization, this should be a YAML list.
   # (optional) Average loss in the time dimension in addition to the batch dimension (default: False).
-  average_loss_in_time: false
+  average_loss_in_time: true
   # (optional) The type of learning rate decay (default: None). See:
   #  * https://www.tensorflow.org/versions/master/api_guides/python/train#Decaying_the_learning_rate
   #  * opennmt/utils/decay.py
@@ -115,7 +115,7 @@ train:
   # (optional) The maximum length of feature sequences during training (default: None).
   maximum_features_length: 90
   # (optional) The maximum length of label sequences during training (default: None).
-  maximum_labels_length: [5, 90]
+  maximum_labels_length: [6, 90]
   # (optional) The width of the length buckets to select batch candidates from (default: 5).
   bucket_width: 5
   # (optional) The number of threads to use for processing data in parallel (default: 4).

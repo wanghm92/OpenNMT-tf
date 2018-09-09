@@ -44,7 +44,6 @@ def shift_target_sequence(inputter, data):
 
   return data
 
-# TODO: share embedding is still ugly
 def _maybe_reuse_embedding_fn(embedding_fn, scope=None):
   def _scoped_embedding_fn(ids):
     try:
