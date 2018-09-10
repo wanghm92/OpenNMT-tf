@@ -123,6 +123,8 @@ class HierarchicalSequenceToSequence(Model):
 
       master_target_vocab_size = self.target_inputter.get_vocab_size()
       sub_target_vocab_size = self.sub_target_inputter.get_vocab_size()
+      assert master_target_vocab_size == sub_target_vocab_size
+
       target_dtype = self.target_inputter.dtype
 
       # TODO: construct sub_embedding_fn for scheduled sampling
@@ -157,8 +159,7 @@ class HierarchicalSequenceToSequence(Model):
               logits, logits_sub, state, length, sequence_mask_sub = self.decoder.decode(
                   (target_inputs, sub_target_inputs),
                   self._get_labels_length(labels, to_reduce=True),
-                  vocab_size_master=master_target_vocab_size,
-                  vocab_size_sub=sub_target_vocab_size,
+                  vocab_size=master_target_vocab_size,
                   initial_state=encoder_state,
                   sampling_probability=sampling_probability,
                   embedding=target_embedding_fn,
@@ -197,8 +198,7 @@ class HierarchicalSequenceToSequence(Model):
                       target_embedding_fn,
                       start_tokens,
                       end_token,
-                      vocab_size_master=master_target_vocab_size,
-                      vocab_size_sub=sub_target_vocab_size,
+                      vocab_size=master_target_vocab_size,
                       initial_state=encoder_state,
                       maximum_iterations=maximum_iterations,
                       mode=mode,

@@ -60,13 +60,11 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
   def decode(self,
              inputs,
              sequence_length,
-             vocab_size_master=None,
-             vocab_size_sub=None,
+             vocab_size=None,
              initial_state=None,
              sampling_probability=None,
              embedding=None,
-             output_layer_master=None,
-             output_layer_sub=None,
+             output_layer=None,
              mode=tf.estimator.ModeKeys.TRAIN,
              memory=None,
              memory_sequence_length=None):
@@ -76,8 +74,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     Args:
       inputs = (target_inputs, sub_target_inputs) (embedding lookup)
       sequence_length = self._get_labels_length(labels),
-      vocab_size_master=master_target_vocab_size,
-      vocab_size_sub=sub_target_vocab_size,
+      vocab_size=master_target_vocab_size,
       initial_state=encoder_state,
       sampling_probability=sampling_probability,
       embedding=target_embedding_fn,
@@ -145,6 +142,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         LSTMStateTuple(c=<tf.Tensor 'seq2seq/parallel_0/seq2seq/encoder/concat_1:0' shape=(?, 128) dtype=float32>, 
                        h=<tf.Tensor 'seq2seq/parallel_0/seq2seq/encoder/concat_2:0' shape=(?, 128) dtype=float32>)
     '''
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] fused_projection = {}".format(fused_projection))
+
     master_cell, initial_state_master = self._build_cell(
         mode,
         batch_size,
@@ -155,8 +154,6 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] master_cell = {}".format(master_cell))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] initial_state_master = {}".format(initial_state_master))
 
-    # TODO: remember to wrap using _build_attention_mechanism()/AttentionWrapper() during decode, decoder state as the initial state
-        # memory = encoder/master_decoder?
     sub_cell, initial_state_sub = self._build_cell(
         mode,
         batch_size,
@@ -168,13 +165,9 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] sub_cell = {}".format(sub_cell))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] initial_state_sub = {}".format(initial_state_sub))
 
-    # TODO: may only need one output_layer ?
-    if output_layer_master is None:
-        output_layer_master = build_output_layer(self.num_units, vocab_size_master, dtype=master_inputs.dtype)
-    if output_layer_sub is None:
-        output_layer_sub = build_output_layer(self.num_units, vocab_size_sub, dtype=sub_inputs.dtype)
-    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] output_layer_master = {}".format(output_layer_master))
-    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] output_layer_sub = {}".format(output_layer_sub))
+    if output_layer is None:
+        output_layer = build_output_layer(self.num_units, vocab_size, dtype=master_inputs.dtype)
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] output_layer = {}".format(output_layer))
 
     '''
     master and sub-sequence sampling decoder.
@@ -183,14 +176,14 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         cell=master_cell,
         helper=master_helper,
         initial_state=initial_state_master,
-        output_layer=output_layer_master if not fused_projection else None)
+        output_layer=output_layer if not fused_projection else None)
 
     sub_decoder = BasicSubDecoder(
         cell=sub_cell,
         helper=sub_helper,
         initial_state=initial_state_sub,
         bridge=self._sub_bridge,
-        output_layer=output_layer_sub if not fused_projection else None)
+        output_layer=output_layer if not fused_projection else None)
 
     '''
     Perform dynamic decoding with decoder.
@@ -211,9 +204,9 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] length = {}".format(length))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] final_time = {}".format(final_time))
 
-    if fused_projection and output_layer_master is not None:
-        logits = output_layer_master(outputs.rnn_output)
-        logits_sub = output_layer_sub(outputs_sub.rnn_output)
+    if fused_projection and output_layer is not None:
+        logits = output_layer(outputs.rnn_output)
+        logits_sub = output_layer(outputs_sub.rnn_output)
     else:
         logits = outputs.rnn_output
         logits_sub = outputs_sub.rnn_output
@@ -256,11 +249,9 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                      embedding,
                      start_tokens,
                      end_token,
-                     vocab_size_master=None,
-                     vocab_size_sub=None,
+                     vocab_size=None,
                      initial_state=None,
-                     output_layer_master=None,
-                     output_layer_sub=None,
+                     output_layer=None,
                      maximum_iterations=5,
                      mode=tf.estimator.ModeKeys.PREDICT,
                      memory=None,
@@ -310,7 +301,6 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_cell = {}".format(master_cell))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] initial_state_master = {}".format(initial_state_master))
 
-    # TODO: remember to wrap using _build_attention_mechanism()/AttentionWrapper() during decode, decoder state as the initial state
     sub_cell, initial_state_sub = self._build_cell(
         mode,
         batch_size,
@@ -323,27 +313,23 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_cell = {}".format(sub_cell))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] initial_state_sub = {}".format(initial_state_sub))
 
-    # TODO: may only need one output_layer
-    if output_layer_master is None:
-        output_layer_master = build_output_layer(self.num_units, vocab_size_master, dtype=dtype or memory.dtype)
-    if output_layer_sub is None:
-        output_layer_sub = build_output_layer(self.num_units, vocab_size_sub, dtype=dtype or memory.dtype)
+    if output_layer is None:
+        output_layer = build_output_layer(self.num_units, vocab_size, dtype=dtype or memory.dtype)
 
-    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] output_layer_master = {}".format(output_layer_master))
-    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] output_layer_sub = {}".format(output_layer_sub))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] output_layer = {}".format(output_layer))
 
     master_decoder = BasicDecoder(
         cell=master_cell,
         helper=master_helper,
         initial_state=initial_state_master,
-        output_layer=output_layer_master)
+        output_layer=output_layer)
 
     sub_decoder = BasicSubDecoder(
         cell=sub_cell,
         helper=sub_helper,
         initial_state=initial_state_sub,
         bridge=self._sub_bridge,
-        output_layer=output_layer_sub)
+        output_layer=output_layer)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_decoder = {}".format(master_decoder))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_decoder = {}".format(sub_decoder))
