@@ -1,6 +1,6 @@
 """Vocabulary utilities for Python scripts."""
 
-import six
+import six, io
 
 import tensorflow as tf
 
@@ -59,21 +59,37 @@ class Vocab(object):
         for token in tokens:
           self.add(token)
 
-  def serialize(self, path):
+  def serialize(self, path, emb_vocab=None):
     """Writes the vocabulary on disk.
 
     Args:
       path: The path where the vocabulary will be saved.
     """
+    emb_vocab_dict = None
+    oov = 0
+    oov_cnt = 0
+    if emb_vocab is not None:
+      with io.open(emb_vocab, 'r', encoding="utf-8") as fin:
+        emb_vocab_dict = dict.fromkeys([x.strip() for x in fin.readlines()])
+
     with open(path, "wb") as vocab:
       for token in self._id_to_token:
         vocab.write(tf.compat.as_bytes(token))
         vocab.write(b"\n")
 
     with open(path+'.cnt', "wb") as fout:
-      for token in self._id_to_token:
-        freq = self._frequency[self._token_to_id[token]]
-        fout.write(b"%s: %s\n"%(tf.compat.as_bytes(token), str(freq)))
+      if emb_vocab is not None:
+        for token in self._id_to_token:
+          freq = self._frequency[self._token_to_id[token]]
+          if not token in emb_vocab_dict and freq != float('Inf'):
+            oov += 1
+            oov_cnt += freq
+          fout.write(b"%s: %s\n"%(tf.compat.as_bytes(token), str(freq)))
+        print("number of OOVs w.r.t pre-trained embeddings = {} (count={})".format(oov, oov_cnt))
+      else:
+        for token in self._id_to_token:
+          freq = self._frequency[self._token_to_id[token]]
+          fout.write(b"%s: %s\n" % (tf.compat.as_bytes(token), str(freq)))
 
   def load(self, path):
     """Loads a serialized vocabulary.
@@ -138,18 +154,24 @@ class Vocab(object):
     """
     sorted_ids = sorted(range(self.size), key=lambda k: self._frequency[k], reverse=True)
     new_size = len(sorted_ids)
+    original_size = len(sorted_ids)
+    oov_frequency = 0
 
     # Discard words that do not meet frequency requirements.
     for i in range(new_size - 1, 0, -1):
       index = sorted_ids[i]
       if self._frequency[index] < min_frequency:
         new_size -= 1
+        oov_frequency += self._frequency[index]
       else:
         break
 
     # Limit absolute size.
     if max_size > 0:
       new_size = min(new_size, max_size)
+
+    print("less_than_mincount word_frequency = {}".format(oov_frequency))
+    print("less_than_mincount vocab_size = {}".format(original_size-new_size))
 
     new_vocab = Vocab()
 

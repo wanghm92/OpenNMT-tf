@@ -16,6 +16,9 @@ def main():
       "--save_vocab", required=True,
       help="Output vocabulary file.")
   parser.add_argument(
+      "--emb_vocab", required=False,
+      help="Vocabulary file for pre-trained embeddings")
+  parser.add_argument(
       "--min_frequency", type=int, default=1,
       help="Minimum word frequency.")
   parser.add_argument(
@@ -26,6 +29,8 @@ def main():
       help="If set, do not add special sequence tokens (start, end) in the vocabulary.")
   tokenizers.add_command_line_arguments(parser)
   args = parser.parse_args()
+
+  print(args.data)
 
   tokenizer = tokenizers.build_tokenizer(args)
 
@@ -38,7 +43,7 @@ def main():
   for data_file in args.data:
     vocab.add_from_text(data_file, tokenizer=tokenizer)
   vocab = vocab.prune(max_size=args.size, min_frequency=args.min_frequency)
-  vocab.serialize(args.save_vocab)
+  vocab.serialize(args.save_vocab, emb_vocab=args.emb_vocab)
 
 
 if __name__ == "__main__":
