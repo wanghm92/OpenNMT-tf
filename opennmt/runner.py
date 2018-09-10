@@ -111,7 +111,7 @@ class Runner(object):
         config=run_config,
         params=self._config["params"])
 
-  def _build_train_spec(self):
+  def _build_train_spec(self, profile_hook=False):
     """
     :return: Configuration for the "train" part for the train_and_evaluate call
                 tf.estimator.TrainSpec: input data for the training, as well as the duration
@@ -125,6 +125,12 @@ class Runner(object):
             output_dir=self._estimator.model_dir,
             debug=self._config["params"].get("debug"))]
 
+    if profile_hook:
+        train_hooks.append(
+            tf.train.ProfilerHook(
+                save_steps=self._estimator.config.save_summary_steps,
+                output_dir=self._estimator.model_dir,
+                show_memory=True))
     '''
     input_fn: A function that provides input data for training as minibatches.
     '''
@@ -166,11 +172,9 @@ class Runner(object):
           os.path.join(save_path, "predictions.txt"),
           post_evaluation_fn=external_evaluation_fn(
               self._config["eval"].get("external_evaluators"),
-              self._config["data"]["eval_labels_file"][0],
+              self._config["data"]["eval_labels_file"][-1],  # The complete text file (vs segmented)
               output_dir=self._estimator.model_dir),
           debug=self._config["params"].get("debug")))
-
-    # TODO: change the eval_labels_file back
 
     eval_spec = tf.estimator.EvalSpec(
         input_fn=self._model.input_fn(
@@ -200,7 +204,7 @@ class Runner(object):
         In order to avoid overfitting, it is recommended to set up the training input_fn to shuffle the training data properly
         The training input_fn is configured to throw OutOfRangeError after going through one epoch, which stops the Estimator.train
     '''
-    train_spec = self._build_train_spec()
+    train_spec = self._build_train_spec(profile_hook=self._config["train"]["profile_hook"])
     eval_spec = self._build_eval_spec()
     tf.logging.info(" >> Start train_and_evaluate...")
     tf.estimator.train_and_evaluate(self._estimator, train_spec, eval_spec)
@@ -209,7 +213,7 @@ class Runner(object):
   def train(self):
     """Runs the training loop. Trains a model given training data from input_fn"""
     tf.logging.info(">> [runner.py train] Runs the training loop. Trains a model given training data input_fn")
-    train_spec = self._build_train_spec()
+    train_spec = self._build_train_spec(profile_hook=self._config["train"]["profile_hook"])
     self._estimator.train(train_spec.input_fn, hooks=train_spec.hooks, max_steps=train_spec.max_steps)
     self._maybe_average_checkpoints()
     tf.logging.info(">> [runner.py train] Parameters : ")

@@ -2,15 +2,13 @@
 
 from __future__ import print_function
 
-import io
-import time
-import six
-import pprint
 import tensorflow as tf
+from tensorflow.python.training import training_util
+
+import io, time, six, pprint
 
 from opennmt.utils import misc
 
-from collections import OrderedDict
 pp = pprint.PrettyPrinter(indent=4)
 
 class LogParametersCountHook(tf.train.SessionRunHook):
@@ -20,7 +18,7 @@ class LogParametersCountHook(tf.train.SessionRunHook):
     total, param_sizes = misc.count_parameters()
     tf.logging.info("Number of trainable parameters: %d", total)
     param_sizes = sorted(param_sizes.items(), key=lambda t: t[1][1])
-    print("{:>10} | {:<10} | {}".format("count", "shape", "name"))
+    print("{:>10} | {:<15} | {}".format("count", "shape", "name"))
     for name, (shape, count) in param_sizes:
       print("{:>10} | {:<15} | {}".format("{:,}".format(count), shape, name))
 

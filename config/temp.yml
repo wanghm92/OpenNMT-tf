@@ -40,11 +40,13 @@ data:
 train:
   save_checkpoints_steps: 1
   save_summary_steps: 1
-  train_steps: 2
+  train_steps: 4
+  # whether to profile run time trace
+  profile_hook: True
 #
 eval:
  # (optional) Evaluate every this many seconds (default: 18000).
-  eval_delay: 30
+  eval_delay: 10
 
 params:
   # whether to turn on printing debug_ops in hooks
