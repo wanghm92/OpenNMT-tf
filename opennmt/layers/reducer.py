@@ -13,6 +13,13 @@ def pad_in_time(x, padding_length):
   x.set_shape((None, None, depth))
   return x
 
+def pad_in_master_time(x, padding_length):
+  """Helper function to pad a tensor in the time dimension and retain the static depth dimension."""
+  depth = x.get_shape().as_list()[-1]
+  x = tf.pad(x, [[0, 0], [0, padding_length], [0, 0], [0, 0]])
+  x.set_shape((None, None, None, depth))
+  return x
+
 def pad_with_identity(x, sequence_length, max_sequence_length, identity_values=0, maxlen=None):
   """Pads a tensor with identity values up to :obj:`max_sequence_length`.
 
@@ -72,6 +79,44 @@ def align_in_time(x, length):
   return tf.cond(
       tf.less(time_dim, length),
       true_fn=lambda: pad_in_time(x, length - time_dim),
+      false_fn=lambda: x[:, :length])
+
+def align_in_time_transposed(x, length):
+  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
+  time_dim = tf.shape(x)[0]
+  return tf.cond(
+      tf.less(time_dim, length),
+      true_fn=lambda: tf.pad(x, [[0, length - time_dim], [0, 0], [0, 0]]),
+      false_fn=lambda: x[:length])
+
+def align_in_time_transposed_nodepth(x, length):
+  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
+  time_dim = tf.shape(x)[0]
+  return tf.cond(
+      tf.less(time_dim, length),
+      true_fn=lambda: tf.pad(x, [[0, length - time_dim], [0, 0]]),
+      false_fn=lambda: x[:length])
+
+def align_in_time_transposed_nest(decoder_output, length):
+  rnn_output, sample_id = tf.contrib.framework.nest.flatten(decoder_output)
+  rnn_output = align_in_time_transposed(rnn_output, length)
+  sample_id = align_in_time_transposed_nodepth(sample_id, length)
+  return tf.contrib.framework.nest.pack_sequence_as(decoder_output, [rnn_output, sample_id])
+
+def align_in_master_time(x, length):
+  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
+  time_dim = tf.shape(x)[1]
+  return tf.cond(
+      tf.less(time_dim, length),
+      true_fn=lambda: pad_in_master_time(x, length - time_dim),
+      false_fn=lambda: x[:, :length])
+
+def align_in_master_time_nodepth(x, length):
+  """Aligns the time dimension of :obj:`x` with :obj:`length`."""
+  time_dim = tf.shape(x)[1]
+  return tf.cond(
+      tf.less(time_dim, length),
+      true_fn=lambda: tf.pad(x, [[0, 0], [0, length - time_dim]]),
       false_fn=lambda: x[:, :length])
 
 def align_in_time_2d(x, master_length, sub_length):

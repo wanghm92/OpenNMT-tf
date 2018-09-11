@@ -140,7 +140,9 @@ class AttentionWrapperStateDenseBridge(Bridge):
     tf.logging.info(" >> [bridge.py class AttentionWrapperStateDenseBridge _build] decoder_state_flat = \n{}"
                     .format("\n".join(["{}".format(x) for x in decoder_state_flat])))
 
-    # TODO: may not need to pass on the cell state, c
+    # TODO: need to pass on the attention state as well !!!!!!
+      # AttentionWrapperState: <attention> is the attention emitted at the previous time step.
+
     encoder_state_concat = tf.concat(encoder_state_flat[:2], 1)
     tf.logging.info(" >> [bridge.py class AttentionWrapperStateDenseBridge _build] encoder_state_concat = {}".format(encoder_state_concat))
 

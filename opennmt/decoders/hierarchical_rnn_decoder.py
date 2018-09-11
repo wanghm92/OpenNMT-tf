@@ -3,7 +3,7 @@
 import tensorflow as tf
 
 from opennmt.decoders.decoder import build_output_layer, logits_to_cum_log_probs
-from opennmt.layers.reducer import align_in_time, align_in_time_2d
+from opennmt.layers.reducer import align_in_time, align_in_time_2d, align_in_master_time, align_in_master_time_nodepth
 from opennmt.decoders.rnn_decoder import RNNDecoder, AttentionalRNNDecoder, _build_attention_mechanism, _get_alignment_history
 from opennmt.decoders.basic_decoder import BasicDecoder, BasicSubDecoder
 from opennmt.decoders.tf_contrib_seq2seq_decoder import hierarchical_dynamic_decode
@@ -96,9 +96,16 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     master_sequence_length, sub_sequence_length = sequence_length
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] master_sequence_length = {}".format(master_sequence_length))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] sub_sequence_length = {}".format(sub_sequence_length))
-    batch_size = tf.shape(master_inputs)[0]
 
-    # TODO: 'embedding' should also be 2 sets for master and sub, not yet used by training helpers, needed by scheduled sampling
+    batch_size = tf.shape(master_inputs)[0]
+    master_time = tf.shape(master_inputs)[1]  # [batch, mt, dim]
+
+    sub_inputs = align_in_master_time(sub_inputs, master_time)
+    sub_sequence_length = align_in_master_time_nodepth(sub_sequence_length, master_time)
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] AFTER sub_inputs = {}".format(sub_inputs))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] AFTER sub_sequence_length = {}".format(sub_sequence_length))
+
+    # TODO: scheduled sampling -- 'embedding' should also be 2 sets for master and sub, not yet used by training helpers
 
     if (sampling_probability is not None
         and (tf.contrib.framework.is_tensor(sampling_probability)
@@ -117,7 +124,6 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
             embedding,
             sampling_probability)
 
-        # TODO: sampling_prob is now None, sub_sequence_length is (batch, 5)
         sub_helper = ScheduledEmbeddingTrainingHelper(
             sub_inputs,
             sub_sequence_length,
@@ -215,13 +221,13 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] BEFORE sequence_mask_sub = {}".format(sequence_mask_sub))
 
     # Make sure outputs have the same time_dim as inputs
-    inputs_len = tf.shape(master_inputs)[1]
-    logits = align_in_time(logits, inputs_len)
+    logits = align_in_time(logits, master_time)
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] AFTER logits = {}".format(logits))
 
     # [batch, mt, st, depth], [batch, mt, st]
-    logits_sub = align_in_time_2d(logits_sub, sub_inputs.get_shape().as_list()[1], tf.shape(sub_inputs)[2])
-    sequence_mask_sub = align_in_time(sequence_mask_sub, sub_inputs.get_shape().as_list()[1])
+    # logits_sub = align_in_time_2d(logits_sub, master_time, tf.shape(sub_inputs)[2])
+    logits_sub = align_in_master_time(logits_sub, master_time)
+    sequence_mask_sub = align_in_time(sequence_mask_sub, master_time)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] AFTER logits_sub = {}".format(logits_sub))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] AFTER sequence_mask_sub = {}".format(sequence_mask_sub))
@@ -235,7 +241,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                                      "decode_attention": tf.shape(state.attention),
                                      "decode_time": state.time,
                                      "decode_alignments": tf.shape(state.alignments),
-                                     "decode_inputs_len": inputs_len,
+                                     "decode_inputs_len": master_time,
                                      "decode_logits": tf.shape(logits),
                                      "decode_logits_sub": tf.shape(logits_sub),
                                      "decode_sequence_mask_sub": tf.shape(sequence_mask_sub),
@@ -252,7 +258,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                      vocab_size=None,
                      initial_state=None,
                      output_layer=None,
-                     maximum_iterations=5,
+                     maximum_iterations=None,
+                     sub_maximum_iterations=None,
                      mode=tf.estimator.ModeKeys.PREDICT,
                      memory=None,
                      memory_sequence_length=None,
@@ -333,10 +340,13 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_decoder = {}".format(master_decoder))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_decoder = {}".format(sub_decoder))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] maximum_iterations = {}".format(maximum_iterations))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_maximum_iterations = {}".format(sub_maximum_iterations))
 
     outputs, outputs_sub, state, length, sequence_mask_sub, final_time = hierarchical_dynamic_decode(master_decoder,
                                                                                                      sub_decoder,
                                                                                                      maximum_iterations=maximum_iterations,
+                                                                                                     sub_maximum_iterations=sub_maximum_iterations,
                                                                                                      dynamic=True)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] outputs = {}".format(outputs))
@@ -354,11 +364,13 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     sub_length = tf.reduce_sum(sequence_mask_sub, axis=-1)
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_length = {}".format(sub_length))
 
-    log_probs = logits_to_cum_log_probs(outputs.rnn_output, length)
+    log_probs_master = logits_to_cum_log_probs(outputs.rnn_output, length)
     log_probs_sub = logits_to_cum_log_probs(outputs_sub.rnn_output, sequence_mask_sub)
-    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] log_probs = {}".format(log_probs))
+    log_probs = log_probs_master + log_probs_sub
+
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] log_probs = {}".format(log_probs_master))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] log_probs_sub = {}".format(log_probs_sub)) # [batch, sum_of_st, depth]
-    add_dict_to_collection("debug", {"eval_log_probs": log_probs,
+    add_dict_to_collection("debug", {"eval_log_probs_master": log_probs_master,
                                      "eval_log_probs_sub": log_probs_sub,
                                      })
 
@@ -367,10 +379,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     sub_predicted_ids = tf.expand_dims(sub_predicted_ids, 1)
     master_length = tf.expand_dims(length, 1)
     sub_length = tf.cast(tf.expand_dims(sub_length, 1), tf.int64)
+    # NOTE: this may not be consistent with beam search
     log_probs = tf.expand_dims(log_probs, 1)
-    log_probs_sub = tf.expand_dims(log_probs_sub, 1)
-
-    # TODO: return log_probs_sub as well
 
     predicted_ids = (master_predicted_ids, sub_predicted_ids)
     length = (master_length, sub_length)

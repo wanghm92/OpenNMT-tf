@@ -1,0 +1,57 @@
+# WARNING:
+# Do not use this file as is! It only lists and documents available options
+# without caring about their consistency.
+#
+# The directory where models and summaries will be saved. It is created if it does not exist.
+# model_dir: ../onmt-tf-output/temp
+
+# data:
+#   # (required for train_and_eval and train run types).
+#   train_features_file:
+#   - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.words.train.filter.seg.top100
+#   - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.tags.train.filter.seg.top100
+#   train_labels_file:
+#   - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.attr_one.top100
+#   - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.1.top100
+#     - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.2.top100
+#     - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.3.top100
+#     - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.4.top100
+#     - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.5.top100
+
+#   # (required for train_end_eval and eval run types).
+#   eval_features_file:
+#     - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.words.train.filter.seg.top100
+#     - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.tags.train.filter.seg.top100
+#   eval_labels_file:
+#     - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.attr_one.top100
+#     - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.1.top100
+#       - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.2.top100
+#       - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.3.top100
+#       - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.4.top100
+#       - ../recom_nlg/onmt/clothes/one_per_sku/segmented/100/recom_text.outs.train.seg.5.top100
+
+#   # (optional) Models may require additional resource files (e.g. vocabularies).
+#   source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
+#   feature_vocabulary: data/recom_nlg/clothes/one_per_sku/tags-train.vocab
+#   target_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
+# #
+#   words_embedding: ../recom_nlg/temp/emb.vec
+
+train:
+  # default: 64
+  batch_size: 32
+
+#   save_checkpoints_steps: 1
+#   save_summary_steps: 1
+#   train_steps: 2
+# #
+# eval:
+#  # (optional) Evaluate every this many seconds (default: 18000).
+#   eval_delay: 30
+
+params:
+  # whether to turn on printing debug_ops in hooks
+  # debug: true
+  beam_width: 1
+
+

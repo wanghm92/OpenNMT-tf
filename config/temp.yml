@@ -42,7 +42,7 @@ train:
   save_summary_steps: 1
   train_steps: 4
   # whether to profile run time trace
-  profile_hook: True
+  # profile_hook: True
 #
 eval:
  # (optional) Evaluate every this many seconds (default: 18000).

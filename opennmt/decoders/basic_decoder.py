@@ -179,7 +179,6 @@ class BasicSubDecoder(BasicDecoder):
         Returns:
           `(finished, first_inputs, initial_state)`.
         """
-        # TODO: initial_state from master decoder may need to be stored in a TensorArray
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] master_time = {}".format(master_time))
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] self._helper = {}".format(self._helper))
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] BEFORE _initial_state = {}".format(self._initial_state))

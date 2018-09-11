@@ -172,7 +172,7 @@ class Runner(object):
           os.path.join(save_path, "predictions.txt"),
           post_evaluation_fn=external_evaluation_fn(
               self._config["eval"].get("external_evaluators"),
-              self._config["data"]["eval_labels_file"][-1],  # The complete text file (vs segmented)
+              self._config["data"]["eval_labels_file"][0],  # TODO: should be the complete text file (vs segmented)
               output_dir=self._estimator.model_dir),
           debug=self._config["params"].get("debug")))
 

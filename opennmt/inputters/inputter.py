@@ -500,7 +500,7 @@ class HierarchicalInputter(ParallelInputter):
       return self.reducer.pack_sequence_lengths(lengths)
 
   def get_vocab_size(self):
-    # TODO: all inputters are assumed to share the same vocab file for now
+    # NOTE: all inputters are assumed to share the same vocab file for now
     return self.inputters[0].vocabulary_size
 
   def add_process_hooks(self, hooks):

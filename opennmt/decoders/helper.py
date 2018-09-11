@@ -304,7 +304,7 @@ class HierarchicalTrainingHelper(TrainingHelper):
     """
     with ops.name_scope(name, "TrainingHelper", [inputs, sequence_length]):
       inputs = ops.convert_to_tensor(inputs, name="inputs")
-      self._inputs = inputs # non-transposed
+      self._inputs = inputs # non-transposed [batch, mt, st, dim]
 
       # [batch, mt, st, dim]
       if not time_major:
@@ -332,10 +332,6 @@ class HierarchicalTrainingHelper(TrainingHelper):
       # self._zero_inputs = nest.map_structure(lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
 
       self._batch_size = array_ops.shape(sequence_length)[1]
-
-  @property
-  def sub_time(self):
-    return array_ops.shape(self._inputs)[2]
 
   def initialize(self, master_time, name=None):
     inputs_sub = nest.map_structure(lambda inp: inp.read(master_time), self._input_tas)
@@ -368,6 +364,10 @@ class HierarchicalTrainingHelper(TrainingHelper):
           all_finished, lambda: self._zero_inputs,
           lambda: nest.map_structure(lambda inp: inp.read(next_time), self._input_tas_sub))
       return finished, next_inputs, state
+
+  @property
+  def sub_time(self):
+    return array_ops.shape(self._inputs)[2]
 
 class ScheduledEmbeddingTrainingHelper(TrainingHelper):
   """A training helper that adds scheduled sampling.

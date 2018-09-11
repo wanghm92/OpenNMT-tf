@@ -77,7 +77,6 @@ class Model(object):
 
     def _normalize_loss_list_or_single(num, den=None):
       """Normalizes the loss."""
-      # TODO: come back here, it may be tf.reduce_sum([n/d for n,d in zip(num,den)])
       # sharded mode
       if isinstance(num, list):
         if den is not None:

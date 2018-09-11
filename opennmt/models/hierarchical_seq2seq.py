@@ -127,7 +127,7 @@ class HierarchicalSequenceToSequence(Model):
 
       target_dtype = self.target_inputter.dtype
 
-      # TODO: construct sub_embedding_fn for scheduled sampling
+      # TODO: scheduled sampling -- construct sub_embedding_fn
       target_embedding_fn = _maybe_reuse_embedding_fn(
           lambda ids: self.target_inputter.transform(ids, mode=mode),
           scope=target_input_scope) # callable
@@ -189,6 +189,7 @@ class HierarchicalSequenceToSequence(Model):
               beam_width = params.get("beam_width", 1)
               tf.logging.info(" >> [hierarchical_seq2seq.py _build] beam_width = %d"%beam_width)
               maximum_iterations = params.get("maximum_iterations", 5)
+              sub_maximum_iterations = params.get("sub_maximum_iterations", 100)
               start_tokens = tf.fill([batch_size], constants.START_OF_SENTENCE_ID)
               end_token = constants.END_OF_SENTENCE_ID
 
@@ -201,6 +202,7 @@ class HierarchicalSequenceToSequence(Model):
                       vocab_size=master_target_vocab_size,
                       initial_state=encoder_state,
                       maximum_iterations=maximum_iterations,
+                      sub_maximum_iterations=sub_maximum_iterations,
                       mode=mode,
                       memory=encoder_outputs,
                       memory_sequence_length=encoder_sequence_length,
@@ -230,7 +232,7 @@ class HierarchicalSequenceToSequence(Model):
                           dtype=target_dtype,
                           return_alignment_history=True))
 
-          # TODO: target_vocab_rev is shared for now, need to be compatible with embedding sharing
+          # NOTE: target_vocab_rev is shared for now, need to be compatible with embedding sharing
           target_vocab_rev = tf.contrib.lookup.index_to_string_table_from_file(
               self.target_inputter.vocabulary_file,
               vocab_size=master_target_vocab_size - self.target_inputter.num_oov_buckets,
@@ -395,9 +397,6 @@ class HierarchicalSequenceToSequence(Model):
         master_mask=master_mask)
 
   def _compute_loss(self, features, labels, outputs, params, mode):
-
-    # TODO: sub_decoder loss should also be masked by master sequence mask
-        # or it should be truncated to the same length as the master decoder length (do not decode when master decoder finishes)
 
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] outputs = {}".format(outputs))
     master_labels, sub_labels = labels
