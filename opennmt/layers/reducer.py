@@ -20,6 +20,14 @@ def pad_in_master_time(x, padding_length):
   x.set_shape((None, None, None, depth))
   return x
 
+def pad_in_master_time_nodepth(x, padding_length):
+  """Helper function to pad a tensor in the time dimension and retain the static depth dimension."""
+  depth = x.get_shape().as_list()[-1]
+  batch_size = x.get_shape().as_list()[0]
+  x = tf.pad(x, [[0, 0], [0, padding_length]])
+  x.set_shape((batch_size, depth))
+  return x
+
 def pad_with_identity(x, sequence_length, max_sequence_length, identity_values=0, maxlen=None):
   """Pads a tensor with identity values up to :obj:`max_sequence_length`.
 
@@ -116,7 +124,7 @@ def align_in_master_time_nodepth(x, length):
   time_dim = tf.shape(x)[1]
   return tf.cond(
       tf.less(time_dim, length),
-      true_fn=lambda: tf.pad(x, [[0, 0], [0, length - time_dim]]),
+      true_fn=lambda: pad_in_master_time_nodepth(x, length - time_dim),
       false_fn=lambda: x[:, :length])
 
 def align_in_time_2d(x, master_length, sub_length):

@@ -2,6 +2,7 @@
 
 import tensorflow as tf
 from opennmt.utils.misc import add_dict_to_collection
+from opennmt.layers.reducer import align_in_time
 
 
 def _smooth_one_hot_labels(logits, labels, label_smoothing):
@@ -57,6 +58,9 @@ def cross_entropy_sequence_loss(logits,
 
   batch_size = tf.shape(logits)[0]
   max_time = tf.shape(logits)[-2]
+
+  if master_mask is not None:
+    labels = align_in_time(labels, tf.shape(logits)[1])
 
   cross_entropy = _softmax_cross_entropy(logits, labels, label_smoothing, mode)
   weights = tf.sequence_mask(sequence_length, maxlen=max_time, dtype=cross_entropy.dtype)

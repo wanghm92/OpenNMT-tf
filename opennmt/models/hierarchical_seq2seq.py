@@ -12,7 +12,7 @@ from opennmt.decoders.decoder import get_sampling_probability
 from opennmt.utils.hooks import add_counter
 from opennmt.models.sequence_to_sequence import _maybe_reuse_embedding_fn, EmbeddingsSharingLevel, shift_target_sequence
 from opennmt.utils.misc import add_dict_to_collection
-from opennmt.layers.reducer import align_in_time
+from opennmt.layers.reducer import align_in_time, align_in_master_time_nodepth
 
 log_separator = "\nINFO:tensorflow:{}\n".format("*"*50)
 
@@ -407,20 +407,21 @@ class HierarchicalSequenceToSequence(Model):
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] \nmaster_labels : \n{}".format("\n".join(["{}".format(x) for x in master_labels.items()])))
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] BEFORE \nsub_labels : \n{}".format("\n".join(["{}".format(x) for x in sub_labels.items()])))
 
-    sub_labels = self.sub_target_inputter._transform_sub_labels(sub_labels)
-    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] AFTER \nsub_labels : \n{}".format("\n".join(["{}".format(x) for x in sub_labels.items()])))
-
     master_loss = self._compute_loss_impl(master_logits, master_labels, master_length, params, mode)
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_loss = {}".format(master_loss))
 
     '''
      master_length was added by one due to shift_target_sequence, so -1
     '''
-    master_mask = tf.sequence_mask(master_length-1, maxlen=tf.shape(master_logits)[-2], dtype=tf.float32)
+    # FIXME
+    master_mask = tf.sequence_mask(master_length-1, maxlen=tf.shape(master_logits)[1], dtype=tf.float32)
     master_mask = tf.expand_dims(master_mask, axis=-1)
-    master_mask = align_in_time(master_mask, tf.shape(sub_length)[-1])
+    master_mask = align_in_time(master_mask, tf.shape(sub_logits)[1])
     tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] master_mask = {}".format(master_mask))
+    sub_length = align_in_master_time_nodepth(sub_length, tf.shape(sub_logits)[1])
 
+    sub_labels = self.sub_target_inputter._transform_sub_labels(sub_labels)
+    tf.logging.info(" >> [hierarchical_seq2seq.py _compute_loss] AFTER \nsub_labels : \n{}".format("\n".join(["{}".format(x) for x in sub_labels.items()])))
     sub_loss = self._compute_loss_impl(sub_logits, sub_labels, sub_length, params, mode, master_mask=master_mask)
     sub_loss_value, sub_loss_normalizer1, sub_loss_normalizer2 = sub_loss
     tf.summary.scalar("sub_loss_value)", sub_loss_value)
