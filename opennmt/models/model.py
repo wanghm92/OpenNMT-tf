@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import abc
 import six
-import sys, pprint
+import sys, pprint, math
 
 import tensorflow as tf
 
@@ -274,6 +274,12 @@ class Model(object):
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Extracts and summarizes the loss ...")
         loss = _extract_loss(loss)
+        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> loss = {}".format(loss))
+
+        """ compute perplexity """
+        ppl = tf.exp(tf.minimum(loss, 100))
+        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> ppl = {}".format(ppl))
+        add_dict_to_collection("metrics", {"perplexity": ppl})
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing Metrics ...")
         eval_metric_ops = self._compute_metrics(features, labels, predictions)

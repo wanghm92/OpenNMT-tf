@@ -217,6 +217,7 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
       and the other callbacks can not modify the graph anymore.
       Second call of begin() on the same graph, should not change the graph.
     '''
+    self._metrics = misc.get_dict_from_collection("metrics")
     self._predictions = misc.get_dict_from_collection("predictions")
     if not self._predictions:
       raise RuntimeError("The model did not define any predictions.")
@@ -227,18 +228,19 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
       self._debug_ops = misc.get_dict_from_collection("debug")
 
   def before_run(self, run_context):  # pylint: disable=unused-argument
-    run_args = [self._predictions, self._global_step]
+    run_args = [self._predictions, self._global_step, self._metrics]
     if self._debug:
       run_args.append(self._debug_ops)
     return tf.train.SessionRunArgs(run_args)
 
   def after_run(self, run_context, run_values):  # pylint: disable=unused-argument
     if self._debug:
-      predictions, self._current_step, debug_ops = run_values.results
+      predictions, self._current_step, metrics, debug_ops = run_values.results
       tf.logging.info(" >> [hooks.py class SaveEvaluationPredictionHook after_run] debug_ops")
       pp.pprint(debug_ops)
     else:
-      predictions, self._current_step = run_values.results
+      predictions, self._current_step, metrics = run_values.results
+    pp.pprint(metrics)
     self._output_path = "{}.{}".format(self._output_file, self._current_step)
     with io.open(self._output_path, encoding="utf-8", mode="a") as output_file:
       if "tokens_sub" in six.iterkeys(predictions):

@@ -103,6 +103,7 @@ class DenseBridge(Bridge):
         encoder_state_concat,
         decoder_total_size,
         activation=self.activation)
+    tf.logging.info(" >> [bridge.py class DenseBridge _build] transformed = \n{}".format(transformed))
 
     # Split resulting tensor to match the decoder state size.
     splitted = tf.split(transformed, decoder_state_size, axis=1)
