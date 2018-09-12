@@ -8,28 +8,29 @@ model_dir: ../onmt-tf-output/recom_nlg_clothes_hierarchical
 data:
   # (required for train_and_eval and train run types).
   train_features_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.words.train.filter.seg
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.tags.train.filter.seg
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/recom_text.words.train.filter.seg
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/recom_text.tags.train.filter.seg
   train_labels_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.attr_one
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.1
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.2
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.3
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.4
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.5
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/recom_text.outs.train.seg.attr_one
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/recom_text.outs.train.seg.1
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/recom_text.outs.train.seg.2
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/recom_text.outs.train.seg.3
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/recom_text.outs.train.seg.4
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/recom_text.outs.train.seg.5
                     
   # (required for train_end_eval and eval run types).
   eval_features_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.words.train.filter.seg
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.tags.train.filter.seg
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/recom_text.words.val.filter.seg
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/recom_text.tags.val.filter.seg
   eval_labels_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.attr_one
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.1
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.2
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.3
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.4
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/recom_text.outs.train.seg.5
+    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/recom_text.outs.val.seg.attr_one
+    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/recom_text.outs.val.seg.1
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/recom_text.outs.val.seg.2
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/recom_text.outs.val.seg.3
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/recom_text.outs.val.seg.4
+      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/recom_text.outs.val.seg.5
 
+  eval_labels_file_full: ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/recom_text.outs.val.seg.temp
   # (optional) Models may require additional resource files (e.g. vocabularies).
   source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
   feature_vocabulary: data/recom_nlg/clothes/one_per_sku/tags-train.vocab
@@ -137,13 +138,13 @@ train:
 # (optional) Evaluation options.
 eval:
   # (optional) The batch size to use (default: 32).
-  batch_size: 32
+  batch_size: 16
   # (optional) The number of threads to use for processing data in parallel (default: 1).
   num_threads: 1
   # (optional) The number of batches to prefetch asynchronously (default: 1).
   prefetch_buffer_size: 1
   # (optional) Evaluate every this many seconds (default: 18000).
-  eval_delay: 1800
+  eval_delay: 1200
   # (optional) Save evaluation predictions in model_dir/eval/.
   save_eval_predictions: false
   # (optional) Evalutator or list of evaluators that are called on the saved evaluation predictions.

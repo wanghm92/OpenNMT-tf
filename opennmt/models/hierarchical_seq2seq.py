@@ -98,8 +98,13 @@ class HierarchicalSequenceToSequence(Model):
       features_length = self._get_features_length(features)
       log_dir = config.model_dir if config is not None else None
 
+      # TODO: may not need to share embedding across all inputters
+        # source and master inputter should share the same embedding since they share the vocab
+        # sub decoder should use another embedding
+
       source_input_scope = self._get_input_scope(default_name="encoder")
       target_input_scope = self._get_input_scope(default_name="decoder")
+
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] source_input_scope = {}".format(source_input_scope.name))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_input_scope = {}".format(target_input_scope.name))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] source_inputter = {}".format(self.source_inputter))

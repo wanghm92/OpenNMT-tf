@@ -171,6 +171,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] sub_cell = {}".format(sub_cell))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] initial_state_sub = {}".format(initial_state_sub))
 
+    # TODO: separate output layer for master and sub decoders, with different vocab files
     if output_layer is None:
         output_layer = build_output_layer(self.num_units, vocab_size, dtype=master_inputs.dtype)
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] output_layer = {}".format(output_layer))
