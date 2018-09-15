@@ -418,7 +418,6 @@ class HierarchicalSequenceToSequence(Model):
     '''
      master_length was added by one due to shift_target_sequence, so -1
     '''
-    # FIXME
     master_mask = tf.sequence_mask(master_length-1, maxlen=tf.shape(master_logits)[1], dtype=tf.float32)
     master_mask = tf.expand_dims(master_mask, axis=-1)
     master_mask = align_in_time(master_mask, tf.shape(sub_logits)[1])

@@ -141,14 +141,11 @@ class AttentionWrapperStateDenseBridge(Bridge):
     tf.logging.info(" >> [bridge.py class AttentionWrapperStateDenseBridge _build] decoder_state_flat = \n{}"
                     .format("\n".join(["{}".format(x) for x in decoder_state_flat])))
 
-    # TODO: need to pass on the attention state as well !!!!!!
-      # AttentionWrapperState: <attention> is the attention emitted at the previous time step.
-
-    encoder_state_concat = tf.concat(encoder_state_flat[:2], 1)
+    encoder_state_concat = tf.concat(encoder_state_flat[:3], 1)
     tf.logging.info(" >> [bridge.py class AttentionWrapperStateDenseBridge _build] encoder_state_concat = {}".format(encoder_state_concat))
 
     # Extract decoder state sizes.
-    decoder_state_size = [x.get_shape().as_list()[-1] for x in decoder_state_flat[:2]]
+    decoder_state_size = [x.get_shape().as_list()[-1] for x in decoder_state_flat[:3]]
     decoder_total_size = sum(decoder_state_size)
     tf.logging.info(" >> [bridge.py class AttentionWrapperStateDenseBridge _build] decoder_state_size = {}".format(decoder_state_size))
 
@@ -161,7 +158,7 @@ class AttentionWrapperStateDenseBridge(Bridge):
     # Split resulting tensor to match the decoder state size.
     splitted = tf.split(transformed, decoder_state_size, axis=1)
     tf.logging.info(" >> [bridge.py class AttentionWrapperStateDenseBridge _build] splitted = {}".format(splitted))
-    combined = splitted + decoder_state_flat[2:]
+    combined = splitted + decoder_state_flat[3:]
     tf.logging.info(" >> [bridge.py class AttentionWrapperStateDenseBridge _build] splitted = {}".format(splitted))
 
     # Pack as the origial decoder state.

@@ -385,6 +385,9 @@ def hierarchical_dynamic_decode(
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] next_finished = {}".format(next_finished))
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] next_sequence_lengths = {}".format(next_sequence_lengths))
 
+      """
+        Beginning sub-decoding
+      """
       sub_outputs, sub_state, sub_length, sub_final_time = sub_dynamic_decode(sub_decoder,
                                                                               master_time=time,
                                                                               initial_state=next_state,
