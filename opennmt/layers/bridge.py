@@ -4,6 +4,7 @@ import abc
 import six
 
 import tensorflow as tf
+from opennmt.utils.misc import add_dict_to_collection
 
 
 def assert_state_is_compatible(expected_state, state):
@@ -126,6 +127,31 @@ class AttentionWrapperStateDenseBridge(Bridge):
     self.activation = activation
 
   def _build(self, encoder_state, decoder_zero_state):
+    """
+    zero_state = previous_sub_state
+    initial_state = next_master_state
+    :param encoder_state: input state vectors for injecting information into this decoder
+    :param decoder_zero_state: original zero_state/previous_state that carries on the information
+    :return:
+    """
+    '''
+    AttentionWrapperState(
+      cell_state=LSTMStateTuple(
+        c=<tf.Tensor 'seq2seq/decoder/decoder/while/BasicDecoderStep/decoder/attention_wrapper/lstm_cell/add_1:0' shape=(?, 128) dtype=float32>, 
+        h=<tf.Tensor 'seq2seq/decoder/decoder/while/BasicDecoderStep/decoder/attention_wrapper/lstm_cell/mul_2:0' shape=(?, 128) dtype=float32>), 
+      attention=<tf.Tensor 'seq2seq/decoder/decoder/while/BasicDecoderStep/decoder/attention_wrapper/concat_2:0' shape=(?, 128) dtype=float32>, 
+      time=<tf.Tensor 'seq2seq/decoder/decoder/while/BasicDecoderStep/decoder/attention_wrapper/add:0' shape=() dtype=int32>, 
+      alignments=<tf.Tensor 'seq2seq/decoder/decoder/while/BasicDecoderStep/decoder/attention_wrapper/Softmax:0' shape=(?, ?) dtype=float32>, alignment_history=<tensorflow.python.util.tf_should_use.TFShouldUseWarningWrapper object at 0x7f35d43e2bd0>, 
+      attention_state=<tf.Tensor 'seq2seq/decoder/decoder/while/BasicDecoderStep/decoder/attention_wrapper/Softmax:0' shape=(?, ?) dtype=float32>)
+    
+    By LuongAttention, attention_state = alignments
+    '''
+
+    # TODO:
+      # copy the time, alignments, attention_state
+      # def bridge_fn(h_m c_m, a_m, h_s, c_s, a_s) : return h_new, c_new, a_new
+      # possibilities: gating, mlp, 1-to-1 kernel(conv).
+
     for s in [encoder_state, decoder_zero_state]:
       if not isinstance(s, tf.contrib.seq2seq.AttentionWrapperState):
         raise ValueError("AttentionWrapperStateDenseBridge only supports linear transformation on AttentionWrapperState states")
