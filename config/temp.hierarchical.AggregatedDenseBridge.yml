@@ -1,0 +1,20 @@
+# WARNING:
+# Do not use this file as is! It only lists and documents available options
+# without caring about their consistency.
+#
+# The directory where models and summaries will be saved. It is created if it does not exist.
+model_dir: ../onmt-tf-output/recom_nlg_clothes_hierarchical_AggregatedDenseBridge
+
+train:
+  # default: 64
+  batch_size: 16
+
+eval:
+#  # (optional) Evaluate every this many seconds (default: 18000).
+  eval_delay: 1800
+
+params:
+  # whether to turn on printing debug_ops in hooks
+  beam_width: 1
+
+
