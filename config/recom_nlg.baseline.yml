@@ -7,19 +7,24 @@ model_dir: ../onmt-tf-output/recom_nlg_3c_multi-per-sku
 
 data:
   # (required for train_and_eval and train run types).
-  train_features_file: [../recom_nlg/onmt/multi_per_sku/recom_text.words.train, ../recom_nlg/onmt/multi_per_sku/recom_text.tags.train]
-  train_labels_file: ../recom_nlg/onmt/multi_per_sku/recom_text.outs.train
+  train_features_file:
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/recom_text.words.train.filter
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/recom_text.tags.train.filter
+  train_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/recom_text.outs.train
 
   # (required for train_end_eval and eval run types).
-  eval_features_file: [../recom_nlg/onmt/multi_per_sku/recom_text.words.val, ../recom_nlg/onmt/multi_per_sku/recom_text.tags.val]
-  eval_labels_file: ../recom_nlg/onmt/multi_per_sku/recom_text.outs.val
+  eval_features_file:
+   - ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/recom_text.words.val.filter
+   - ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/recom_text.tags.val.filter
+  eval_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/recom_text.outs.val
+  eval_labels_file_full: ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/recom_text.outs.val
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
-  source_words_vocabulary: data/recom_nlg/multi_per_sku/words-outs-train.vocab
-  feature_vocabulary: data/recom_nlg/multi_per_sku/tags-train.vocab
-  target_words_vocabulary: data/recom_nlg/multi_per_sku/words-outs-train.vocab
+  source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
+  feature_vocabulary: data/recom_nlg/clothes/one_per_sku/tags-train.vocab
+  target_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
 
-  words_embedding: ../recom_nlg/emb/20180710.vec
+  words_embedding: ../recom_nlg/emb/20180710.expl_std.vec
 # Model and optimization parameters.
 params:
   # The optimizer class name in tf.train or tf.contrib.opt.
@@ -96,9 +101,9 @@ train:
   # (optional) If true, makes a single pass over the training data (default: false).
   single_pass: false
   # (optional) The maximum length of feature sequences during training (default: None).
-  maximum_features_length: 90
+  maximum_features_length: None
   # (optional) The maximum length of label sequences during training (default: None).
-  maximum_labels_length: 90
+  maximum_labels_length: None
   # (optional) The width of the length buckets to select batch candidates from (default: 5).
   bucket_width: 5
   # (optional) The number of threads to use for processing data in parallel (default: 4).
@@ -112,6 +117,8 @@ train:
   # (optional) Number of checkpoints to average at the end of the training to the directory
   # model_dir/avg (default: 0).
   average_last_checkpoints: 8
+  # whether to profile run time trace
+  profile_hook: False
 
 # (optional) Evaluation options.
 eval:

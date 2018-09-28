@@ -249,7 +249,7 @@ class SelfAttentionDecoder(decoder.Decoder):
       output_layer = decoder.build_output_layer(self.num_units, vocab_size, dtype=inputs.dtype)
     logits = output_layer(outputs)
 
-    return (logits, None, sequence_length)
+    return (logits, None, None, sequence_length)
 
   def dynamic_decode(self,
                      embedding,

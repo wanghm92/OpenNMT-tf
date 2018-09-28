@@ -9,15 +9,15 @@ model_dir: ../onmt-tf-output/temp
 data:
   # (required for train_and_eval and train run types).
   train_features_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/1st_version/100/recom_text.words.train.top100
-    - ../recom_nlg/onmt/clothes/one_per_sku/1st_version/100/recom_text.tags.train.top100
-  train_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/1st_version/100/recom_text.outs.train.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/100/recom_text.words.train.filter.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/100/recom_text.tags.train.filter.top100
+  train_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/100/recom_text.outs.train.top100
 
   # (required for train_end_eval and eval run types).
   eval_features_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/1st_version/100/recom_text.words.val.top100
-    - ../recom_nlg/onmt/clothes/one_per_sku/1st_version/100/recom_text.tags.val.top100
-  eval_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/1st_version/100/recom_text.outs.val.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/100/recom_text.words.val.filter.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/100/recom_text.tags.val.filter.top100
+  eval_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/2nd_filter/100/recom_text.outs.val.top100
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
   source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
