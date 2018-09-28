@@ -112,8 +112,8 @@ class HierarchicalSequenceToSequence(Model):
     self.debug = []
 
     tf.logging.info(" >> [hierarchical_seq2seq.py __init__] self.target_inputter.add_process_hooks([shift_target_sequence])")
-    self.target_inputter.add_process_hooks([shift_target_sequence_v2])
-    self.sub_target_inputter.add_process_hooks([shift_target_sequence_v2])
+    self.target_inputter.add_process_hooks([shift_target_sequence])
+    self.sub_target_inputter.add_process_hooks([shift_target_sequence])
 
   def _get_input_scope(self, default_name=""):
     if self.share_embeddings == EmbeddingsSharingLevel.SOURCE_TARGET_INPUT:
