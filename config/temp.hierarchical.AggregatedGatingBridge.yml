@@ -11,7 +11,7 @@ train:
 
 eval:
 #  # (optional) Evaluate every this many seconds (default: 18000).
-  eval_delay: 30
+  eval_delay: 1800
 
 params:
   # whether to turn on printing debug_ops in hooks
