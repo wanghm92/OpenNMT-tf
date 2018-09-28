@@ -45,7 +45,7 @@ data:
   master_target_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
   sub_target_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
 
-  words_embedding: ../recom_nlg/emb/20180710.vec
+  words_embedding: ../recom_nlg/emb/20180710.expl_std.vec
 # Model and optimization parameters.
 params:
   # The optimizer class name in tf.train or tf.contrib.opt.
