@@ -102,9 +102,9 @@ train:
   # (optional) If true, makes a single pass over the training data (default: false).
   single_pass: false
   # (optional) The maximum length of feature sequences during training (default: None).
-  maximum_features_length: None
+  maximum_features_length: 100
   # (optional) The maximum length of label sequences during training (default: None).
-  maximum_labels_length: None
+  maximum_labels_length: 100
   # (optional) The width of the length buckets to select batch candidates from (default: 5).
   bucket_width: 5
   # (optional) The number of threads to use for processing data in parallel (default: 4).
