@@ -8,29 +8,37 @@ model_dir: ../onmt-tf-output/temp
 data:
   # (required for train_and_eval and train run types).
   train_features_file:
-  - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/100/recom_text.words.train.filter.seg.top100
-  - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/100/recom_text.tags.train.filter.seg.top100
+  - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/100/recom_text.words.train.filter.seg_new.top100
+  - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/100/recom_text.tags.train.filter.seg_new.top100
   train_labels_file:
-  - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/100/recom_text.outs.train.seg.attr_one.top100
-  - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/100/recom_text.outs.train.seg.1.top100
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/100/recom_text.outs.train.seg.2.top100
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/100/recom_text.outs.train.seg.3.top100
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/100/recom_text.outs.train.seg.4.top100
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/train/100/recom_text.outs.train.seg.5.top100
+  - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/100/recom_text.outs.train.seg_new.attr_one.top100
+  - - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_first_word/100/recom_text.outs.train.seg_new.punctrmd.shifted.1.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_first_word/100/recom_text.outs.train.seg_new.punctrmd.shifted.2.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_first_word/100/recom_text.outs.train.seg_new.punctrmd.shifted.3.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_first_word/100/recom_text.outs.train.seg_new.punctrmd.shifted.4.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_first_word/100/recom_text.outs.train.seg_new.punctrmd.shifted.5.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_first_word/100/recom_text.outs.train.seg_new.punctrmd.shifted.6.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_first_word/100/recom_text.outs.train.seg_new.punctrmd.shifted.7.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_first_word/100/recom_text.outs.train.seg_new.punctrmd.shifted.8.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_first_word/100/recom_text.outs.train.seg_new.punctrmd.shifted.9.top100
 
   # (required for train_end_eval and eval run types).
   eval_features_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.words.val.filter.seg.top100
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.tags.val.filter.seg.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.words.val.filter.seg_new.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.tags.val.filter.seg_new.top100
   eval_labels_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.outs.val.seg.attr_one.top100
-    - - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.outs.val.seg.1.top100
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.outs.val.seg.2.top100
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.outs.val.seg.3.top100
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.outs.val.seg.4.top100
-      - ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.outs.val.seg.5.top100
+  - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.outs.val.seg_new.attr_one.top100
+  - - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.1.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.2.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.3.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.4.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.5.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.6.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.7.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.8.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.9.top100
 
-  eval_labels_file_full: ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.outs.val.seg.temp.top100
+  eval_labels_file_full: ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.outs.val.seg_new.temp.top100
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
   source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab

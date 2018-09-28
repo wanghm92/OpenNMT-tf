@@ -8,19 +8,19 @@ model_dir: ../onmt-tf-output/recom_nlg_clothes_hierarchical
 data:
   # (required for train_and_eval and train run types).
   train_features_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.words.train.filter.seg_new
-    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.tags.train.filter.seg_new
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.words.train.filter.seg_new
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.tags.train.filter.seg_new
   train_labels_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.attr_one
-    - - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.punctrmd.1
-      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.punctrmd.2
-      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.punctrmd.3
-      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.punctrmd.4
-      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.punctrmd.5
-      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.punctrmd.6
-      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.punctrmd.7
-      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.punctrmd.8
-      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.punctrmd.9
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.attr_one
+    - - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.punctrmd.1
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.punctrmd.2
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.punctrmd.3
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.punctrmd.4
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.punctrmd.5
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.punctrmd.6
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.punctrmd.7
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.punctrmd.8
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.punctrmd.9
 
   # (required for train_end_eval and eval run types).
   eval_features_file:

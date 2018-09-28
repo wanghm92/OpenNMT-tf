@@ -16,6 +16,41 @@ from opennmt.layers.reducer import align_in_time, align_in_master_time_nodepth
 
 log_separator = "\nINFO:tensorflow:{}\n".format("*"*50)
 
+def shift_target_sequence_v2(inputter, data):
+  """Prepares shifted target sequences.
+
+  Given a target sequence ``a b c``, the decoder input should be
+  ``<s> a b c`` and the output should be ``a b c </s>`` for the dynamic
+  decoding to start on ``<s>`` and stop on ``</s>``.
+
+  Args:
+    inputter: The :class:`opennmt.inputters.inputter.Inputter` that processed
+      :obj:`data`.
+    data: A dict of ``tf.Tensor`` containing ``ids`` and ``length`` keys.
+
+  Returns:
+    The updated :obj:`data` dictionary with ``ids`` the sequence prefixed
+    with the start token id and ``ids_out`` the sequence suffixed with
+    the end token id. Additionally, the ``length`` is increased by 1
+    to reflect the added token on both sequences.
+  """
+  tf.logging.info(" >> [hierarchical_seq2seq.py] shift_target_sequence_v2")
+
+  ids = data["ids"]
+  length = data["length"]
+
+  ids_out = ids[1:]
+  ids_in = ids[:-1]
+
+  data = inputter.set_data_field(data, "ids_out", ids_out)
+  data = inputter.set_data_field(data, "ids", ids_in)
+
+  # decrement length accordingly.
+  inputter.set_data_field(data, "length", length - 1)
+
+  return data
+
+
 class HierarchicalSequenceToSequence(Model):
   """A hierarchical sequence to sequence model."""
 
@@ -77,8 +112,8 @@ class HierarchicalSequenceToSequence(Model):
     self.debug = []
 
     tf.logging.info(" >> [hierarchical_seq2seq.py __init__] self.target_inputter.add_process_hooks([shift_target_sequence])")
-    self.target_inputter.add_process_hooks([shift_target_sequence])
-    self.sub_target_inputter.add_process_hooks([shift_target_sequence])
+    self.target_inputter.add_process_hooks([shift_target_sequence_v2])
+    self.sub_target_inputter.add_process_hooks([shift_target_sequence_v2])
 
   def _get_input_scope(self, default_name=""):
     if self.share_embeddings == EmbeddingsSharingLevel.SOURCE_TARGET_INPUT:
