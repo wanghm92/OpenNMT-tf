@@ -26,7 +26,7 @@ def model():
       sub_target_inputter=onmt.inputters.HierarchicalInputter(
           inputter_type=onmt.inputters.WordEmbedder,
           inputter_args=["sub_target_words_vocabulary", None, "words_embedding"],
-          num=5),
+          num=9),
       encoder=onmt.encoders.BidirectionalRNNEncoder(
           num_layers=1,
           num_units=128,
