@@ -239,7 +239,9 @@ class HierarchicalSequenceToSequence(Model):
               batch_size = tf.shape(encoder_sequence_length)[0]
               beam_width = params.get("beam_width", 1)
               tf.logging.info(" >> [hierarchical_seq2seq.py _build] beam_width = %d"%beam_width)
-              maximum_iterations = params.get("maximum_iterations", self.source_inputter.num)
+              maximum_iterations = params.get("maximum_iterations", 0)
+              tf.logging.info(" >> [hierarchical_seq2seq.py _build] maximum_iterations = {}".format(maximum_iterations))
+              assert maximum_iterations == self.sub_target_inputter.num + 1
               sub_maximum_iterations = params.get("sub_maximum_iterations", 100)
               start_tokens = tf.fill([batch_size], constants.START_OF_SENTENCE_ID)
               end_token = constants.END_OF_SENTENCE_ID
