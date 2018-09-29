@@ -194,7 +194,8 @@ def hierarchical_dynamic_decode(
         parallel_iterations=32,
         swap_memory=False,
         scope=None,
-        dynamic=False):
+        dynamic=False,
+        shifted=None):
   """Perform dynamic decoding with `master_decoder`.
 
   Calls initialize() once and step() repeatedly on the Decoder object.
@@ -254,6 +255,7 @@ def hierarchical_dynamic_decode(
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] initial_inputs "
                     "(self._input_tas.read(0)) = {}".format(initial_inputs))
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] initial_state = {}".format(initial_state))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] shifted = {}".format(shifted))
 
     zero_outputs = _create_zero_outputs(master_decoder.output_size,
                                         master_decoder.output_dtype,
@@ -320,10 +322,10 @@ def hierarchical_dynamic_decode(
     initial_sub_state = sub_decoder._initial_state
 
     def condition(unused_time, unused_outputs_ta, unused_outputs_ta_sub, unused_state, unused_inputs,
-                  finished, unused_sequence_lengths, unused_sequence_lengths_ta_sub, unused_next_sub_state):
+                  finished, unused_sequence_lengths, unused_sequence_lengths_ta_sub, unused_next_sub_state, unused_previous_sub_inputs):
       return math_ops.logical_not(math_ops.reduce_all(finished))
 
-    def body(time, outputs_ta, outputs_ta_sub, state, inputs, finished, sequence_lengths, sequence_mask_ta_sub, sub_state):
+    def body(time, outputs_ta, outputs_ta_sub, state, inputs, finished, sequence_lengths, sequence_mask_ta_sub, sub_state, previous_sub_inputs):
       """Internal while_loop body.
 
       Args:
@@ -389,12 +391,23 @@ def hierarchical_dynamic_decode(
       """
         Beginning sub-decoding
       """
-      sub_outputs, next_sub_state, sub_length, sub_final_time = sub_dynamic_decode(sub_decoder,
-                                                                                   master_time=time,
-                                                                                   initial_state=next_state,
-                                                                                   previous_state=sub_state,
-                                                                                   maximum_iterations=sub_maximum_iterations,
-                                                                                   dynamic=dynamic)
+      if shifted == "attr":
+          previous_inputs = next_inputs
+      elif shifted == "word":
+          previous_inputs = previous_sub_inputs
+      else:
+          previous_inputs = None
+
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] previous_inputs = {}".format(previous_inputs))
+
+      sub_outputs, next_sub_state, sub_length, sub_final_time, sub_inputs = sub_dynamic_decode(sub_decoder,
+                                                                                               master_time=time,
+                                                                                               initial_state=next_state,
+                                                                                               previous_state=sub_state,
+                                                                                               previous_inputs=previous_inputs,
+                                                                                               maximum_iterations=sub_maximum_iterations,
+                                                                                               dynamic=dynamic,
+                                                                                               shifted=shifted)
 
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_outputs = {}".format(sub_outputs))
 
@@ -413,7 +426,7 @@ def hierarchical_dynamic_decode(
       outputs_ta_sub = nest.map_structure(lambda ta, out: ta.write(time, out), outputs_ta_sub, sub_outputs)
       sequence_mask_ta_sub = nest.map_structure(lambda ta, out: ta.write(time, out), sequence_mask_ta_sub, sub_sequence_mask)
 
-      return time + 1, outputs_ta, outputs_ta_sub, next_state, next_inputs, next_finished, next_sequence_lengths, sequence_mask_ta_sub, next_sub_state
+      return time + 1, outputs_ta, outputs_ta_sub, next_state, next_inputs, next_finished, next_sequence_lengths, sequence_mask_ta_sub, next_sub_state, sub_inputs
 
     res = control_flow_ops.while_loop(
         condition,
@@ -428,6 +441,7 @@ def hierarchical_dynamic_decode(
             initial_sequence_lengths,
             initial_sequence_mask_ta_sub,
             initial_sub_state,
+            initial_inputs,
         ),
         parallel_iterations=parallel_iterations,
         maximum_iterations=maximum_iterations,
@@ -478,12 +492,14 @@ def sub_dynamic_decode(
         master_time,
         initial_state,
         previous_state,
+        previous_inputs=None,
         impute_finished=True,
         maximum_iterations=None,
         parallel_iterations=32,
         swap_memory=False,
         scope=None,
-        dynamic=False):
+        dynamic=False,
+        shifted=None):
   """Perform dynamic decoding with `decoder`.
 
   Calls initialize() once and step() repeatedly on the Decoder object.
@@ -542,6 +558,8 @@ def sub_dynamic_decode(
         initial_state=next_state,
         previous_state=sub_state,
     '''
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] shifted = {}".format(shifted))
+
     initial_finished, initial_inputs, initial_state = decoder.initialize(initial_state=initial_state,
                                                                          previous_state=previous_state,
                                                                          master_time=master_time)
@@ -549,6 +567,9 @@ def sub_dynamic_decode(
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] decoder.batch_size = {}".format(decoder.batch_size))
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] maximum_iterations = {}".format(maximum_iterations))
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] is_xla = {}".format(is_xla))
+
+    if dynamic and shifted is not None and previous_inputs is not None:
+        initial_inputs = previous_inputs
 
     zero_outputs = _create_zero_outputs(decoder.output_size,
                                         decoder.output_dtype,
@@ -583,10 +604,10 @@ def sub_dynamic_decode(
     initial_outputs_ta = nest.map_structure(_create_ta, decoder.output_size, decoder.output_dtype)
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] initial_outputs_ta = {}".format(initial_outputs_ta))
 
-    def condition(unused_time, unused_outputs_ta, unused_state, unused_inputs, finished, unused_sequence_lengths):
+    def condition(unused_time, unused_outputs_ta, unused_state, unused_inputs, finished, unused_sequence_lengths, unused_final_inputs):
         return math_ops.logical_not(math_ops.reduce_all(finished))
 
-    def body(time, outputs_ta, state, inputs, finished, sequence_lengths):
+    def body(time, outputs_ta, state, inputs, finished, sequence_lengths, final_inputs):
       """Internal while_loop body.
 
       Args:
@@ -602,6 +623,7 @@ def sub_dynamic_decode(
           next_sequence_lengths)`.
         ```
       """
+
       (next_outputs, decoder_state, next_inputs, decoder_finished) = decoder.step(time, inputs, state)
       if decoder.tracks_own_finished:
         next_finished = decoder_finished
@@ -645,7 +667,14 @@ def sub_dynamic_decode(
         next_state = decoder_state
 
       outputs_ta = nest.map_structure(lambda ta, out: ta.write(time, out), outputs_ta, emit)
-      return (time + 1, outputs_ta, next_state, next_inputs, next_finished, next_sequence_lengths)
+
+      if dynamic and shifted is not None:
+          final_inputs = nest.map_structure(
+              lambda out, zero: array_ops.where(next_finished, out, zero),
+              inputs,
+              final_inputs)
+
+      return (time + 1, outputs_ta, next_state, next_inputs, next_finished, next_sequence_lengths, final_inputs)
 
     res = control_flow_ops.while_loop(
         condition,
@@ -657,6 +686,7 @@ def sub_dynamic_decode(
             initial_inputs,
             initial_finished,
             initial_sequence_lengths,
+            initial_inputs,
         ),
         parallel_iterations=parallel_iterations,
         maximum_iterations=maximum_iterations,
@@ -666,6 +696,7 @@ def sub_dynamic_decode(
     final_outputs_ta = res[1]
     final_state = res[2]
     final_sequence_lengths = res[5]
+    final_inputs = res[6]
 
     final_outputs = tf.cond(
         math_ops.reduce_all(initial_finished),
@@ -677,4 +708,4 @@ def sub_dynamic_decode(
     except NotImplementedError:
       pass
 
-  return final_outputs, final_state, final_sequence_lengths, final_time
+  return final_outputs, final_state, final_sequence_lengths, final_time, final_inputs

@@ -90,7 +90,8 @@ class RNNDecoder(Decoder):
              output_layer=None,
              mode=tf.estimator.ModeKeys.TRAIN,
              memory=None,
-             memory_sequence_length=None):
+             memory_sequence_length=None,
+             shifted=None):
     """
     Decodes a full input sequence.
     Usually used for training and evaluation where target sequences are known.
@@ -200,7 +201,8 @@ class RNNDecoder(Decoder):
                      memory=None,
                      memory_sequence_length=None,
                      dtype=None,
-                     return_alignment_history=False):
+                     return_alignment_history=False,
+                     shifted=None):
     """Decodes dynamically from :obj:`start_tokens` with greedy search.
 
     Usually used for inference. (decode() uses TrainingHelpers)
@@ -279,7 +281,8 @@ class RNNDecoder(Decoder):
                                 memory=None,
                                 memory_sequence_length=None,
                                 dtype=None,
-                                return_alignment_history=False):
+                                return_alignment_history=False,
+                                shifted=None):
     """Decodes dynamically from :obj:`start_tokens` with beam search.
 
     Usually used for inference.

@@ -340,6 +340,8 @@ class HierarchicalTrainingHelper(TrainingHelper):
     self._sequence_length_sub = nest.map_structure(lambda inp: inp.read(master_time), self._sequence_length_tas)
 
     with ops.name_scope(name, "TrainingHelperInitializeForSubsequenceDecoding"):
+
+      # TODO: this should be changed to greater_than 2
       finished = math_ops.equal(0, self._sequence_length_sub)
       all_finished = math_ops.reduce_all(finished)
       next_inputs = control_flow_ops.cond(

@@ -67,7 +67,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
              output_layer=None,
              mode=tf.estimator.ModeKeys.TRAIN,
              memory=None,
-             memory_sequence_length=None):
+             memory_sequence_length=None,
+             shifted=None):
     """
     Decodes a full input sequence.
     Usually used for training and evaluation where target sequences are known.
@@ -201,7 +202,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     outputs is all RNN outputs (all time steps)
         outputs, state, length = tf.contrib.seq2seq.dynamic_decode(decoder)
     '''
-    outputs, outputs_sub, state, length, sequence_mask_sub, final_time = hierarchical_dynamic_decode(master_decoder, sub_decoder)
+    outputs, outputs_sub, state, length, sequence_mask_sub, final_time = hierarchical_dynamic_decode(master_decoder, sub_decoder, shifted=shifted)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] outputs = {}".format(outputs))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] outputs.rnn_output = {}".format(outputs))
@@ -265,7 +266,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                      memory=None,
                      memory_sequence_length=None,
                      dtype=None,
-                     return_alignment_history=False):
+                     return_alignment_history=False,
+                     shifted=None):
     """Decodes dynamically from :obj:`start_tokens` with greedy search.
 
     Usually used for inference. (decode() uses TrainingHelpers)
@@ -348,7 +350,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                                                                                                      sub_decoder,
                                                                                                      maximum_iterations=maximum_iterations,
                                                                                                      sub_maximum_iterations=sub_maximum_iterations,
-                                                                                                     dynamic=True)
+                                                                                                     dynamic=True,
+                                                                                                     shifted=shifted)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] outputs = {}".format(outputs))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] outputs.rnn_output = {}".format(outputs.rnn_output))

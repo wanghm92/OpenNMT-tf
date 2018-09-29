@@ -62,7 +62,8 @@ class HierarchicalSequenceToSequence(Model):
                decoder,
                share_embeddings=EmbeddingsSharingLevel.NONE,
                daisy_chain_variables=False,
-               name="seq2seq"):
+               name="seq2seq",
+               shifted=None):
     """Initializes a sequence-to-sequence model.
 
     Args:
@@ -110,10 +111,12 @@ class HierarchicalSequenceToSequence(Model):
     self.target_inputter = target_inputter
     self.sub_target_inputter = sub_target_inputter
     self.debug = []
+    self.shifted = shifted
 
     tf.logging.info(" >> [hierarchical_seq2seq.py __init__] self.target_inputter.add_process_hooks([shift_target_sequence])")
-    self.target_inputter.add_process_hooks([shift_target_sequence])
-    self.sub_target_inputter.add_process_hooks([shift_target_sequence])
+    shift_target_fn = shift_target_sequence_v2 if self.shifted is not None else shift_target_sequence
+    self.target_inputter.add_process_hooks([shift_target_fn])
+    self.sub_target_inputter.add_process_hooks([shift_target_fn])
 
   def _get_input_scope(self, default_name=""):
     if self.share_embeddings == EmbeddingsSharingLevel.SOURCE_TARGET_INPUT:
@@ -205,7 +208,8 @@ class HierarchicalSequenceToSequence(Model):
                   embedding=target_embedding_fn,
                   mode=mode,
                   memory=encoder_outputs,
-                  memory_sequence_length=encoder_sequence_length)
+                  memory_sequence_length=encoder_sequence_length,
+                  shifted=self.shifted)
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] logits = {}".format(logits))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] logits_sub = {}".format(logits_sub))
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] state = {}".format(state))
@@ -247,7 +251,8 @@ class HierarchicalSequenceToSequence(Model):
                       memory=encoder_outputs,
                       memory_sequence_length=encoder_sequence_length,
                       dtype=target_dtype,
-                      return_alignment_history=True)
+                      return_alignment_history=True,
+                      shifted=self.shifted)
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] sampled_ids = {}".format(sampled_ids))
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] sampled_length = {}".format(sampled_length))
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] log_probs = {}".format(log_probs))
@@ -270,7 +275,8 @@ class HierarchicalSequenceToSequence(Model):
                           memory=encoder_outputs,
                           memory_sequence_length=encoder_sequence_length,
                           dtype=target_dtype,
-                          return_alignment_history=True))
+                          return_alignment_history=True,
+                          shifted=self.shifted))
 
           # NOTE: target_vocab_rev is shared for now, need to be compatible with embedding sharing
           target_vocab_rev = tf.contrib.lookup.index_to_string_table_from_file(
