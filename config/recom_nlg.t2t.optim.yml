@@ -1,6 +1,6 @@
 # Transformer configuration for single GPU training.
 
-model_dir: ../onmt-tf-output/recom_nlg_clothes_t2t/layer4-unit256-head8-ffn1024/
+model_dir: ../onmt-tf-output/recom_nlg_clothes_t2t/layer2-unit256-head8-ffn1024_filter/
 
 params:
   optimizer: LazyAdamOptimizer

@@ -135,6 +135,9 @@ class SequenceToSequence(Model):
 
       tf.logging.info(" >> [sequence_to_sequence.py _build] mode = <{}> \nfeatures = {}; \nlabels = {}".format(mode, features, labels))
 
+      tf.logging.info(" >> [sequence_to_sequence.py _build] len(features) = {}".format(len(features)))
+      tf.logging.info(" >> [sequence_to_sequence.py _build] len(labels) ={}".format(len(labels)))
+
       features_length = self._get_features_length(features)
       log_dir = config.model_dir if config is not None else None
 

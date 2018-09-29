@@ -23,7 +23,7 @@ def model():
           vocabulary_file_key="target_words_vocabulary",
           embedding_size=None,
           embedding_file_key="words_embedding"),
-      num_layers=4,
+      num_layers=2,
       num_units=256,
       num_heads=8,
       ffn_inner_dim=1024,

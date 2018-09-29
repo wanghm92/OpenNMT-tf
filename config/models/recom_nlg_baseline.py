@@ -14,7 +14,8 @@ def model():
           onmt.inputters.WordEmbedder(
               vocabulary_file_key="source_words_vocabulary",
               embedding_size=None,
-              embedding_file_key="words_embedding"),
+              embedding_file_key="words_embedding",
+              trainable=False),
           onmt.inputters.WordEmbedder(
               vocabulary_file_key="feature_vocabulary",
               embedding_size=64)],
@@ -22,17 +23,18 @@ def model():
       target_inputter=onmt.inputters.WordEmbedder(
           vocabulary_file_key="target_words_vocabulary",
           embedding_size=None,
-          embedding_file_key="words_embedding"),
+          embedding_file_key="words_embedding",
+          trainable=False),
       encoder=onmt.encoders.BidirectionalRNNEncoder(
-          num_layers=1,
-          num_units=128,
+          num_layers=2,
+          num_units=256,
           reducer=onmt.layers.ConcatReducer(),
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,
           residual_connections=False),
       decoder=onmt.decoders.AttentionalRNNDecoder(
-          num_layers=1,
-          num_units=128,
+          num_layers=2,
+          num_units=256,
           bridge=onmt.layers.CopyBridge(),
           attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
           cell_class=tf.contrib.rnn.LSTMCell,
