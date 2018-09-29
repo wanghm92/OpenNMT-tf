@@ -1,0 +1,46 @@
+# WARNING:
+# Do not use this file as is! It only lists and documents available options
+# without caring about their consistency.
+
+# The directory where models and summaries will be saved. It is created if it does not exist.
+model_dir: ../onmt-tf-output/recom_nlg_clothes_hierarchical_prefix_attribute
+
+data:
+  # (required for train_and_eval and train run types).
+  train_features_file:
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.words.train.filter.seg_new
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.tags.train.filter.seg_new
+  train_labels_file:
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.outs.train.seg_new.attr_one
+    - - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_attribute_one/recom_text.outs.train.seg_new.punctrmd.attr_init.1
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_attribute_one/recom_text.outs.train.seg_new.punctrmd.attr_init.2
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_attribute_one/recom_text.outs.train.seg_new.punctrmd.attr_init.3
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_attribute_one/recom_text.outs.train.seg_new.punctrmd.attr_init.4
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_attribute_one/recom_text.outs.train.seg_new.punctrmd.attr_init.5
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_attribute_one/recom_text.outs.train.seg_new.punctrmd.attr_init.6
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_attribute_one/recom_text.outs.train.seg_new.punctrmd.attr_init.7
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_attribute_one/recom_text.outs.train.seg_new.punctrmd.attr_init.8
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/prefix_attribute_one/recom_text.outs.train.seg_new.punctrmd.attr_init.9
+
+  # (required for train_end_eval and eval run types).
+  eval_features_file:
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/recom_text.words.val.filter.seg_new
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/recom_text.tags.val.filter.seg_new
+  eval_labels_file:
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/recom_text.outs.val.seg_new.attr_one
+    - - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_attribute_one/recom_text.outs.val.seg_new.punctrmd.attr_init.1
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_attribute_one/recom_text.outs.val.seg_new.punctrmd.attr_init.2
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_attribute_one/recom_text.outs.val.seg_new.punctrmd.attr_init.3
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_attribute_one/recom_text.outs.val.seg_new.punctrmd.attr_init.4
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_attribute_one/recom_text.outs.val.seg_new.punctrmd.attr_init.5
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_attribute_one/recom_text.outs.val.seg_new.punctrmd.attr_init.6
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_attribute_one/recom_text.outs.val.seg_new.punctrmd.attr_init.7
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_attribute_one/recom_text.outs.val.seg_new.punctrmd.attr_init.8
+      - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_attribute_one/recom_text.outs.val.seg_new.punctrmd.attr_init.9
+
+  eval_labels_file_full: ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/recom_text.outs.val.seg_new.temp
+
+params:
+  # whether to turn on printing debug_ops in hooks
+  debug: False
+  beam_width: 1

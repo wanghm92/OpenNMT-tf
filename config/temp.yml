@@ -24,8 +24,8 @@ data:
 
   # (required for train_end_eval and eval run types).
   eval_features_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.words.val.filter.seg_new.top100
-    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.tags.val.filter.seg_new.top100
+  - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.words.val.filter.seg_new.top100
+  - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.tags.val.filter.seg_new.top100
   eval_labels_file:
   - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.outs.val.seg_new.attr_one.top100
   - - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.1.top100

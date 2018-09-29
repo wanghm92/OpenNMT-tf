@@ -394,7 +394,8 @@ class HierarchicalInputter(ParallelInputter):
     """
     vocabulary_file_key, embedding_size, embedding_file_key = inputter_args
     inputters = []
-    for i in range(num):
+    self.num = num
+    for i in range(self.num):
       inputters.append(
         inputter_type(
           vocabulary_file_key=vocabulary_file_key,

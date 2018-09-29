@@ -179,6 +179,13 @@ class HierarchicalSequenceToSequence(Model):
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_inputter = {}".format(self.target_inputter))
       if labels is not None:
           master_labels, sub_labels = labels
+          tf.logging.info(log_separator + " >> [hierarchical_seq2seq.py _build] len(master_labels) = {}".format(len(master_labels)))
+          tf.logging.info(log_separator + " >> [hierarchical_seq2seq.py _build] master_labels = {}".format(master_labels))
+          tf.logging.info(log_separator + " >> [hierarchical_seq2seq.py _build] len(sub_labels) = {}".format(len(sub_labels)))
+          tf.logging.info(log_separator + " >> [hierarchical_seq2seq.py _build] sub_labels = {}".format(sub_labels))
+
+          #TODO: fix the hard coded 5 below, check why sampled id is not a tuple
+
           target_inputs = _maybe_reuse_embedding_fn(
               lambda ids: self.target_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
               scope=target_input_scope)(master_labels)
@@ -232,7 +239,7 @@ class HierarchicalSequenceToSequence(Model):
               batch_size = tf.shape(encoder_sequence_length)[0]
               beam_width = params.get("beam_width", 1)
               tf.logging.info(" >> [hierarchical_seq2seq.py _build] beam_width = %d"%beam_width)
-              maximum_iterations = params.get("maximum_iterations", 5)
+              maximum_iterations = params.get("maximum_iterations", self.source_inputter.num)
               sub_maximum_iterations = params.get("sub_maximum_iterations", 100)
               start_tokens = tf.fill([batch_size], constants.START_OF_SENTENCE_ID)
               end_token = constants.END_OF_SENTENCE_ID
@@ -303,6 +310,7 @@ class HierarchicalSequenceToSequence(Model):
             sub_sampled_length = None
 
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_vocab_rev.lookup")
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_tokens_sub = {}".format(target_tokens_sub))
 
           if params.get("replace_unknown_target", False):
               tf.logging.info(" >> [hierarchical_seq2seq.py _build] replace_unknown_target ... ")
