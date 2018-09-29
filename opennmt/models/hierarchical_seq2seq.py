@@ -139,6 +139,7 @@ class HierarchicalSequenceToSequence(Model):
       # TODO: may not need to share embedding across all inputters
         # source and master inputter should share the same embedding since they share the vocab
         # sub decoder should use another embedding
+        # this is related to use a different vocab for master decoder (much smaller vocab size) , the number of parameters should drop
 
       source_input_scope = self._get_input_scope(default_name="encoder")
       target_input_scope = self._get_input_scope(default_name="decoder")

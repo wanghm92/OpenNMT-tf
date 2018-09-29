@@ -200,6 +200,7 @@ class SequenceToSequence(Model):
               batch_size = tf.shape(encoder_sequence_length)[0]
               beam_width = params.get("beam_width", 1)
               tf.logging.info(" >> [sequence_to_sequence.py _build] beam_width = %d"%beam_width)
+              # TODO: remove this hard code
               maximum_iterations = params.get("maximum_iterations", 250)
               start_tokens = tf.fill([batch_size], constants.START_OF_SENTENCE_ID)
               end_token = constants.END_OF_SENTENCE_ID
