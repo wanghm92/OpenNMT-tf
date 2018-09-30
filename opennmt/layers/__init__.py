@@ -13,6 +13,7 @@ from opennmt.layers.bridge import AttentionWrapperStatePairwiseDenseBridge
 from opennmt.layers.bridge import AttentionWrapperStatePairwiseWeightedSumBridge
 from opennmt.layers.bridge import AttentionWrapperStatePairwiseGatingBridge
 from opennmt.layers.bridge import AttentionWrapperStateAggregatedGatingBridge
+from opennmt.layers.bridge import AttentionWrapperStateAverageBridge
 
 
 from opennmt.layers.position import PositionEmbedder

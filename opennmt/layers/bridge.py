@@ -374,6 +374,81 @@ class AttentionWrapperStatePairwiseWeightedSumBridge(Bridge):
     # Pack as the original decoder state.
     return tf.contrib.framework.nest.pack_sequence_as(decoder_zero_state, combined)
 
+class AttentionWrapperStateAverageBridge(Bridge):
+  """A bridge that applies a parameterized linear transformation from the
+  encoder state to the decoder state size.
+  """
+
+  def __init__(self, activation=None):
+    """Initializes the bridge.
+
+    Args:
+      activation: Activation function (a callable).
+        Set it to ``None`` to maintain a linear activation.
+    """
+    self.activation = activation
+
+  def _build(self, encoder_state, decoder_zero_state):
+    """
+    :param encoder_state: input state vectors for injecting information into this decoder
+                          encoder_state = initial_state = next_state (master)
+
+    :param decoder_zero_state: original zero_state/previous_state that carries on the information
+                               decoder_zero_state = previous_state = sub_state (sub)
+    """
+    for s in [encoder_state, decoder_zero_state]:
+      if not isinstance(s, tf.contrib.seq2seq.AttentionWrapperState):
+        raise ValueError(
+          "AttentionWrapperStateAggregatedDenseBridge only supports linear transformation on AttentionWrapperState states")
+
+    # Flattened states.
+    tf.logging.info(
+      " >> [bridge.py class AttentionWrapperStateAverageBridge _build] encoder_state = {}".format(encoder_state))
+    tf.logging.info(
+      " >> [bridge.py class AttentionWrapperStateAverageBridge _build] decoder_zero_state = {}".format(decoder_zero_state))
+
+    encoder_state_flat = tf.contrib.framework.nest.flatten(encoder_state)
+    decoder_state_flat = tf.contrib.framework.nest.flatten(decoder_zero_state)
+    tf.logging.info(" >> [bridge.py class AttentionWrapperStateAverageBridge _build] encoder_state_flat = \n{}"
+                    .format("\n".join(["{}".format(x) for x in encoder_state_flat])))
+    tf.logging.info(" >> [bridge.py class AttentionWrapperStateAverageBridge _build] decoder_state_flat = \n{}"
+                    .format("\n".join(["{}".format(x) for x in decoder_state_flat])))
+
+    encoder_state_concat = tf.expand_dims(tf.concat(encoder_state_flat[:3], axis=1), axis=-1)  # (c_m, h_m, a_m)
+    decoder_state_concat = tf.expand_dims(tf.concat(decoder_state_flat[:3], axis=1), axis=-1)  # (c_s, h_s, a_s)
+    all_states = tf.concat([encoder_state_concat, decoder_state_concat], axis=-1) # b*d*2
+    tf.logging.info(
+      " >> [bridge.py class AttentionWrapperStateAverageBridge _build] encoder_state_concat = {}"
+      .format(encoder_state_concat))
+    tf.logging.info(
+      " >> [bridge.py class AttentionWrapperStateAverageBridge _build] decoder_state_concat = {}"
+      .format(encoder_state_concat))
+
+    # Extract decoder state sizes.
+    encoder_state_size = [x.get_shape().as_list()[-1] for x in encoder_state_flat[:3]]
+    encoder_total_size = sum(encoder_state_size)
+    decoder_state_size = [x.get_shape().as_list()[-1] for x in decoder_state_flat[:3]]
+    decoder_total_size = sum(decoder_state_size)
+    assert encoder_total_size == decoder_total_size
+    tf.logging.info(
+      " >> [bridge.py class AttentionWrapperStateAverageBridge _build] encoder_total_size = decoder_state_size = {}"
+        .format(decoder_state_size))
+
+    transformed = tf.reduce_mean(all_states, axis=-1)
+    tf.logging.info(
+      " >> [bridge.py class AttentionWrapperStateAverageBridge _build] transformed = {}".format(transformed))
+
+    # Split resulting tensor to match the decoder state size.
+    splitted = tf.split(transformed, decoder_state_size, axis=1)
+    tf.logging.info(
+      " >> [bridge.py class AttentionWrapperStateAverageBridge _build] splitted = {}".format(splitted))
+    combined = splitted + decoder_state_flat[3:]
+    tf.logging.info(
+      " >> [bridge.py class AttentionWrapperStateAverageBridge _build] combined = {}".format(combined))
+
+    # Pack as the original decoder state.
+    return tf.contrib.framework.nest.pack_sequence_as(decoder_zero_state, combined)
+
 class AttentionWrapperStatePairwiseGatingBridge(Bridge):
   """A bridge that applies a parameterized linear transformation from the
   encoder state to the decoder state size.
@@ -405,8 +480,7 @@ class AttentionWrapperStatePairwiseGatingBridge(Bridge):
     tf.logging.info(
       " >> [bridge.py class AttentionWrapperStatePairwiseGatingBridge _build] encoder_state = {}".format(encoder_state))
     tf.logging.info(
-      " >> [bridge.py class AttentionWrapperStatePairwiseGatingBridge _build] decoder_zero_state = {}"
-      .format(decoder_zero_state))
+      " >> [bridge.py class AttentionWrapperStatePairwiseGatingBridge _build] decoder_zero_state = {}".format(decoder_zero_state))
 
     # Flattened states.
     encoder_state_flat = tf.contrib.framework.nest.flatten(encoder_state)
@@ -493,11 +567,10 @@ class AttentionWrapperStateAggregatedGatingBridge(Bridge):
           "AttentionWrapperStateAggregatedDenseBridge only supports linear transformation on AttentionWrapperState states")
 
     # Flattened states.
-    tf.logging.info(" >> [bridge.py class AttentionWrapperStateAggregatedGatingBridge _build] encoder_state = {}".format(
-      encoder_state))
     tf.logging.info(
-      " >> [bridge.py class AttentionWrapperStateAggregatedGatingBridge _build] decoder_zero_state = {}".format(
-        decoder_zero_state))
+      " >> [bridge.py class AttentionWrapperStateAggregatedGatingBridge _build] encoder_state = {}".format(encoder_state))
+    tf.logging.info(
+      " >> [bridge.py class AttentionWrapperStateAggregatedGatingBridge _build] decoder_zero_state = {}".format(decoder_zero_state))
 
     encoder_state_flat = tf.contrib.framework.nest.flatten(encoder_state)
     decoder_state_flat = tf.contrib.framework.nest.flatten(decoder_zero_state)

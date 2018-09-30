@@ -341,7 +341,7 @@ class HierarchicalTrainingHelper(TrainingHelper):
 
     with ops.name_scope(name, "TrainingHelperInitializeForSubsequenceDecoding"):
 
-      # TODO: this should be changed to greater_than 2
+      # TODO: this should be changed to greater_than 2 (but 1 if shifted)
       finished = math_ops.equal(0, self._sequence_length_sub)
       all_finished = math_ops.reduce_all(finished)
       next_inputs = control_flow_ops.cond(

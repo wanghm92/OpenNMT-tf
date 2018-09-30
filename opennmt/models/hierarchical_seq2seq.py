@@ -243,7 +243,7 @@ class HierarchicalSequenceToSequence(Model):
               maximum_iterations = params.get("maximum_iterations", 0)
               tf.logging.info(" >> [hierarchical_seq2seq.py _build] maximum_iterations = {}".format(maximum_iterations))
               assert maximum_iterations == self.sub_target_inputter.num + 1
-              sub_maximum_iterations = params.get("sub_maximum_iterations", 100)
+              sub_maximum_iterations = params.get("sub_maximum_iterations", 50)
               start_tokens = tf.fill([batch_size], constants.START_OF_SENTENCE_ID)
               end_token = constants.END_OF_SENTENCE_ID
 

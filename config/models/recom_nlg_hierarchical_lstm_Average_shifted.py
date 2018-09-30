@@ -38,10 +38,10 @@ def model():
           num_layers=1,
           num_units=128,
           bridge=onmt.layers.CopyBridge(),
-          sub_bridge=onmt.layers.AttentionWrapperStateAggregatedGatingBridge(),
+          sub_bridge=onmt.layers.AttentionWrapperStateAverageBridge(),
           attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,
           residual_connections=False),
       share_embeddings=EmbeddingsSharingLevel.SOURCE_TARGET_INPUT,
-      shifted="attr")
+      shifted="word")
