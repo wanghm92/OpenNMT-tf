@@ -303,6 +303,8 @@ class Model(object):
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
           _, predictions = self._build(features, labels, params, mode, config=config)
 
+        tf.logging.info(" >> [model.py model_fn _model_fn] <PREDICT> predictions = {}".format(predictions))
+
         export_outputs = {}
         export_outputs[tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY] = (
             tf.estimator.export.PredictOutput(predictions))
