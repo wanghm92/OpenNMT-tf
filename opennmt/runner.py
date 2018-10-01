@@ -294,10 +294,11 @@ class Runner(object):
         prefetch_buffer_size=self._config["infer"].get("prefetch_buffer_size"))
 
     if predictions_file:
-      stream = io.open(predictions_file, encoding="utf-8", mode="w")
+        stream = io.open(predictions_file, encoding="utf-8", mode="w")
+        sub_stream = io.open("{}.sub".format(predictions_file), encoding="utf-8", mode="w+")
     else:
-      stream = sys.stdout
-    sub_stream = None
+        stream = sys.stdout
+        sub_stream = stream
 
     infer_hooks = []
     if log_time:
@@ -307,14 +308,12 @@ class Runner(object):
         input_fn=input_fn,
         checkpoint_path=checkpoint_path,
         hooks=infer_hooks):
-      if "tokens_sub" in six.iterkeys(prediction):
-        sub_stream = io.open("{}.sub".format(predictions_file), encoding="utf-8", mode="w+")
-      self._model.print_prediction(prediction, params=self._config["infer"], stream=stream, sub_stream=sub_stream)
+      sub_stream_out = sub_stream if "tokens_sub" in six.iterkeys(prediction) else None
+      self._model.print_prediction(prediction, params=self._config["infer"], stream=stream, sub_stream=sub_stream_out)
 
     if predictions_file:
       stream.close()
-      if sub_stream is not None:
-          sub_stream.close()
+      sub_stream.close()
 
   def export(self, checkpoint_path=None):
     """Exports a model.
