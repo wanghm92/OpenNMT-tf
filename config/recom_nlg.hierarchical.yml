@@ -181,3 +181,5 @@ score:
   num_threads: 1
   # (optional) The number of batches to prefetch asynchronously (default: 1).
   prefetch_buffer_size: 1
+  # (optional) For compatible models, also output the score (default: false).
+  with_scores: false
