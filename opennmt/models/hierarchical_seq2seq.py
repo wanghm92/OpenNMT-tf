@@ -185,8 +185,6 @@ class HierarchicalSequenceToSequence(Model):
           tf.logging.info(log_separator + " >> [hierarchical_seq2seq.py _build] len(sub_labels) = {}".format(len(sub_labels)))
           tf.logging.info(log_separator + " >> [hierarchical_seq2seq.py _build] sub_labels = {}".format(sub_labels))
 
-          #TODO: fix the hard coded 5 below, check why sampled id is not a tuple
-
           target_inputs = _maybe_reuse_embedding_fn(
               lambda ids: self.target_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
               scope=target_input_scope)(master_labels)
