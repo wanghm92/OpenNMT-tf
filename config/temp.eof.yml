@@ -1,0 +1,41 @@
+# WARNING:
+# Do not use this file as is! It only lists and documents available options
+# without caring about their consistency.
+
+# The directory where models and summaries will be saved. It is created if it does not exist.
+#model_dir: ../output/recom_nlg_emb
+model_dir: ../onmt-tf-output/temp
+
+data:
+  # (required for train_and_eval and train run types).
+  train_features_file:
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/100/recom_text.words.train.filter.seg_new.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/100/recom_text.tags.train.filter.seg_new.top100
+  train_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/eof/recom_text.outs.train.seg_new.punctrmd.eof.top100
+
+  # (required for train_end_eval and eval run types).
+  eval_features_file:
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.words.val.filter.seg_new.top100
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.words.val.filter.seg_new.top100
+  eval_labels_file: ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/eof/recom_text.outs.val.seg_new.punctrmd.eof.top100
+
+  # (optional) Models may require additional resource files (e.g. vocabularies).
+  source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
+  feature_vocabulary: data/recom_nlg/clothes/one_per_sku/tags-train.vocab
+  target_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-outs-train.vocab
+
+  words_embedding: ../recom_nlg/temp/emb.vec
+
+train:
+  save_checkpoints_steps: 1
+  save_summary_steps: 1
+  train_steps: 2
+
+eval:
+  # (optional) Evaluate every this many seconds (default: 18000).
+  eval_delay: 10
+
+params:
+  beam_width: 1
+
+

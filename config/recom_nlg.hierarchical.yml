@@ -100,7 +100,7 @@ params:
   # (optional) Maximum decoding iterations before stopping
   maximum_iterations: 10
   # (optional) Maximum decoding iterations before stopping for sub_decoder
-  sub_maximum_iterations: 100
+  sub_maximum_iterations: 50
   # (optional) Replace unknown target tokens by the original source token with the
   # highest attention (default: false).
   replace_unknown_target: true
