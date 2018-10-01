@@ -507,10 +507,16 @@ class HierarchicalSequenceToSequence(Model):
     for i in range(n_best):
       tokens = prediction["tokens"][i][:prediction["length"][i]-1] # Ignore </s>.
       sentence = self.target_inputter.tokenizer.detokenize(tokens)
+      if params is not None and params.get("with_scores"):
+        sentence = "%f ||| %s" % (
+            prediction["log_probs"][i] / prediction["length"][i], sentence)
       print_bytes(tf.compat.as_bytes(sentence), stream=stream)
       if sub_stream is not None:
         sub_tokens = prediction["tokens_sub"][i][:prediction["length_sub"][i]]
         sub_sentence = self.target_inputter.tokenizer.detokenize(sub_tokens)
+        if params is not None and params.get("with_scores"):
+            sub_sentence = "%f ||| %s" % (
+                prediction["log_probs"][i] / prediction["length_sub"][i], sub_sentence) # log_probs = log_probs_master + log_probs_sub
         print_bytes(tf.compat.as_bytes(sub_sentence), stream=sub_stream)
 
 def align_tokens_from_attention(tokens, attention):
