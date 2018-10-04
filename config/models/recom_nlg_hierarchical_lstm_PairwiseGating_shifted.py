@@ -43,4 +43,5 @@ def model():
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,
           residual_connections=False),
-      share_embeddings=EmbeddingsSharingLevel.SOURCE_TARGET_INPUT)
+      share_embeddings=EmbeddingsSharingLevel.SOURCE_TARGET_INPUT,
+      shifted="word")
