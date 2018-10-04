@@ -62,6 +62,7 @@ class EmbeddingsSharingLevel(object):
   """
   NONE = 0
   SOURCE_TARGET_INPUT = 1
+  SOURCE_CONTROLLER_INPUT = 2
 
 class SequenceToSequence(Model):
   """A sequence to sequence model."""

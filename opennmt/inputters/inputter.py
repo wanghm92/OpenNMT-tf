@@ -268,9 +268,6 @@ class MultiInputter(Inputter):
     raise NotImplementedError()
 
   def transform(self, inputs, mode):
-    # seems to be never used, too
-    # maybe doing the same thing as _transform_data
-    # may need to change i to i+1
     transformed = []
     tf.logging.info(" >>>> [inputter.py Class MultiInputter transform]")
     for i, inputter in enumerate(self.inputters):
@@ -374,7 +371,6 @@ class ParallelInputter(MultiInputter):
     return transformed
 
   def transform(self, inputs, mode):
-    # seems to be never used
     tf.logging.info(" >> [inputter.py class ParallelInputter transform]")
     transformed = super(ParallelInputter, self).transform(inputs, mode)
     if self.reducer is not None:
@@ -395,6 +391,10 @@ class HierarchicalInputter(ParallelInputter):
     vocabulary_file_key, embedding_size, embedding_file_key = inputter_args
     inputters = []
     self.num = num
+    self.vocabulary_file_key = vocabulary_file_key
+    self.embedding_file_key = embedding_file_key
+    self.embedding_size = embedding_size
+
     for i in range(self.num):
       inputters.append(
         inputter_type(
@@ -404,6 +404,15 @@ class HierarchicalInputter(ParallelInputter):
     tf.logging.info(" >> [inputter.py class HierarchicalInputter __init__] inputters = {}".format("\n".join(["{}".format(x) for x in inputters])))
     tf.logging.info(" >> [inputter.py class HierarchicalInputter __init__] reducer = {}".format(reducer))
     super(HierarchicalInputter, self).__init__(inputters, reducer)
+
+  def initialize(self, metadata):
+    tf.logging.info(" >>>> [inputter.py Class HierarchicalInputter initialize]")
+    self.vocabulary_file = metadata[self.vocabulary_file_key]
+    self.embedding_file = metadata[self.embedding_file_key] if self.embedding_file_key else None
+    self.num_oov_buckets = self.inputters[0].num_oov_buckets
+    for idx, inputter in enumerate(self.inputters):
+      tf.logging.info(" >>>> [inputter.py Class HierarchicalInputter initialize] initializing inputter ---- {} ---- ({}) ".format(idx, inputter))
+      inputter.initialize(metadata)
 
   def process(self, data):
     """Prepares raw data.
@@ -481,6 +490,13 @@ class HierarchicalInputter(ParallelInputter):
     tf.logging.info(" >> [inputter.py class HierarchicalInputter _transform_sub_labels] AFTER transformed = {}".format(transformed))
     data = self.set_data_field(data, "ids_out", transformed, volatile=False)
     return data
+
+  def transform(self, inputs, mode):
+    tf.logging.info(" >> [inputter.py class HierarchicalInputter transform] inputs = {}".format(inputs))
+    '''
+      All inputter share the same embedding, use the 0th to lookup is fine
+    '''
+    return self.inputters[0].transform(inputs, mode) # word embedder
 
   def visualize(self, log_dir):
     tf.logging.info(" >>>> [inputter.py Class HierarchicalInputter visualize]")

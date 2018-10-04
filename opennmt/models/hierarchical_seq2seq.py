@@ -121,6 +121,9 @@ class HierarchicalSequenceToSequence(Model):
   def _get_input_scope(self, default_name=""):
     if self.share_embeddings == EmbeddingsSharingLevel.SOURCE_TARGET_INPUT:
       name = "shared_embeddings"
+    elif self.share_embeddings == EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT and isinstance(default_name, tuple):
+      name = "partially_shared_embeddings"
+      return tuple([tf.VariableScope(None, name=tf.get_variable_scope().name + "/" + name) for i in range(len(default_name))])
     else:
       name = default_name
     return tf.VariableScope(None, name=tf.get_variable_scope().name + "/" + name)
@@ -141,11 +144,17 @@ class HierarchicalSequenceToSequence(Model):
         # sub decoder should use another embedding
         # this is related to use a different vocab for master decoder (much smaller vocab size) , the number of parameters should drop
 
-      source_input_scope = self._get_input_scope(default_name="encoder")
-      target_input_scope = self._get_input_scope(default_name="decoder")
+      if self.share_embeddings == EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT:
+        source_input_scope, target_input_scope = self._get_input_scope(default_name=("encoder", "controller"))
+        sub_target_input_scope = self._get_input_scope(default_name="fragment_decoder")
+      else:
+        source_input_scope = self._get_input_scope(default_name="encoder")
+        target_input_scope = self._get_input_scope(default_name="decoder")
+        sub_target_input_scope = target_input_scope
 
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] source_input_scope = {}".format(source_input_scope.name))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_input_scope = {}".format(target_input_scope.name))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] sub_target_input_scope = {}".format(sub_target_input_scope.name))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] source_inputter = {}".format(self.source_inputter))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_inputter = {}".format(self.target_inputter))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] sub_target_inputter = {}".format(self.sub_target_inputter))
@@ -167,7 +176,10 @@ class HierarchicalSequenceToSequence(Model):
 
       master_target_vocab_size = self.target_inputter.get_vocab_size()
       sub_target_vocab_size = self.sub_target_inputter.get_vocab_size()
-      assert master_target_vocab_size == sub_target_vocab_size
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] encoder_sequence_length = {}".format(master_target_vocab_size))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] encoder_sequence_length = {}".format(sub_target_vocab_size))
+
+      # TODO: use different vocab sizes here
 
       target_dtype = self.target_inputter.dtype
 
@@ -176,7 +188,12 @@ class HierarchicalSequenceToSequence(Model):
           lambda ids: self.target_inputter.transform(ids, mode=mode),
           scope=target_input_scope) # callable
 
+      sub_target_embedding_fn = _maybe_reuse_embedding_fn(
+          lambda ids: self.sub_target_inputter.transform(ids, mode=mode),
+          scope=sub_target_input_scope) # callable
+
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_embedding_fn = {}".format(target_embedding_fn))
+      tf.logging.info(" >> [hierarchical_seq2seq.py _build] sub_target_embedding_fn = {}".format(sub_target_embedding_fn))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_inputter = {}".format(self.target_inputter))
       if labels is not None:
           master_labels, sub_labels = labels
@@ -192,7 +209,7 @@ class HierarchicalSequenceToSequence(Model):
 
           sub_target_inputs = _maybe_reuse_embedding_fn(
               lambda ids: self.sub_target_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
-              scope=target_input_scope)(sub_labels)
+              scope=sub_target_input_scope)(sub_labels)
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] sub_target_inputs = {}".format(sub_target_inputs))
           tf.logging.info(log_separator + " >> [hierarchical_seq2seq.py _build] self.decoder.decode ...")
 
@@ -208,10 +225,10 @@ class HierarchicalSequenceToSequence(Model):
               logits, logits_sub, state, length, sequence_mask_sub = self.decoder.decode(
                   (target_inputs, sub_target_inputs),
                   self._get_labels_length(labels, to_reduce=True),
-                  vocab_size=master_target_vocab_size,
+                  vocab_size=(master_target_vocab_size, sub_target_vocab_size),
                   initial_state=encoder_state,
                   sampling_probability=sampling_probability,
-                  embedding=target_embedding_fn,
+                  embedding=(target_embedding_fn, sub_target_embedding_fn),
                   mode=mode,
                   memory=encoder_outputs,
                   memory_sequence_length=encoder_sequence_length,
@@ -248,10 +265,10 @@ class HierarchicalSequenceToSequence(Model):
               if beam_width <= 1:
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] dynamic_decode ...")
                   sampled_ids, _, sampled_length, log_probs, alignment = self.decoder.dynamic_decode(
-                      target_embedding_fn,
-                      start_tokens,
-                      end_token,
-                      vocab_size=master_target_vocab_size,
+                      embedding=(target_embedding_fn, sub_target_embedding_fn),
+                      start_tokens=start_tokens,
+                      end_token=end_token,
+                      vocab_size=(master_target_vocab_size, sub_target_vocab_size),
                       initial_state=encoder_state,
                       maximum_iterations=maximum_iterations,
                       sub_maximum_iterations=sub_maximum_iterations,
@@ -286,11 +303,16 @@ class HierarchicalSequenceToSequence(Model):
                           return_alignment_history=True,
                           shifted=self.shifted))
 
-          # NOTE: target_vocab_rev is shared for now, need to be compatible with embedding sharing
           target_vocab_rev = tf.contrib.lookup.index_to_string_table_from_file(
               self.target_inputter.vocabulary_file,
               vocab_size=master_target_vocab_size - self.target_inputter.num_oov_buckets,
               default_value=constants.UNKNOWN_TOKEN)
+
+          sub_target_vocab_rev = tf.contrib.lookup.index_to_string_table_from_file(
+              self.sub_target_inputter.vocabulary_file,
+              vocab_size=sub_target_vocab_size - self.sub_target_inputter.num_oov_buckets,
+              default_value=constants.UNKNOWN_TOKEN)
+
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] index_to_string_table_from_file")
           tf.logging.info(" >> [hierarchical_seq2seq.py dynamic_decode] sampled_ids = {}".format(sampled_ids))
           if isinstance(sampled_ids, tuple):
@@ -304,7 +326,7 @@ class HierarchicalSequenceToSequence(Model):
                                              })
 
             target_tokens = target_vocab_rev.lookup(tf.cast(master_ids, tf.int64))
-            target_tokens_sub = target_vocab_rev.lookup(tf.cast(sub_ids, tf.int64))
+            target_tokens_sub = sub_target_vocab_rev.lookup(tf.cast(sub_ids, tf.int64))
           else:
             target_tokens = target_vocab_rev.lookup(tf.cast(sampled_ids, tf.int64))
             target_tokens_sub = None
@@ -313,6 +335,7 @@ class HierarchicalSequenceToSequence(Model):
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_vocab_rev.lookup")
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_tokens_sub = {}".format(target_tokens_sub))
 
+          # NOTE: replace_unknown_target is only for controller now
           if params.get("replace_unknown_target", False):
               tf.logging.info(" >> [hierarchical_seq2seq.py _build] replace_unknown_target ... ")
               if alignment is None:

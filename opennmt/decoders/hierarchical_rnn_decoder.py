@@ -90,6 +90,16 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode]")
 
+    if isinstance(vocab_size, tuple):
+        master_vocab_size, sub_vocab_size = vocab_size
+    else:
+        master_vocab_size = vocab_size
+        sub_vocab_size = vocab_size
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] embedding = {}".format(embedding))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] vocab_size = {}".format(vocab_size))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] master_vocab_size = {}".format(master_vocab_size))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] sub_vocab_size = {}".format(sub_vocab_size))
+
     master_inputs, sub_inputs = inputs
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] master_inputs = {}".format(master_inputs))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] sub_inputs = {}".format(sub_inputs))
@@ -113,6 +123,14 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
              or sampling_probability > 0.0)):
         if embedding is None:
             raise ValueError("embedding argument must be set when using scheduled sampling")
+        elif isinstance(embedding, tuple):
+            master_embedding, sub_embedding = embedding
+        else:
+            master_embedding = embedding
+            sub_embedding = embedding
+
+        tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] master_embedding = {}".format(master_embedding))
+        tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] sub_embedding = {}".format(sub_embedding))
 
         tf.summary.scalar("sampling_probability", sampling_probability)
         '''
@@ -122,13 +140,13 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         master_helper = ScheduledEmbeddingTrainingHelper(
             master_inputs,
             master_sequence_length,
-            embedding,
+            master_embedding,
             sampling_probability)
 
         sub_helper = ScheduledEmbeddingTrainingHelper(
             sub_inputs,
             sub_sequence_length,
-            embedding,
+            sub_embedding,
             sampling_probability)
         fused_projection = False
     else:
@@ -174,8 +192,11 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
 
     # TODO: separate output layer for master and sub decoders, with different vocab files
     if output_layer is None:
-        output_layer = build_output_layer(self.num_units, vocab_size, dtype=master_inputs.dtype)
-    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] output_layer = {}".format(output_layer))
+        master_output_layer = build_output_layer(self.num_units, master_vocab_size, dtype=master_inputs.dtype)
+        sub_output_layer = build_output_layer(self.num_units, sub_vocab_size, dtype=master_inputs.dtype)
+
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] master_output_layer = {}".format(master_output_layer))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] sub_output_layer = {}".format(sub_output_layer))
 
     '''
     master and sub-sequence sampling decoder.
@@ -184,14 +205,14 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         cell=master_cell,
         helper=master_helper,
         initial_state=initial_state_master,
-        output_layer=output_layer if not fused_projection else None)
+        output_layer=master_output_layer if not fused_projection else None)
 
     sub_decoder = BasicSubDecoder(
         cell=sub_cell,
         helper=sub_helper,
         initial_state=initial_state_sub,
         bridge=self._sub_bridge,
-        output_layer=output_layer if not fused_projection else None)
+        output_layer=sub_output_layer if not fused_projection else None)
 
     '''
     Perform dynamic decoding with decoder.
@@ -212,9 +233,9 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] length = {}".format(length))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] final_time = {}".format(final_time))
 
-    if fused_projection and output_layer is not None:
-        logits = output_layer(outputs.rnn_output)
-        logits_sub = output_layer(outputs_sub.rnn_output)
+    if fused_projection and master_output_layer is not None and sub_output_layer is not None:
+        logits = master_output_layer(outputs.rnn_output)
+        logits_sub = sub_output_layer(outputs_sub.rnn_output)
     else:
         logits = outputs.rnn_output
         logits_sub = outputs_sub.rnn_output
@@ -289,11 +310,24 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
       if :obj:`return_alignment_history` is ``True``.
     """
 
+    if isinstance(embedding, tuple):
+      master_embedding, sub_embedding = embedding
+    else:
+      master_embedding = embedding
+      sub_embedding = embedding
+
+
+    if isinstance(vocab_size, tuple):
+      master_vocab_size, sub_vocab_size = vocab_size
+    else:
+      master_vocab_size = vocab_size
+      sub_vocab_size = vocab_size
+
     batch_size = tf.shape(start_tokens)[0]
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] batch_size = {}".format(batch_size))
 
-    master_helper = GreedyEmbeddingHelper(embedding, start_tokens, end_token)
-    sub_helper = HierarchicalGreedyEmbeddingHelper(embedding, start_tokens, end_token)
+    master_helper = GreedyEmbeddingHelper(master_embedding, start_tokens, end_token)
+    sub_helper = HierarchicalGreedyEmbeddingHelper(sub_embedding, start_tokens, end_token)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_helper = {}".format(master_helper))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_helper = {}".format(sub_helper))
@@ -324,7 +358,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] initial_state_sub = {}".format(initial_state_sub))
 
     if output_layer is None:
-        output_layer = build_output_layer(self.num_units, vocab_size, dtype=dtype or memory.dtype)
+        master_output_layer = build_output_layer(self.num_units, master_vocab_size, dtype=dtype or memory.dtype)
+        sub_output_layer = build_output_layer(self.num_units, sub_vocab_size, dtype=dtype or memory.dtype)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] output_layer = {}".format(output_layer))
 
@@ -332,14 +367,14 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         cell=master_cell,
         helper=master_helper,
         initial_state=initial_state_master,
-        output_layer=output_layer)
+        output_layer=master_output_layer)
 
     sub_decoder = BasicSubDecoder(
         cell=sub_cell,
         helper=sub_helper,
         initial_state=initial_state_sub,
         bridge=self._sub_bridge,
-        output_layer=output_layer)
+        output_layer=sub_output_layer)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_decoder = {}".format(master_decoder))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_decoder = {}".format(sub_decoder))

@@ -390,11 +390,14 @@ class WordEmbedder(TextInputter):
 
   def transform(self, inputs, mode):
     tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] inputs = {}".format(inputs))
+    tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] variable_scope = {}".format(
+        tf.get_variable_scope().name))
     try:
       embeddings = tf.get_variable("w_embs", dtype=self.dtype, trainable=self.trainable)
       tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] embeddings reused")
     except ValueError:
       tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] embeddings does not exist yet")
+
       if self.embedding_file:
         tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder transform] loading pretrained embedding from %s"%self.embedding_file)
         pretrained = load_pretrained_embeddings(
