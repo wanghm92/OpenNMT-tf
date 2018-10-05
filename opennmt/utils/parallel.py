@@ -156,7 +156,7 @@ class GraphDispatcher(object):
     tf.logging.info(" >> [parallel.py __call__] outputs = {}".format(outputs))
     tf.logging.info(" >> [parallel.py __call__] len(outputs) = {}".format(len(outputs)))
     tf.logging.info(" >> [parallel.py __call__] zip(*outputs) = {}".format(zip(*outputs)))
-    tf.logging.info(" >> [parallel.py __call__] len(zip(*outputs)) = {}".format(len(zip(*outputs))))
+    tf.logging.info(" >> [parallel.py __call__] len(zip(*outputs)) = {}".format(len(list(zip(*outputs)))))
 
     # If the function returned a tuple, also return a tuple of sharded results.
     # list of tuple --> tuple of list

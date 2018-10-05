@@ -85,6 +85,9 @@ class ROUGEEvaluator(ExternalEvaluator):
                     score["rouge-1"], score["rouge-2"], score["rouge-l"])
 
   def score(self, labels_file, predictions_path):
+    tf.logging.info(" >> [evaluator.py class ROUGEEvaluator score] labels_file: {}".format(labels_file))
+    tf.logging.info(" >> [evaluator.py class ROUGEEvaluator score] predictions_path: {}".format(predictions_path))
+
     from rouge import FilesRouge
     files_rouge = FilesRouge(predictions_path, labels_file)
     rouge_scores = files_rouge.get_scores(avg=True)

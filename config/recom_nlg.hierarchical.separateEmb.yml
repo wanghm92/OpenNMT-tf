@@ -3,7 +3,7 @@
 # without caring about their consistency.
 
 # The directory where models and summaries will be saved. It is created if it does not exist.
-model_dir: ../onmt-tf-output/recom_nlg_clothes_hierarchical
+model_dir: ../onmt-tf-output/recom_nlg_clothes_hierarchical_separateEmb
 
 data:
   # (required for train_and_eval and train run types).
@@ -157,7 +157,7 @@ eval:
   save_eval_predictions: false
   # (optional) Evalutator or list of evaluators that are called on the saved evaluation predictions.
   # Available evaluators: BLEU, BLEU-detok, ROUGE
-  external_evaluators: BLEU
+  external_evaluators: [BLEU, ROUGE]
   # (optional) Model exporter(s) to use during the training and evaluation loop:
   # last, final, best, or null (default: last).
   exporters: best

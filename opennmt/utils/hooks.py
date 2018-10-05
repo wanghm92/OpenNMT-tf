@@ -20,7 +20,7 @@ class LogParametersCountHook(tf.train.SessionRunHook):
     param_sizes = sorted(param_sizes.items(), key=lambda t: t[1][1])
     print("{:>10} | {:<15} | {}".format("count", "shape", "name"))
     for name, (shape, count) in param_sizes:
-      print("{:>10} | {:<15} | {}".format("{:,}".format(count), shape, name))
+      print("{:>10} | {:<15} | {}".format("{:,}".format(count), str(shape), name))
 
 _DEFAULT_COUNTERS_COLLECTION = "counters"
 

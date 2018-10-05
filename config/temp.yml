@@ -38,7 +38,7 @@ data:
     - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.8.top100
     - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/prefix_first_word/100/recom_text.outs.val.seg_new.punctrmd.shifted.9.top100
 
-  eval_labels_file_full: ../recom_nlg/onmt/clothes/one_per_sku/segmented/val/100/recom_text.outs.val.seg_new.temp.top100
+  eval_labels_file_full: ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/val/100/recom_text.outs.val.seg_new.temp.top100
 
   # (optional) Models may require additional resource files (e.g. vocabularies).
   source_words_vocabulary: data/recom_nlg/clothes/one_per_sku/words-train.vocab
