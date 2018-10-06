@@ -89,7 +89,7 @@ class Vocab(object):
       else:
         for token in self._id_to_token:
           freq = self._frequency[self._token_to_id[token]]
-          fout.write(b"%s: %s\n" % (tf.compat.as_bytes(token), str(freq)))
+          fout.write(b"%s: %f\n" % (tf.compat.as_bytes(token), freq))
 
   def load(self, path):
     """Loads a serialized vocabulary.
