@@ -235,25 +235,28 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
 
   def after_run(self, run_context, run_values):  # pylint: disable=unused-argument
     if self._debug:
-      predictions, self._current_step, metrics, debug_ops = run_values.results
+      self.predictions, self._current_step, metrics, debug_ops = run_values.results
       tf.logging.info(" >> [hooks.py class SaveEvaluationPredictionHook after_run] debug_ops")
       pp.pprint(debug_ops)
     else:
-      predictions, self._current_step, metrics = run_values.results
+      self.predictions, self._current_step, metrics = run_values.results
     pp.pprint(metrics)
     self._output_path = "{}.{}".format(self._output_file, self._current_step)
     with io.open(self._output_path, encoding="utf-8", mode="a") as output_file:
-      if "tokens_sub" in six.iterkeys(predictions):
+      if "tokens_sub" in six.iterkeys(self.predictions):
         self._output_path_sub = "{}.sub.{}".format(self._output_file, self._current_step)
         with io.open(self._output_path_sub, encoding="utf-8", mode="a") as output_file_sub:
-          for prediction in misc.extract_batches(predictions):
+          for prediction in misc.extract_batches(self.predictions):
             self._model.print_prediction(prediction, stream=output_file, sub_stream=output_file_sub)
       else:
-        for prediction in misc.extract_batches(predictions):
+        for prediction in misc.extract_batches(self.predictions):
           self._model.print_prediction(prediction, stream=output_file)
 
 
   def end(self, session):
     tf.logging.info("Running _post_evaluation_fn (BLEU); Evaluation predictions saved to %s", self._output_path)
     if self._post_evaluation_fn is not None:
-      self._post_evaluation_fn(self._current_step, self._output_path)
+      if "tokens_sub" in six.iterkeys(self.predictions):
+        self._post_evaluation_fn(self._current_step, self._output_path_sub)
+      else:
+        self._post_evaluation_fn(self._current_step, self._output_path)
