@@ -152,9 +152,9 @@ class SequenceToSequence(Model):
               source_inputs,
               sequence_length=features_length,
               mode=mode)
-      tf.logging.info(" >> [hierarchical_seq2seq.py _build] encoder_outputs = {}".format(encoder_outputs))
-      tf.logging.info(" >> [hierarchical_seq2seq.py _build] encoder_state (initial_state) = {}".format(encoder_state))
-      tf.logging.info(" >> [hierarchical_seq2seq.py _build] encoder_sequence_length = {}".format(encoder_sequence_length))
+      tf.logging.info(" >> [sequence_to_sequence.py _build] encoder_outputs = {}".format(encoder_outputs))
+      tf.logging.info(" >> [sequence_to_sequence.py _build] encoder_state (initial_state) = {}".format(encoder_state))
+      tf.logging.info(" >> [sequence_to_sequence.py _build] encoder_sequence_length = {}".format(encoder_sequence_length))
 
       target_vocab_size = self.target_inputter.vocabulary_size
       target_dtype = self.target_inputter.dtype
