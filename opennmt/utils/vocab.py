@@ -84,7 +84,7 @@ class Vocab(object):
           if not token in emb_vocab_dict and freq != float('Inf'):
             oov += 1
             oov_cnt += freq
-          fout.write(b"%s: %s\n"%(tf.compat.as_bytes(token), str(freq)))
+          fout.write(b"%s: %f\n"%(tf.compat.as_bytes(token), freq))
         print("number of OOVs w.r.t pre-trained embeddings = {} (count={})".format(oov, oov_cnt))
       else:
         for token in self._id_to_token:
