@@ -17,7 +17,7 @@ def model():
               embedding_file_key="words_embedding"),
           onmt.inputters.WordEmbedder(
               vocabulary_file_key="feature_vocabulary",
-              embedding_size=64)],
+              embedding_size=32)],
           reducer=onmt.layers.ConcatReducer()),
       target_inputter=onmt.inputters.WordEmbedder(
           vocabulary_file_key="master_target_words_vocabulary",
