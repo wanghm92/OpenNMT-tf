@@ -116,8 +116,6 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] AFTER sub_inputs = {}".format(sub_inputs))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] AFTER sub_sequence_length = {}".format(sub_sequence_length))
 
-    # TODO: scheduled sampling -- 'embedding' should also be 2 sets for master and sub, not yet used by training helpers
-
     if (sampling_probability is not None
         and (tf.contrib.framework.is_tensor(sampling_probability)
              or sampling_probability > 0.0)):

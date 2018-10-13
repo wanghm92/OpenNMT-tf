@@ -8,8 +8,8 @@ model_dir: ../onmt-tf-output/recom_nlg_clothes_hierarchical_separateEmb
 data:
   # (required for train_and_eval and train run types).
   train_features_file:
-    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.words.train.filter.seg_new
-    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.tags.train.filter.seg_new
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.words.train.filter.seg_new
+    - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/recom_text.tags.train.filter.seg_new
   train_labels_file:
     - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.attr_one
     - - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg/train/segments/recom_text.outs.train.seg_new.punctrmd.1
