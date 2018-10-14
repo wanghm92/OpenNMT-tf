@@ -146,6 +146,7 @@ class SequenceToSequence(Model):
           lambda ids: self.source_inputter.transform_data(ids, mode=mode, log_dir=log_dir),
           scope=source_input_scope)(features)
 
+      tf.logging.info(" >> [sequence_to_sequence.py _build] source_inputs = {}".format(source_inputs))
       tf.logging.info(" >> [sequence_to_sequence.py _build] source_inputter = %s"%self.source_inputter)
       with tf.variable_scope("encoder", reuse=tf.AUTO_REUSE):
           encoder_outputs, encoder_state, encoder_sequence_length = self.encoder.encode(
