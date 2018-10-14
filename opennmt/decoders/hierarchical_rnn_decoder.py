@@ -88,6 +88,9 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     _ = memory
     _ = memory_sequence_length
 
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] memory = {}".format(memory))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] memory_sequence_length = {}".format(memory_sequence_length))
+
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode]")
 
     if isinstance(vocab_size, tuple):
@@ -190,8 +193,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
 
     # TODO: separate output layer for master and sub decoders, with different vocab files
     if output_layer is None:
-        master_output_layer = build_output_layer(self.num_units, master_vocab_size, dtype=master_inputs.dtype)
-        sub_output_layer = build_output_layer(self.num_units, sub_vocab_size, dtype=master_inputs.dtype)
+        master_output_layer = build_output_layer(self.num_units, master_vocab_size, dtype=master_inputs.dtype, name="master_output_layer")
+        sub_output_layer = build_output_layer(self.num_units, sub_vocab_size, dtype=master_inputs.dtype, name="sub_output_layer")
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] master_output_layer = {}".format(master_output_layer))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] sub_output_layer = {}".format(sub_output_layer))
@@ -354,12 +357,15 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_cell = {}".format(sub_cell))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] initial_state_sub = {}".format(initial_state_sub))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] output_layer = {}".format(output_layer))
 
     if output_layer is None:
-        master_output_layer = build_output_layer(self.num_units, master_vocab_size, dtype=dtype or memory.dtype)
-        sub_output_layer = build_output_layer(self.num_units, sub_vocab_size, dtype=dtype or memory.dtype)
-
-    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] output_layer = {}".format(output_layer))
+        master_output_layer = build_output_layer(self.num_units, master_vocab_size, dtype=dtype or memory.dtype, name="master_output_layer")
+        sub_output_layer = build_output_layer(self.num_units, sub_vocab_size, dtype=dtype or memory.dtype, name="sub_output_layer")
+    else:
+        if not isinstance(output_layer, tuple):
+            raise ValueError("Two separate output_layer needed if not None")
+        master_output_layer, sub_output_layer = output_layer
 
     master_decoder = BasicDecoder(
         cell=master_cell,
