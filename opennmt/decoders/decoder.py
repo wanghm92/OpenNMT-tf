@@ -52,7 +52,7 @@ def get_embedding_fn(embedding):
   else:
     return lambda ids: embedding_lookup(embedding, ids)
 
-def build_output_layer(num_units, vocab_size, dtype=None):
+def build_output_layer(num_units, vocab_size, dtype=None, name="output_layer"):
   """Builds the output projection layer.
 
   Args:
@@ -69,7 +69,7 @@ def build_output_layer(num_units, vocab_size, dtype=None):
   if vocab_size is None:
     raise ValueError("vocab_size must be set to build the output layer")
 
-  layer = tf.layers.Dense(vocab_size, use_bias=True, dtype=dtype)
+  layer = tf.layers.Dense(vocab_size, use_bias=True, dtype=dtype, name=name)
   layer.build([None, num_units])
   return layer
 
