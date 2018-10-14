@@ -29,7 +29,7 @@ def model():
           num=9),
       encoder=onmt.encoders.BidirectionalRNNEncoder(
           num_layers=1,
-          num_units=128,
+          num_units=256,
           reducer=onmt.layers.ConcatReducer(),
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,

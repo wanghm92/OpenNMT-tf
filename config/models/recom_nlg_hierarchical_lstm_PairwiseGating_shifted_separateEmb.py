@@ -29,7 +29,7 @@ def model():
           num=9),
       encoder=onmt.encoders.BidirectionalRNNEncoder(
           num_layers=1,
-          num_units=128,
+          num_units=256,
           reducer=onmt.layers.ConcatReducer(),
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,
@@ -37,7 +37,7 @@ def model():
       decoder=onmt.decoders.HierarchicalAttentionalRNNDecoder(
           num_layers=1,
           num_units=128,
-          bridge=onmt.layers.CopyBridge(),
+          bridge=onmt.layers.DenseBridge(),
           sub_bridge=onmt.layers.AttentionWrapperStatePairwiseGatingBridge(),
           attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
           cell_class=tf.contrib.rnn.LSTMCell,
