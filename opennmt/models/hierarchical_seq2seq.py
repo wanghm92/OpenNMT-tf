@@ -139,11 +139,6 @@ class HierarchicalSequenceToSequence(Model):
       features_length = self._get_features_length(features)
       log_dir = config.model_dir if config is not None else None
 
-      # TODO: may not need to share embedding across all inputters
-        # source and master inputter should share the same embedding since they share the vocab
-        # sub decoder should use another embedding
-        # this is related to use a different vocab for master decoder (much smaller vocab size) , the number of parameters should drop
-
       if self.share_embeddings == EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT:
         source_input_scope, target_input_scope = self._get_input_scope(default_name=("encoder", "controller"))
         sub_target_input_scope = self._get_input_scope(default_name="fragment_decoder")
@@ -178,8 +173,6 @@ class HierarchicalSequenceToSequence(Model):
       sub_target_vocab_size = self.sub_target_inputter.get_vocab_size()
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] encoder_sequence_length = {}".format(master_target_vocab_size))
       tf.logging.info(" >> [hierarchical_seq2seq.py _build] encoder_sequence_length = {}".format(sub_target_vocab_size))
-
-      # TODO: use different vocab sizes here
 
       target_dtype = self.target_inputter.dtype
 
