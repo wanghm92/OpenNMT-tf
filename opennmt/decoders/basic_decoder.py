@@ -162,15 +162,18 @@ class BasicSubDecoder(BasicDecoder):
       self._bridge = bridge
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._bridge = {}".format(self._bridge))
 
-    def _init_sub_state(self, decoder_zero_state, initial_state=None):
-        if initial_state is None:
-            return decoder_zero_state
+    def _init_sub_state(self, previous_state, master_state=None):
+        if master_state is None:
+            if previous_state is None:
+                return self._initial_zero_state
+            else:
+                return previous_state
         elif self._bridge is None:
             raise ValueError("A sub_bridge must be configured when passing encoder state")
         else:
-            return self._bridge(encoder_state=initial_state, decoder_zero_state=decoder_zero_state)
+            return self._bridge(encoder_state=master_state, decoder_zero_state=previous_state)
 
-    def initialize(self, initial_state, previous_state, master_time=None, name=None):
+    def initialize(self, master_state=None, previous_state=None, master_time=None, name=None):
         """
             initial_state=next_state (master)
             previous_state=sub_state (sub)
@@ -181,7 +184,7 @@ class BasicSubDecoder(BasicDecoder):
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] BEFORE _initial_state = {}".format(self._initial_state))
 
         # previous_state is passed as the zero_state for initializing the initial_state for current master_time
-        self._initial_state = self._init_sub_state(decoder_zero_state=previous_state, initial_state=initial_state)
+        self._initial_state = self._init_sub_state(previous_state=previous_state, master_state=master_state)
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] AFTER _initial_state = {}".format(self._initial_state))
 
         return self._helper.initialize(master_time) + (self._initial_state,)
