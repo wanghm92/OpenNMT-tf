@@ -24,8 +24,13 @@ def assert_state_is_compatible(expected_state, state):
   expected_state_flat = tf.contrib.framework.nest.flatten(expected_state)
   state_flat = tf.contrib.framework.nest.flatten(state)
 
+  tf.logging.info(" >> [bridge.py class assert_state_is_compatible()] expected_state_flat = {}".format(expected_state_flat))
+  tf.logging.info(" >> [bridge.py class assert_state_is_compatible()] state_flat = {}".format(state_flat))
+
   for x, y in zip(expected_state_flat, state_flat):
     if tf.contrib.framework.is_tensor(x):
+      tf.logging.info(" >> [bridge.py class assert_state_is_compatible()] x = {}".format(x))
+      tf.logging.info(" >> [bridge.py class assert_state_is_compatible()] y = {}".format(y))
       tf.contrib.framework.with_same_shape(x, y)
 
 
@@ -54,6 +59,8 @@ class CopyBridge(Bridge):
   """A bridge that passes the encoder state as is."""
 
   def _build(self, encoder_state, decoder_zero_state):
+    tf.logging.info(" >> [bridge.py class CopyBridge _build] encoder_state = {}".format(encoder_state))
+    tf.logging.info(" >> [bridge.py class CopyBridge _build] decoder_zero_state = {}".format(decoder_zero_state))
     assert_state_is_compatible(decoder_zero_state, encoder_state)
     return encoder_state
 
@@ -107,7 +114,8 @@ class DenseBridge(Bridge):
     transformed = tf.layers.dense(
         encoder_state_concat,
         decoder_total_size,
-        activation=self.activation)
+        activation=self.activation,
+        name="dense_bridge")
     tf.logging.info(" >> [bridge.py class DenseBridge _build] transformed = \n{}".format(transformed))
 
     # Split resulting tensor to match the decoder state size.
@@ -197,7 +205,8 @@ class AttentionWrapperStateAggregatedDenseBridge(Bridge):
     transformed = tf.layers.dense(
         aggragated_state_concat,
         decoder_total_size,
-        activation=self.activation)
+        activation=self.activation,
+        name="AttentionWrapperStateAggregatedDenseBridge")
 
     # Split resulting tensor to match the decoder state size.
     splitted = tf.split(transformed, decoder_state_size, axis=1)
