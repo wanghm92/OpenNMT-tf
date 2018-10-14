@@ -138,6 +138,8 @@ class BidirectionalRNNEncoder(RNNEncoder):
   def encode(self, inputs, sequence_length=None, mode=tf.estimator.ModeKeys.TRAIN):
     cell_fw = self._build_cell(mode)
     cell_bw = self._build_cell(mode)
+    tf.logging.info(" >> [rnn_encoder.py BidirectionalRNNEncoder encode] cell_fw = {}".format(cell_fw))
+    tf.logging.info(" >> [rnn_encoder.py BidirectionalRNNEncoder encode] cell_bw = {}".format(cell_bw))
 
     '''
     Returns:
@@ -154,6 +156,9 @@ class BidirectionalRNNEncoder(RNNEncoder):
         inputs,
         sequence_length=sequence_length,
         dtype=inputs.dtype)
+
+    tf.logging.info(" >> [rnn_encoder.py BidirectionalRNNEncoder encode] encoder_outputs_tup = {}".format(encoder_outputs_tup))
+    tf.logging.info(" >> [rnn_encoder.py BidirectionalRNNEncoder encode] encoder_state_tup = {}".format(encoder_state_tup))
 
     # Merge bidirectional outputs and state.
     encoder_outputs = self.reducer.zip_and_reduce(encoder_outputs_tup[0], encoder_outputs_tup[1])

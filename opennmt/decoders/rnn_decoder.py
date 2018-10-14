@@ -9,6 +9,7 @@ from tensorflow.python.estimator.util import fn_args
 from opennmt.decoders.decoder import Decoder, logits_to_cum_log_probs, build_output_layer
 from opennmt.utils.cell import build_cell
 from opennmt.layers.reducer import align_in_time
+from opennmt.decoders.tf_attention_wrapper import AttentionWrapper, LuongAttention
 
 
 class RNNDecoder(Decoder):
@@ -163,6 +164,9 @@ class RNNDecoder(Decoder):
     '''
     Basic sampling decoder.
     '''
+
+    tf.logging.info(" >> [rnn_decoder.py decode]: initial_state = {}".format(initial_state))
+
     decoder = tf.contrib.seq2seq.BasicDecoder(
         cell,
         helper,
@@ -468,6 +472,8 @@ class AttentionalRNNDecoder(RNNDecoder):
         initial_state=initial_state,
         dtype=memory.dtype)
     tf.logging.info(" >> [rnn_decoder.py class AttentionalRNNDecoder _build_cell] initial_cell_state (bridged) = {}".format(initial_cell_state))
+    tf.logging.info(" >> [rnn_decoder.py class AttentionalRNNDecoder _build_cell] self.num_units = {}".format(self.num_units))
+    tf.logging.info(" >> [rnn_decoder.py class AttentionalRNNDecoder _build_cell] cell = {}".format(cell))
 
     cell = tf.contrib.seq2seq.AttentionWrapper(
         cell,
