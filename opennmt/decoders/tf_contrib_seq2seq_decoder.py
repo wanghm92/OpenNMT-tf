@@ -195,7 +195,8 @@ def hierarchical_dynamic_decode(
         swap_memory=False,
         scope=None,
         dynamic=False,
-        shifted=None):
+        shifted=None,
+        pass_master_state=False):
   """Perform dynamic decoding with `master_decoder`.
 
   Calls initialize() once and step() repeatedly on the Decoder object.
@@ -256,6 +257,7 @@ def hierarchical_dynamic_decode(
                     "(self._input_tas.read(0)) = {}".format(initial_inputs))
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] initial_state = {}".format(initial_state))
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] shifted = {}".format(shifted))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] pass_master_state = {}".format(pass_master_state))
 
     zero_outputs = _create_zero_outputs(master_decoder.output_size,
                                         master_decoder.output_dtype,
@@ -403,6 +405,7 @@ def hierarchical_dynamic_decode(
       sub_outputs, next_sub_state, sub_length, sub_final_time, sub_inputs = sub_dynamic_decode(sub_decoder,
                                                                                                master_time=time,
                                                                                                master_input=next_inputs,
+                                                                                               master_state=next_state if pass_master_state else None,
                                                                                                previous_state=sub_state,
                                                                                                previous_inputs=previous_inputs,
                                                                                                maximum_iterations=sub_maximum_iterations,
@@ -418,6 +421,10 @@ def hierarchical_dynamic_decode(
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_state = {}".format(sub_state))
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_length = {}".format(sub_length))
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_final_time = {}".format(sub_final_time))
+
+      # zero length for sub sequence if master finished during dynamic_decoding
+      if dynamic:
+        sub_length = array_ops.where(finished, initial_sequence_lengths, sub_length)
 
       # should not mask before log_softmax, should store the sequence mask instead
       sub_sequence_mask = nest.map_structure(lambda length: tf.sequence_mask(length, maxlen=sub_decoder.sub_time, dtype=tf.float32), sub_length)
@@ -465,7 +472,7 @@ def hierarchical_dynamic_decode(
     final_sequence_mask_sub = nest.map_structure(_aggregate_fn, final_sequence_mask_ta_sub)  # [sum_of_st, batch]
 
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] final_outputs = {}".format(final_outputs))
-    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] final_outputs_sub = {}".format(final_outputs_sub))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] dynamic = {}\nfinal_outputs_sub = {} ".format(dynamic, final_outputs_sub))
 
     try:
       final_outputs, final_state = master_decoder.finalize(final_outputs, final_state, final_sequence_lengths, final_sequence_mask_sub)

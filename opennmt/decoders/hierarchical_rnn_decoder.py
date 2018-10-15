@@ -25,7 +25,9 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                output_is_attention=True,
                cell_class=tf.contrib.rnn.LSTMCell,
                dropout=0.3,
-               residual_connections=False):
+               residual_connections=False,
+               pass_master_state=False
+               ):
     """Initializes the decoder parameters.
 
     Args:
@@ -56,6 +58,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         dropout=dropout,
         residual_connections=residual_connections)
     self._sub_bridge = sub_bridge
+    self._pass_master_state = pass_master_state
 
   def decode(self,
              inputs,
@@ -224,7 +227,10 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     outputs is all RNN outputs (all time steps)
         outputs, state, length = tf.contrib.seq2seq.dynamic_decode(decoder)
     '''
-    outputs, outputs_sub, state, length, sequence_mask_sub, final_time = hierarchical_dynamic_decode(master_decoder, sub_decoder, shifted=shifted)
+    outputs, outputs_sub, state, length, sequence_mask_sub, final_time = hierarchical_dynamic_decode(master_decoder,
+                                                                                                     sub_decoder,
+                                                                                                     shifted=shifted,
+                                                                                                     pass_master_state = self._pass_master_state)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] outputs = {}".format(outputs))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] outputs.rnn_output = {}".format(outputs))
@@ -390,7 +396,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                                                                                                      maximum_iterations=maximum_iterations,
                                                                                                      sub_maximum_iterations=sub_maximum_iterations,
                                                                                                      dynamic=True,
-                                                                                                     shifted=shifted)
+                                                                                                     shifted=shifted,
+                                                                                                     pass_master_state = self._pass_master_state)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] outputs = {}".format(outputs))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] outputs.rnn_output = {}".format(outputs.rnn_output))
@@ -404,6 +411,10 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_predicted_ids = {}".format(master_predicted_ids))
     sub_predicted_ids = outputs_sub.sample_id
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_predicted_ids = {}".format(sub_predicted_ids))
+
+    # mask out unwanted output tokens
+    sub_predicted_ids = sub_predicted_ids * tf.cast(sequence_mask_sub, sub_predicted_ids.dtype)
+
     sub_length = tf.reduce_sum(sequence_mask_sub, axis=-1)
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_length = {}".format(sub_length))
 

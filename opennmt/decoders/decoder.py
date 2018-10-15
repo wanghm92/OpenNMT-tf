@@ -19,7 +19,8 @@ def logits_to_cum_log_probs(logits, mask_or_sequence_length):
   Returns:
     The cumulated log probability of each sequence.
   """
-  tf.logging.info(" >> [decoder.py logits_to_cum_log_probs] mask_or_sequence_length = {}".format(mask_or_sequence_length.shape.ndims))
+  tf.logging.info(" >> [decoder.py logits_to_cum_log_probs] mask_or_sequence_length = {}".format(mask_or_sequence_length))
+  tf.logging.info(" >> [decoder.py logits_to_cum_log_probs] mask_or_sequence_length.shape.ndims = {}".format(mask_or_sequence_length.shape.ndims))
   if mask_or_sequence_length.shape.ndims > 1:
     mask = mask_or_sequence_length
   else:

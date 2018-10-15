@@ -36,8 +36,8 @@ def model():
           residual_connections=False),
       decoder=onmt.decoders.HierarchicalAttentionalRNNDecoder(
           num_layers=1,
-          num_units=128,
-          bridge=onmt.layers.DenseBridge(),
+          num_units=256,
+          bridge=onmt.layers.CopyBridge(),
           sub_bridge=onmt.layers.AttentionWrapperStatePairwiseGatingBridge(),
           attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
           cell_class=tf.contrib.rnn.LSTMCell,

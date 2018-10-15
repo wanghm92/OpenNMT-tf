@@ -115,7 +115,7 @@ class HierarchicalSequenceToSequence(Model):
 
     tf.logging.info(" >> [hierarchical_seq2seq.py __init__] self.target_inputter.add_process_hooks([shift_target_sequence])")
     shift_target_fn = shift_target_sequence_v2 if self.shifted is not None else shift_target_sequence
-    self.target_inputter.add_process_hooks([shift_target_fn])
+    self.target_inputter.add_process_hooks([shift_target_sequence])
     self.sub_target_inputter.add_process_hooks([shift_target_fn])
 
   def _get_input_scope(self, default_name=""):
@@ -176,7 +176,6 @@ class HierarchicalSequenceToSequence(Model):
 
       target_dtype = self.target_inputter.dtype
 
-      # TODO: scheduled sampling -- construct sub_embedding_fn
       target_embedding_fn = _maybe_reuse_embedding_fn(
           lambda ids: self.target_inputter.transform(ids, mode=mode),
           scope=target_input_scope) # callable
@@ -307,9 +306,10 @@ class HierarchicalSequenceToSequence(Model):
               default_value=constants.UNKNOWN_TOKEN)
 
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] index_to_string_table_from_file")
-          tf.logging.info(" >> [hierarchical_seq2seq.py dynamic_decode] sampled_ids = {}".format(sampled_ids))
+          tf.logging.info(" >> [hierarchical_seq2seq.py _build] sampled_ids = {}".format(sampled_ids))
           if isinstance(sampled_ids, tuple):
             assert isinstance(sampled_length, tuple)
+            # TODO: this is ugly
             sampled_length, sub_sampled_length = sampled_length
             master_ids, sub_ids = sampled_ids
             add_dict_to_collection("debug", {"sampled_length": tf.shape(sampled_length),
@@ -517,6 +517,8 @@ class HierarchicalSequenceToSequence(Model):
     n_best = params and params.get("n_best")
     n_best = n_best or 1
 
+    # tf.logging.info(" >> [hierarchical_seq2seq.py print_prediction] prediction = {}".format(prediction.keys()))
+
     if n_best > len(prediction["tokens"]):
       raise ValueError("n_best cannot be greater than beam_width")
 
@@ -528,8 +530,10 @@ class HierarchicalSequenceToSequence(Model):
             prediction["log_probs"][i] / prediction["length"][i], sentence)
       print_bytes(tf.compat.as_bytes(sentence), stream=stream)
       if sub_stream is not None:
-        sub_tokens = prediction["tokens_sub"][i][:prediction["length_sub"][i]]
+        # sub_tokens = prediction["tokens_sub"][i][:prediction["length_sub"][i]]
+        sub_tokens = prediction["tokens_sub"][i][:]
         sub_sentence = self.target_inputter.tokenizer.detokenize(sub_tokens)
+        sub_sentence = sub_sentence.strip(" <blank>")
         if params is not None and params.get("with_scores"):
             sub_sentence = "%f ||| %s" % (
                 prediction["log_probs"][i] / prediction["length_sub"][i], sub_sentence) # log_probs = log_probs_master + log_probs_sub
