@@ -422,12 +422,16 @@ def hierarchical_dynamic_decode(
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_length = {}".format(sub_length))
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_final_time = {}".format(sub_final_time))
 
-      # zero length for sub sequence if master finished during dynamic_decoding
-      if dynamic:
-        sub_length = array_ops.where(finished, initial_sequence_lengths, sub_length)
-
       # should not mask before log_softmax, should store the sequence mask instead
       sub_sequence_mask = nest.map_structure(lambda length: tf.sequence_mask(length, maxlen=sub_decoder.sub_time, dtype=tf.float32), sub_length)
+
+      # zero length for sub sequence if master finished during dynamic_decoding
+      if dynamic:
+          master_mask = tf.expand_dims(tf.cast(math_ops.logical_not(next_finished), dtype=tf.float32), axis=-1)
+          tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] master_mask = {}".format(master_mask))
+          sub_sequence_mask = sub_sequence_mask * master_mask
+          tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_sequence_mask = {}".format(sub_sequence_mask))
+
       sub_sequence_mask = nest.map_structure(_transpose_batch_time, sub_sequence_mask) #[st, batch]
 
       outputs_ta_sub = nest.map_structure(lambda ta, out: ta.write(time, out), outputs_ta_sub, sub_outputs)

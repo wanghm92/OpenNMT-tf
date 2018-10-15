@@ -42,6 +42,7 @@ def model():
           attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,
-          residual_connections=False),
+          residual_connections=False,
+          pass_master_state=True),
       share_embeddings=EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT,
       shifted="word")

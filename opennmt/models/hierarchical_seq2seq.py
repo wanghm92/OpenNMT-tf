@@ -531,9 +531,9 @@ class HierarchicalSequenceToSequence(Model):
       print_bytes(tf.compat.as_bytes(sentence), stream=stream)
       if sub_stream is not None:
         # sub_tokens = prediction["tokens_sub"][i][:prediction["length_sub"][i]]
-        sub_tokens = prediction["tokens_sub"][i][:]
+        sub_tokens = prediction["tokens_sub"][i]
         sub_sentence = self.target_inputter.tokenizer.detokenize(sub_tokens)
-        sub_sentence = sub_sentence.strip(" <blank>")
+        sub_sentence = sub_sentence.replace(" <blank>", "")
         if params is not None and params.get("with_scores"):
             sub_sentence = "%f ||| %s" % (
                 prediction["log_probs"][i] / prediction["length_sub"][i], sub_sentence) # log_probs = log_probs_master + log_probs_sub

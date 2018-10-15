@@ -410,10 +410,11 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     master_predicted_ids = outputs.sample_id
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_predicted_ids = {}".format(master_predicted_ids))
     sub_predicted_ids = outputs_sub.sample_id
-    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_predicted_ids = {}".format(sub_predicted_ids))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] BEFORE sub_predicted_ids = {}".format(sub_predicted_ids))
 
     # mask out unwanted output tokens
     sub_predicted_ids = sub_predicted_ids * tf.cast(sequence_mask_sub, sub_predicted_ids.dtype)
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] AFTER sub_predicted_ids = {}".format(sub_predicted_ids)) # [batch, sum_of_st]
 
     sub_length = tf.reduce_sum(sequence_mask_sub, axis=-1)
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_length = {}".format(sub_length))

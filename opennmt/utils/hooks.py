@@ -5,7 +5,7 @@ from __future__ import print_function
 import tensorflow as tf
 from tensorflow.python.training import training_util
 
-import io, time, six, pprint
+import io, time, six, pprint, sys
 
 from opennmt.utils import misc
 
