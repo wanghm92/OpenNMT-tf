@@ -214,6 +214,10 @@ class HierarchicalSequenceToSequence(Model):
                       schedule_type=params.get("scheduled_sampling_type"),
                       k=params.get("scheduled_sampling_k"))
 
+              ##########################################################################
+              #-------------------------------- decode --------------------------------#
+              ##########################################################################
+
               logits, logits_sub, state, length, sequence_mask_sub = self.decoder.decode(
                   (target_inputs, sub_target_inputs),
                   self._get_labels_length(labels, to_reduce=True),
@@ -255,6 +259,10 @@ class HierarchicalSequenceToSequence(Model):
               end_token = constants.END_OF_SENTENCE_ID
 
               if beam_width <= 1:
+                  ###################################################################################
+                  # -------------------------------- dynamic_decode --------------------------------#
+                  ###################################################################################
+
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] dynamic_decode ...")
                   sampled_ids, _, sampled_length, log_probs, alignment = self.decoder.dynamic_decode(
                       embedding=(target_embedding_fn, sub_target_embedding_fn),
@@ -276,6 +284,10 @@ class HierarchicalSequenceToSequence(Model):
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] alignment = {}".format(alignment))
 
               else:
+                  ##############################################################################################
+                  # -------------------------------- dynamic_decode_and_search --------------------------------#
+                  ##############################################################################################
+
                   tf.logging.info(" >> [hierarchical_seq2seq.py _build] dynamic_decode_and_search ...")
                   length_penalty = params.get("length_penalty", 0)
                   sampled_ids, _, sampled_length, log_probs, alignment = (
@@ -309,7 +321,6 @@ class HierarchicalSequenceToSequence(Model):
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] sampled_ids = {}".format(sampled_ids))
           if isinstance(sampled_ids, tuple):
             assert isinstance(sampled_length, tuple)
-            # TODO: this is ugly
             sampled_length, sub_sampled_length = sampled_length
             master_ids, sub_ids = sampled_ids
             add_dict_to_collection("debug", {"sampled_length": tf.shape(sampled_length),
