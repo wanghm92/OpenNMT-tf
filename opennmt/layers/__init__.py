@@ -8,12 +8,12 @@ from opennmt.layers.reducer import JoinReducer
 from opennmt.layers.bridge import CopyBridge
 from opennmt.layers.bridge import ZeroBridge
 from opennmt.layers.bridge import DenseBridge
-from opennmt.layers.bridge import AttentionWrapperStateAggregatedDenseBridge
-from opennmt.layers.bridge import AttentionWrapperStatePairwiseDenseBridge
-from opennmt.layers.bridge import AttentionWrapperStatePairwiseWeightedSumBridge
-from opennmt.layers.bridge import AttentionWrapperStatePairwiseGatingBridge
-from opennmt.layers.bridge import AttentionWrapperStateAggregatedGatingBridge
-from opennmt.layers.bridge import AttentionWrapperStateAverageBridge
+from opennmt.layers.nested_state_bridge import NestedStateAggregatedDenseBridge
+from opennmt.layers.nested_state_bridge import NestedStatePairwiseDenseBridge
+from opennmt.layers.nested_state_bridge import NestedStatePairwiseWeightedSumBridge
+from opennmt.layers.nested_state_bridge import NestedStatePairwiseGatingBridge
+from opennmt.layers.nested_state_bridge import NestedStateAggregatedGatingBridge
+from opennmt.layers.nested_state_bridge import NestedStateAverageBridge
 
 
 from opennmt.layers.position import PositionEmbedder

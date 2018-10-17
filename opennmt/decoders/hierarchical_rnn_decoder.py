@@ -26,7 +26,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                cell_class=tf.contrib.rnn.LSTMCell,
                dropout=0.3,
                residual_connections=False,
-               pass_master_state=False
+               pass_master_state=False,
+               sub_attention_over_encoder=False
                ):
     """Initializes the decoder parameters.
 
@@ -59,6 +60,39 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         residual_connections=residual_connections)
     self._sub_bridge = sub_bridge
     self._pass_master_state = pass_master_state
+    self._sub_attention_over_encoder = sub_attention_over_encoder
+
+  def _wrapped_build_cell(self,
+                          mode,
+                          batch_size,
+                          initial_state=None,
+                          memory=None,
+                          memory_sequence_length=None,
+                          dtype=None,
+                          alignment_history=False):
+
+    if not self._sub_attention_over_encoder:
+        cell, initial_cell_state = RNNDecoder._build_cell(self,
+                                                          mode=mode,
+                                                          batch_size=batch_size,
+                                                          initial_state=initial_state,
+                                                          dtype=memory.dtype)
+    else:
+        cell, initial_cell_state = self._build_cell(mode=mode,
+                                                    batch_size=batch_size,
+                                                    initial_state=initial_state,
+                                                    memory=memory,
+                                                    memory_sequence_length=memory_sequence_length,
+                                                    dtype=dtype,
+                                                    alignment_history=alignment_history)
+
+    tf.logging.info(" >> [rnn_decoder.py class HierarchicalAttentionalRNNDecoder _wrapped_build_cell] initial_cell_state (bridged) = {}"
+                    .format(initial_cell_state))
+    tf.logging.info(" >> [rnn_decoder.py class HierarchicalAttentionalRNNDecoder _wrapped_build_cell] self.num_units = {}"
+                    .format(self.num_units))
+    tf.logging.info(" >> [rnn_decoder.py class HierarchicalAttentionalRNNDecoder _wrapped_build_cell] cell = {}"
+                    .format(cell))
+    return cell, initial_cell_state
 
   def decode(self,
              inputs,
@@ -174,8 +208,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] fused_projection = {}".format(fused_projection))
 
     master_cell, initial_state_master = self._build_cell(
-        mode,
-        batch_size,
+        mode=mode,
+        batch_size=batch_size,
         initial_state=initial_state,
         memory=memory,
         memory_sequence_length=memory_sequence_length,
@@ -183,9 +217,9 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] master_cell = {}".format(master_cell))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] initial_state_master = {}".format(initial_state_master))
 
-    sub_cell, initial_state_sub = self._build_cell(
-        mode,
-        batch_size,
+    sub_cell, initial_state_sub = self._wrapped_build_cell(
+        mode=mode,
+        batch_size=batch_size,
         initial_state=initial_state,
         memory=memory,
         memory_sequence_length=memory_sequence_length,
@@ -234,7 +268,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     outputs, outputs_sub, state, length, sequence_mask_sub, final_time = hierarchical_dynamic_decode(master_decoder,
                                                                                                      sub_decoder,
                                                                                                      shifted=shifted,
-                                                                                                     pass_master_state=self._pass_master_state)
+                                                                                                     pass_master_state=self._pass_master_state,
+                                                                                                     sub_attention_over_encoder=self._sub_attention_over_encoder)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] outputs = {}".format(outputs))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] outputs.rnn_output = {}".format(outputs))
@@ -345,8 +380,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
 
 
     master_cell, initial_state_master = self._build_cell(
-        mode,
-        batch_size,
+        mode=mode,
+        batch_size=batch_size,
         initial_state=initial_state,
         memory=memory,
         memory_sequence_length=memory_sequence_length,
@@ -356,9 +391,9 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_cell = {}".format(master_cell))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] initial_state_master = {}".format(initial_state_master))
 
-    sub_cell, initial_state_sub = self._build_cell(
-        mode,
-        batch_size,
+    sub_cell, initial_state_sub = self._wrapped_build_cell(
+        mode=mode,
+        batch_size=batch_size,
         initial_state=initial_state,
         memory=memory,
         memory_sequence_length=memory_sequence_length,
@@ -401,7 +436,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                                                                                                      sub_maximum_iterations=sub_maximum_iterations,
                                                                                                      dynamic=True,
                                                                                                      shifted=shifted,
-                                                                                                     pass_master_state=self._pass_master_state)
+                                                                                                     pass_master_state=self._pass_master_state,
+                                                                                                     sub_attention_over_encoder=self._sub_attention_over_encoder)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] outputs = {}".format(outputs))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] outputs.rnn_output = {}".format(outputs.rnn_output))

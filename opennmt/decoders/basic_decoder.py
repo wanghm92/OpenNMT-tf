@@ -162,28 +162,35 @@ class BasicSubDecoder(BasicDecoder):
       self._bridge = bridge
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._bridge = {}".format(self._bridge))
 
-    def _init_sub_state(self, previous_state, master_state=None):
-        if previous_state is None and master_state is None:
+    def _init_sub_state(self, previous_state, master_state=None, sub_attention_over_encoder=False):
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder _init_sub_state] sub_attention_over_encoder = {}".format(sub_attention_over_encoder))
+
+        if previous_state is None or master_state is None:
             return self._initial_zero_state
-        elif previous_state is None or master_state is None:
-            return previous_state or master_state
+        elif master_state is None:
+            return previous_state or self._initial_zero_state
         elif self._bridge is None:
             raise ValueError("A sub_bridge must be configured when passing encoder state")
-        else:
-            return self._bridge(encoder_state=master_state, decoder_zero_state=previous_state)
 
-    def initialize(self, master_state=None, previous_state=None, master_time=None, name=None):
+        return self._bridge(encoder_state=master_state,
+                            decoder_zero_state=previous_state,
+                            sub_attention_over_encoder=sub_attention_over_encoder)
+
+    def initialize(self, master_state=None, previous_state=None, master_time=None, sub_attention_over_encoder=False, name=None):
         """
             initial_state=next_state (master)
             previous_state=sub_state (sub)
         """
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] sub_attention_over_encoder = {}".format(sub_attention_over_encoder))
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] master_time = {}".format(master_time))
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] self._helper = {}".format(self._helper))
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] previous_state = {}".format(previous_state))
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] BEFORE _initial_state = {}".format(self._initial_state))
 
         # previous_state is passed as the zero_state for initializing the initial_state for current master_time
-        self._initial_state = self._init_sub_state(previous_state=previous_state, master_state=master_state)
+        self._initial_state = self._init_sub_state(previous_state=previous_state,
+                                                   master_state=master_state,
+                                                   sub_attention_over_encoder=sub_attention_over_encoder)
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] AFTER _initial_state = {}".format(self._initial_state))
 
         return self._helper.initialize(master_time) + (self._initial_state,)

@@ -38,11 +38,17 @@ def model():
           num_layers=1,
           num_units=256,
           bridge=onmt.layers.CopyBridge(),
-          sub_bridge=onmt.layers.AttentionWrapperStatePairwiseGatingBridge(),
+          sub_bridge=onmt.layers.NestedStatePairwiseGatingBridge(),
           attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,
           residual_connections=False,
-          pass_master_state=True),
+          pass_master_state=True,
+          sub_attention_over_encoder=False),
       share_embeddings=EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT,
       shifted="word")
+
+
+'''
+pass_master_state is related to sub_attention_over_encoder
+'''

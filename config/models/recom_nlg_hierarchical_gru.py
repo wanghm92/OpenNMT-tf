@@ -38,7 +38,7 @@ def model():
           num_layers=1,
           num_units=128,
           bridge=onmt.layers.CopyBridge(),
-          sub_bridge=onmt.layers.AttentionWrapperStateAggregatedDenseBridge(),
+          sub_bridge=onmt.layers.NestedStateAggregatedDenseBridge(),
           attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
           cell_class=tf.contrib.rnn.GRUCell,
           dropout=0.3,
