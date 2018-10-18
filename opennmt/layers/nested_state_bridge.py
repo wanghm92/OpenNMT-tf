@@ -367,6 +367,10 @@ class NestedStatePairwiseGatingBridge(NestedStateBridge):
     for i in range(decoder_state_num):
       pairwise_gate_cell = tf.contrib.rnn.GRUCell(num_units=decoder_state_size,
                                                   name='nested_state_pairwise_gating_bridge_gate_cell{}'.format(i))
+
+      # pairwise_gate_cell = tf.contrib.rnn.GRUCell(num_units=decoder_state_size,
+      #                                             name='gate_cell_{}'.format(i))
+
       tf.logging.info(
         " >> [bridge.py class NestedStatePairwiseGatingBridge _build] pairwise_gate_cell.state_size = {}"
         .format(pairwise_gate_cell.state_size))

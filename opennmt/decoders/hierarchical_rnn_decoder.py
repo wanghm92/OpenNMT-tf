@@ -265,7 +265,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     outputs is all RNN outputs (all time steps)
         outputs, state, length = tf.contrib.seq2seq.dynamic_decode(decoder)
     '''
-    outputs, outputs_sub, state, length, sequence_mask_sub, final_time = hierarchical_dynamic_decode(master_decoder,
+    outputs, outputs_sub, state, state_sub, length, sequence_mask_sub, final_time = hierarchical_dynamic_decode(master_decoder,
                                                                                                      sub_decoder,
                                                                                                      shifted=shifted,
                                                                                                      pass_master_state=self._pass_master_state,
@@ -430,7 +430,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] maximum_iterations = {}".format(maximum_iterations))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_maximum_iterations = {}".format(sub_maximum_iterations))
 
-    outputs, outputs_sub, state, length, sequence_mask_sub, final_time = hierarchical_dynamic_decode(master_decoder,
+    outputs, outputs_sub, state_master, state_sub, length, sequence_mask_sub, final_time = hierarchical_dynamic_decode(master_decoder,
                                                                                                      sub_decoder,
                                                                                                      maximum_iterations=maximum_iterations,
                                                                                                      sub_maximum_iterations=sub_maximum_iterations,
@@ -443,7 +443,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] outputs.rnn_output = {}".format(outputs.rnn_output))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] outputs_sub = {}".format(outputs_sub))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] outputs_sub.rnn_output = {}".format(outputs_sub.rnn_output)) # [batch, sum_of_st, depth]
-    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] state = {}".format(state))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] state_master = {}".format(state_master))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] state_sub = {}".format(state_sub))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] length = {}".format(length))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sequence_mask_sub = {}".format(sequence_mask_sub)) # [batch, sum_of_st]
 
@@ -456,6 +457,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     sub_predicted_ids = sub_predicted_ids * tf.cast(sequence_mask_sub, sub_predicted_ids.dtype)
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] AFTER sub_predicted_ids = {}".format(sub_predicted_ids)) # [batch, sum_of_st]
 
+    # NOTE: sub_length is not used for final output written to file, due to <blank> tokens in between
     sub_length = tf.reduce_sum(sequence_mask_sub, axis=-1)
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_length = {}".format(sub_length))
 
@@ -480,9 +482,17 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     predicted_ids = (master_predicted_ids, sub_predicted_ids)
     length = (master_length, sub_length)
 
+    state_tuple = (state_master, state_sub)
     if return_alignment_history:
-      alignment_history = _get_alignment_history(state)
+      alignment_history = _get_alignment_history(state_master)
       if alignment_history is not None:
         alignment_history = tf.expand_dims(alignment_history, 1)
-      return (predicted_ids, state, length, log_probs, alignment_history)
-    return (predicted_ids, state, length, log_probs)
+
+      alignment_history_sub = _get_alignment_history(state_sub)
+      if alignment_history_sub is not None:
+        alignment_history_sub = tf.expand_dims(alignment_history_sub, 1)
+        alignment_history = (alignment_history, alignment_history_sub)
+
+      return (predicted_ids, state_tuple, length, log_probs, alignment_history)
+
+    return (predicted_ids, state_tuple, length, log_probs)

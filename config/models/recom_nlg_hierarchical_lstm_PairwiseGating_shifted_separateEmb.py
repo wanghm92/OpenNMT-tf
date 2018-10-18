@@ -44,7 +44,7 @@ def model():
           dropout=0.3,
           residual_connections=False,
           pass_master_state=True,
-          sub_attention_over_encoder=False),
+          sub_attention_over_encoder=True),
       share_embeddings=EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT,
       shifted="word")
 

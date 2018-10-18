@@ -465,9 +465,11 @@ def hierarchical_dynamic_decode(
     final_state = res[3]
     final_sequence_lengths = res[6]
     final_sequence_mask_ta_sub = res[7]
+    final_state_sub = res[8]
 
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] final_outputs_ta = {}".format(final_outputs_ta))
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] final_state = {}".format(final_state))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] final_state_sub = {}".format(final_state_sub))
 
     final_outputs = nest.map_structure(lambda ta: ta.stack(), final_outputs_ta)
 
@@ -492,7 +494,7 @@ def hierarchical_dynamic_decode(
         final_outputs_sub = nest.map_structure(_transpose_fn, final_outputs_sub) # [batch, mt, st, depth] / [batch, sum_of_st, depth]
         final_sequence_mask_sub = nest.map_structure(_transpose_fn, final_sequence_mask_sub)  # [batch, mt, st] / [batch, sum_of_st]
 
-  return final_outputs, final_outputs_sub, final_state, final_sequence_lengths, final_sequence_mask_sub, final_time
+  return final_outputs, final_outputs_sub, final_state, final_state_sub, final_sequence_lengths, final_sequence_mask_sub, final_time
 
 
 # --------------------------------------------------------------------------------------------------------- #

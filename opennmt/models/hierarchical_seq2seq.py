@@ -1,7 +1,7 @@
 """Standard sequence-to-sequence model."""
 
 import tensorflow as tf
-import sys
+import sys, io, os
 import opennmt.constants as constants
 import opennmt.inputters as inputters
 
@@ -320,11 +320,17 @@ class HierarchicalSequenceToSequence(Model):
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] index_to_string_table_from_file")
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] sampled_ids = {}".format(sampled_ids))
           if isinstance(sampled_ids, tuple):
-            assert isinstance(sampled_length, tuple)
-            sampled_length, sub_sampled_length = sampled_length
             master_ids, sub_ids = sampled_ids
-            add_dict_to_collection("debug", {"sampled_length": tf.shape(sampled_length),
-                                             "sub_sampled_length": tf.shape(sub_sampled_length),
+
+            assert isinstance(sampled_length, tuple)
+            sampled_length, sampled_length_sub = sampled_length
+            assert isinstance(alignment, tuple)
+            alignment, alignment_sub = alignment
+            tf.logging.info(" >> [hierarchical_seq2seq.py _build] alignment = {}".format(alignment))
+            tf.logging.info(" >> [hierarchical_seq2seq.py _build] alignment_sub = {}".format(alignment_sub))
+
+            add_dict_to_collection("debug", {"sampled_length_master": tf.shape(sampled_length),
+                                             "sampled_length_sub": tf.shape(sampled_length_sub),
                                              "master_ids": tf.shape(master_ids),
                                              "sub_ids": tf.shape(sub_ids)
                                              })
@@ -334,17 +340,49 @@ class HierarchicalSequenceToSequence(Model):
           else:
             target_tokens = target_vocab_rev.lookup(tf.cast(sampled_ids, tf.int64))
             target_tokens_sub = None
-            sub_sampled_length = None
+            sampled_length_sub = None
+            alignment_sub = None
 
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_vocab_rev.lookup")
           tf.logging.info(" >> [hierarchical_seq2seq.py _build] target_tokens_sub = {}".format(target_tokens_sub))
 
-          # NOTE: replace_unknown_target is only for controller now
+          # NOTE: replace_unknown_target is only for controller, it does not make sense for fragment generator
           if params.get("replace_unknown_target", False):
+
+              def _replace_unk(source_tokens, target_tokens, alignment, name="master"):
+                  if alignment is None:
+                      return target_tokens
+                  if beam_width > 1:
+                      source_tokens = tf.contrib.seq2seq.tile_batch(source_tokens, multiplier=beam_width)
+
+                  # Merge batch and beam dimensions.
+                  original_shape = tf.shape(target_tokens)
+
+                  tf.logging.info(
+                      " >> [hierarchical_seq2seq.py _build] BEFORE target_tokens = {}".format(target_tokens))
+                  target_tokens = tf.reshape(target_tokens, [-1, original_shape[-1]])
+
+                  attention = tf.reshape(alignment, [-1, tf.shape(alignment)[2], tf.shape(alignment)[3]])
+                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] alignment = {}".format(alignment))
+                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] attention = {}".format(attention))
+
+                  replaced_target_tokens = replace_unknown_target(target_tokens, source_tokens, attention)
+                  tf.logging.info(
+                      " >> [hierarchical_seq2seq.py _build] replaced_target_tokens = {}".format(replaced_target_tokens))
+
+                  target_tokens = tf.reshape(replaced_target_tokens, original_shape)
+                  tf.logging.info(" >> [hierarchical_seq2seq.py _build] AFTER target_tokens = {}".format(target_tokens))
+
+                  add_dict_to_collection("debug", {"original_shape_{}".format(name): original_shape,
+                                                   "target_tokens_{}".format(name): tf.shape(target_tokens),
+                                                   "attention_{}".format(name): tf.shape(attention),
+                                                   "replaced_target_tokens_{}".format(name): tf.shape(replaced_target_tokens)
+                                                   })
+                  return target_tokens
+
               tf.logging.info(" >> [hierarchical_seq2seq.py _build] replace_unknown_target ... ")
               if alignment is None:
-                  raise TypeError("replace_unknown_target is not compatible with decoders "
-                                  "that don't return alignment history")
+                  raise TypeError("replace_unknown_target is not compatible with decoders that don't return alignment history")
               if isinstance(self.source_inputter, inputters.WordEmbedder):
                   source_tokens = features["tokens"]
               elif isinstance(self.source_inputter, inputters.ParallelInputter)\
@@ -353,26 +391,29 @@ class HierarchicalSequenceToSequence(Model):
               else:
                   raise TypeError("replace_unknown_target is only defined when the source "
                                   "inputter is a WordEmbedder or ParallelInputter with the 0th inputter being a WordEmbedder")
-              if beam_width > 1:
-                  source_tokens = tf.contrib.seq2seq.tile_batch(source_tokens, multiplier=beam_width)
-              # Merge batch and beam dimensions.
-              original_shape = tf.shape(target_tokens)
-              target_tokens = tf.reshape(target_tokens, [-1, original_shape[-1]])
-              attention = tf.reshape(alignment, [-1, tf.shape(alignment)[2], tf.shape(alignment)[3]])
-              replaced_target_tokens = replace_unknown_target(target_tokens, source_tokens, attention)
-              target_tokens = tf.reshape(replaced_target_tokens, original_shape)
+
+              target_tokens_nounk = _replace_unk(source_tokens, target_tokens, alignment, name="master")
+              # target_tokens_sub_nounk = _replace_unk(source_tokens, target_tokens_sub, alignment_sub, name="sub")
+
+          else:
+              target_tokens_nounk = target_tokens
+              # target_tokens_sub_nounk = target_tokens_sub
 
           predictions = {
               "tokens": target_tokens,
               "length": sampled_length,
               "log_probs": log_probs
           }
+
           if target_tokens_sub is not None:
               predictions["tokens_sub"] = target_tokens_sub
-          if sub_sampled_length is not None:
-              predictions["length_sub"] = sub_sampled_length
+          if sampled_length_sub is not None:
+              predictions["length_sub"] = sampled_length_sub
           if alignment is not None:
               predictions["alignment"] = alignment
+              predictions["tokens_nounk"] = target_tokens_nounk
+              # if alignment_sub is not None:
+              #   predictions["tokens_sub_nounk"] = target_tokens_sub_nounk
       else:
           predictions = None
 
@@ -540,15 +581,31 @@ class HierarchicalSequenceToSequence(Model):
         sentence = "%f ||| %s" % (
             prediction["log_probs"][i] / prediction["length"][i], sentence)
       print_bytes(tf.compat.as_bytes(sentence), stream=stream)
+      if "tokens_nounk" in prediction:
+        tokens_nounk = prediction["tokens_nounk"][i][:prediction["length"][i] - 1]  # Ignore </s>.
+        sentence_nounk = self.target_inputter.tokenizer.detokenize(tokens_nounk)
+        sentence_diff = [x if x == y else "{}_unk".format(y) for x, y in zip(sentence.strip().split(), sentence_nounk.strip().split())]
+        with io.open("{}.unk".format(stream.name), encoding="utf-8", mode="a") as stream_nounk:
+            print_bytes(tf.compat.as_bytes(" ".join(sentence_diff)), stream=stream_nounk)
+
       if sub_stream is not None:
         # sub_tokens = prediction["tokens_sub"][i][:prediction["length_sub"][i]]
         sub_tokens = prediction["tokens_sub"][i]
         sub_sentence = self.target_inputter.tokenizer.detokenize(sub_tokens)
         sub_sentence = sub_sentence.replace(" <blank>", "")
+        sub_sentence = " , ".join([x.strip() for x in sub_sentence.split("<\s>") if len(x.strip()) > 0])
         if params is not None and params.get("with_scores"):
             sub_sentence = "%f ||| %s" % (
                 prediction["log_probs"][i] / prediction["length_sub"][i], sub_sentence) # log_probs = log_probs_master + log_probs_sub
         print_bytes(tf.compat.as_bytes(sub_sentence), stream=sub_stream)
+        # if "tokens_sub_nounk" in prediction:
+        #     tokens_sub_nounk = prediction["tokens_sub_nounk"][i]
+        #     sentence_sub_nounk = self.target_inputter.tokenizer.detokenize(tokens_sub_nounk)
+        #     sentence_sub_nounk = sentence_sub_nounk.replace(" <blank>", "")
+        #     sentence_sub_diff = [x if x == y else "{}_unk".format(y) for x, y in
+        #                      zip(sub_sentence.strip().split(), sentence_sub_nounk.strip().split())]
+        #     with io.open("{}.unk".format(sub_stream.name), encoding="utf-8", mode="a") as stream_sub_nounk:
+        #         print_bytes(tf.compat.as_bytes(" ".join(sentence_sub_diff)), stream=stream_sub_nounk)
 
 def align_tokens_from_attention(tokens, attention):
   """Returns aligned tokens from the attention.
@@ -570,6 +627,12 @@ def align_tokens_from_attention(tokens, attention):
   batch_ids = tf.transpose(batch_ids, perm=[1, 0])
   aligned_pos = tf.stack([batch_ids, alignment], axis=-1)
   aligned_tokens = tf.gather_nd(tokens, aligned_pos)
+
+  add_dict_to_collection("debug", {"batch_ids": batch_ids,
+                                   "aligned_pos": aligned_pos,
+                                   "aligned_tokens": aligned_tokens,
+                                   })
+
   return aligned_tokens
 
 def replace_unknown_target(target_tokens,
