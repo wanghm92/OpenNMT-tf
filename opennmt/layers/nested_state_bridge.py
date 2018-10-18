@@ -471,7 +471,7 @@ class NestedStateAggregatedGatingBridge(NestedStateBridge):
     # Pack as the original decoder state.
     return tf.contrib.framework.nest.pack_sequence_as(decoder_state, combined)
 
-# TODO:
+# TODO: context gates
 class NestedStateContextGatingBridge(NestedStateBridge):
   """A bridge that applies a parameterized linear transformation from the
   encoder state to the decoder state size.

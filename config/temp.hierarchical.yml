@@ -3,7 +3,7 @@
 # without caring about their consistency.
 #
 # The directory where models and summaries will be saved. It is created if it does not exist.
-model_dir: ../onmt-tf-output/recom_nlg_clothes_master_emb_concat_to_sub_with_master_state_new
+model_dir: ../onmt-tf-output/recom_nlg_clothes_master_emb_concat_to_sub_with_master_state_new_dedup_no_sub_attention
 #model_dir: ../onmt-tf-output/temp
 
 train:
@@ -12,7 +12,7 @@ train:
 
 eval:
 #  # (optional) Evaluate every this many seconds (default: 18000).
-  eval_delay: 30
+  eval_delay: 1800
 
 params:
   # whether to turn on printing debug_ops in hooks

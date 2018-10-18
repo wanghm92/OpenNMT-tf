@@ -44,11 +44,6 @@ def model():
           dropout=0.3,
           residual_connections=False,
           pass_master_state=True,
-          sub_attention_over_encoder=True),
+          sub_attention_over_encoder=False),
       share_embeddings=EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT,
       shifted="word")
-
-
-'''
-pass_master_state is related to sub_attention_over_encoder
-'''

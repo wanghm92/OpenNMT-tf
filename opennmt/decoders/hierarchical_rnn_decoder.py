@@ -491,7 +491,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
       alignment_history_sub = _get_alignment_history(state_sub)
       if alignment_history_sub is not None:
         alignment_history_sub = tf.expand_dims(alignment_history_sub, 1)
-        alignment_history = (alignment_history, alignment_history_sub)
+      alignment_history = (alignment_history, alignment_history_sub)
 
       return (predicted_ids, state_tuple, length, log_probs, alignment_history)
 
