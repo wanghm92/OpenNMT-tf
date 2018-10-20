@@ -71,6 +71,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                           dtype=None,
                           alignment_history=False):
 
+    tf.logging.info(" >> [rnn_decoder.py class HierarchicalAttentionalRNNDecoder _sub_attention_over_encoder] _sub_attention_over_encoder = {}".format(self._sub_attention_over_encoder))
     if not self._sub_attention_over_encoder:
         cell, initial_cell_state = RNNDecoder._build_cell(self,
                                                           mode=mode,

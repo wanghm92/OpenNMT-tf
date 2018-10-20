@@ -40,6 +40,11 @@ data:
     - ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg_dedup/val/prefix_first_word/recom_text.outs.val.seg_new.punctrmd.shifted.9
 
   eval_labels_file_full: ../recom_nlg/onmt/clothes/one_per_sku/2nd_seg_dedup/val/recom_text.outs.val.seg_new.temp
+  # (optional) Models may require additional resource files (e.g. vocabularies).
+  source_words_vocabulary: data/recom_nlg/clothes/one_per_sku_dedup/words-train.vocab
+  feature_vocabulary: data/recom_nlg/clothes/one_per_sku_dedup/tags-train.vocab
+  master_target_words_vocabulary: data/recom_nlg/clothes/one_per_sku_dedup/words-train.vocab
+  sub_target_words_vocabulary: data/recom_nlg/clothes/one_per_sku_dedup/outs-train.vocab
 
 params:
   # whether to turn on printing debug_ops in hooks

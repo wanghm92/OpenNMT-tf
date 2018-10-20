@@ -3,7 +3,7 @@
 # without caring about their consistency.
 #
 # The directory where models and summaries will be saved. It is created if it does not exist.
-model_dir: ../onmt-tf-output/recom_nlg_clothes_master_emb_concat_to_sub_with_master_state_new_dedup_no_sub_attention
+model_dir: ../onmt-tf-output/recom_nlg_clothes_with_master_state_new_dedup_no_sub_attention_master_emb_concat_to_sub_0_5
 #model_dir: ../onmt-tf-output/temp
 
 train:
