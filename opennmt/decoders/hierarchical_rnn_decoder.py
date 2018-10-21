@@ -233,7 +233,6 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         master_output_layer = build_output_layer(self.num_units, master_vocab_size, dtype=master_inputs.dtype, name="master_output_layer")
         sub_output_layer = build_output_layer(self.num_units, sub_vocab_size, dtype=master_inputs.dtype, name="sub_output_layer")
     else:
-        # TODO: two separate output_layer needed or one should be fine ???
         if not isinstance(output_layer, tuple):
             raise ValueError("Two separate output_layer needed if not None")
         master_output_layer, sub_output_layer = output_layer
@@ -250,12 +249,15 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         initial_state=initial_state_master,
         output_layer=master_output_layer if not fused_projection else None)
 
+    emb_size = sub_inputs.get_shape().as_list()[-1]
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] emb_size = {}".format(emb_size))
     sub_decoder = BasicSubDecoder(
         cell=sub_cell,
         helper=sub_helper,
         initial_state=initial_state_sub,
         bridge=self._sub_bridge,
-        output_layer=sub_output_layer if not fused_projection else None)
+        output_layer=sub_output_layer if not fused_projection else None,
+        emb_size=emb_size)
 
     '''
     Perform dynamic decoding with decoder.
@@ -419,12 +421,15 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         initial_state=initial_state_master,
         output_layer=master_output_layer)
 
+    emb_size = sub_helper._start_inputs.get_shape().as_list()[-1]
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] emb_size = {}".format(emb_size))
     sub_decoder = BasicSubDecoder(
         cell=sub_cell,
         helper=sub_helper,
         initial_state=initial_state_sub,
         bridge=self._sub_bridge,
-        output_layer=sub_output_layer)
+        output_layer=sub_output_layer,
+        emb_size=emb_size)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_decoder = {}".format(master_decoder))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_decoder = {}".format(sub_decoder))

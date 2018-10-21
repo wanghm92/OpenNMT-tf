@@ -9,7 +9,7 @@ model_dir: ../onmt-tf-output/recom_nlg_clothes_with_master_state_new_dedup_no_su
 
 train:
   # default: 64
-  batch_size: 16
+  batch_size: 32
 
 eval:
 #  # (optional) Evaluate every this many seconds (default: 18000).
