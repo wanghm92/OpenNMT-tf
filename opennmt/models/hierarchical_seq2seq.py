@@ -593,13 +593,13 @@ class HierarchicalSequenceToSequence(Model):
         sub_tokens = prediction["tokens_sub"][i]
         sub_sentence = self.target_inputter.tokenizer.detokenize(sub_tokens)
         sub_sentence = sub_sentence.replace(" <blank>", "")
-        sub_sentence = " , ".join([x.strip() for x in sub_sentence.split("<\s>") if len(x.strip()) > 0])
+        # sub_sentence = " , ".join([x.strip() for x in sub_sentence.split("</s>") if len(x.strip()) > 0])
         if params is not None and params.get("with_scores"):
             sub_sentence = "%f ||| %s" % (
                 prediction["log_probs"][i] / prediction["length_sub"][i], sub_sentence) # log_probs = log_probs_master + log_probs_sub
         print_bytes(tf.compat.as_bytes(sub_sentence), stream=sub_stream)
         with io.open("{}.eosrmd".format(sub_stream.name), encoding="utf-8", mode="a") as stream_eosrmd:
-            sub_sentence_eosrmd = sub_sentence.replace(" <\s>", " ，")
+            sub_sentence_eosrmd = sub_sentence.replace(" </s>", " ，")
             print_bytes(tf.compat.as_bytes(sub_sentence_eosrmd), stream=stream_eosrmd)
         # if "tokens_sub_nounk" in prediction:
         #     tokens_sub_nounk = prediction["tokens_sub_nounk"][i]

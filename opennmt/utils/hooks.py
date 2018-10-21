@@ -240,11 +240,14 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
       pp.pprint(debug_ops)
     else:
       self.predictions, self._current_step, metrics = run_values.results
+    tf.logging.info(" [hooks.py class SaveEvaluationPredictionHook after_run] after_run")
+    print(len(metrics))
+    print(metrics.keys())
     pp.pprint(metrics)
     self._output_path = "{}.{}".format(self._output_file, self._current_step)
     with io.open(self._output_path, encoding="utf-8", mode="a") as output_file:
       if "tokens_sub" in six.iterkeys(self.predictions):
-        self._output_path_sub = "{}.sub.{}".format(self._output_file, self._current_step)
+        self._output_path_sub = "{}.sub.{}.eosrmd".format(self._output_file, self._current_step)
         with io.open(self._output_path_sub, encoding="utf-8", mode="a") as output_file_sub:
           for prediction in misc.extract_batches(self.predictions):
             self._model.print_prediction(prediction, stream=output_file, sub_stream=output_file_sub)

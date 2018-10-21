@@ -131,10 +131,10 @@ class Model(object):
                                          "sub_tboard_loss": sub_tboard_loss,
                                          })
 
-        tf.summary.scalar("master_actual_loss_loss_normalized_by_length)", master_actual_loss)
-        tf.summary.scalar("master_tboard_loss_normalized_by_length)", master_tboard_loss)
-        tf.summary.scalar("sub_actual_loss_normalized_by_length)", sub_actual_loss)
-        tf.summary.scalar("sub_tboard_loss_normalized_by_length)", sub_tboard_loss)
+        tf.summary.scalar("master_actual_loss_loss_normalized_by_length", master_actual_loss)
+        tf.summary.scalar("master_tboard_loss_normalized_by_length", master_tboard_loss)
+        tf.summary.scalar("sub_actual_loss_normalized_by_length", sub_actual_loss)
+        tf.summary.scalar("sub_tboard_loss_normalized_by_length", sub_tboard_loss)
 
         actual_loss = tf.reduce_mean([master_actual_loss, sub_actual_loss])
         tboard_loss = tf.reduce_mean([master_tboard_loss, sub_tboard_loss])
@@ -175,10 +175,10 @@ class Model(object):
             sub_actual_loss, sub_tboard_loss = _normalize_loss_tuple(sub_loss_tuple)
             actual_loss = tf.reduce_mean([master_actual_loss, sub_actual_loss])
             tboard_loss = tf.reduce_mean([master_tboard_loss, sub_tboard_loss])
-            tf.summary.scalar("master_actual_loss_loss_normalized_by_length)", master_actual_loss)
-            tf.summary.scalar("master_tboard_loss_normalized_by_length)", master_tboard_loss)
-            tf.summary.scalar("sub_actual_loss_normalized_by_length)", sub_actual_loss)
-            tf.summary.scalar("sub_tboard_loss_normalized_by_length)", sub_tboard_loss)
+            tf.summary.scalar("master_actual_loss_loss_normalized_by_length", master_actual_loss)
+            tf.summary.scalar("master_tboard_loss_normalized_by_length", master_tboard_loss)
+            tf.summary.scalar("sub_actual_loss_normalized_by_length", sub_actual_loss)
+            tf.summary.scalar("sub_tboard_loss_normalized_by_length", sub_tboard_loss)
         else:
           '''
             sharded: each element of this tuple is list of shards (same as what _compute_loss() returns in order)
@@ -278,6 +278,8 @@ class Model(object):
 
         """ compute perplexity """
         ppl = tf.exp(tf.minimum(loss, 100))
+        # TODO: this does not appear on TensorBoard yet
+        tf.summary.scalar("perplexity", ppl)
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> ppl = {}".format(ppl))
         add_dict_to_collection("metrics", {"perplexity": ppl})
 
