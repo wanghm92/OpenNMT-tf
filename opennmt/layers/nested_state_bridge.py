@@ -26,16 +26,18 @@ class NestedStateBridge(Bridge):
     '''
 
     state_tuples = tuple()
+    master_context_vector = None
 
     for state in [encoder_state, decoder_zero_state]:
       tf.logging.info(" >> [bridge.py class NestedStateAggregatedDenseBridge _build] state = {}".format(state))
       # Flattened states.
       state_flat = tf.contrib.framework.nest.flatten(state)
-      tf.logging.info(" >> [bridge.py class NestedStateAggregatedDenseBridge _build] state = \n{}"
+      tf.logging.info(" >> [bridge.py class NestedStateAggregatedDenseBridge _build] state_flat = \n{}"
                       .format("\n".join(["{}".format(x) for x in state_flat])))
 
       if isinstance(state, tf.contrib.seq2seq.AttentionWrapperState):
         num = 3
+        master_context_vector = state_flat[2]
       elif isinstance(state, tf.nn.rnn_cell.LSTMStateTuple):
         assert sub_attention_over_encoder is False
         num = 2
@@ -44,7 +46,7 @@ class NestedStateBridge(Bridge):
 
       state_tuples += (state, state_flat, num)
 
-    return self._build(state_tuples)
+    return self._build(state_tuples), master_context_vector
 
 
 class NestedStateAggregatedDenseBridge(NestedStateBridge):

@@ -140,6 +140,8 @@ class BasicDecoder(TfContribSeq2seqDecoder):
     tf.logging.info(">> [basic_decoder.py BasicDecoder step]\n state = {}".format(state))
     with ops.name_scope(name, "BasicDecoderStep", (time, inputs, state)):
       cell_outputs, cell_state = self._cell(inputs, state)
+      tf.logging.info(" >> [basic_decoder.py BasicDecoder step] cell_outputs = {}".format(cell_outputs))
+      tf.logging.info(" >> [basic_decoder.py BasicDecoder step] cell_state = {}".format(cell_state))
       if self._output_layer is not None:
         cell_outputs = self._output_layer(cell_outputs)
       sample_ids = self._helper.sample(
@@ -156,7 +158,7 @@ class BasicDecoder(TfContribSeq2seqDecoder):
     raise NotImplementedError
 
 class BasicSubDecoder(BasicDecoder):
-    def __init__(self, cell, helper, initial_state, bridge=None, output_layer=None, emb_size=None):
+    def __init__(self, cell, helper, initial_state, bridge=None, output_layer=None, emb_size=None, sub_attention_over_encoder=False, master_attention_at_output=False):
       super(BasicSubDecoder, self).__init__(cell, helper, initial_state, output_layer)
       self._initial_zero_state = initial_state
       self._bridge = bridge
@@ -164,9 +166,12 @@ class BasicSubDecoder(BasicDecoder):
       self._emb_gate_layer.build([None, emb_size])
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._emb_gate_layer = {}".format(self._emb_gate_layer))
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._bridge = {}".format(self._bridge))
+      self._master_context_vector = None
+      self._sub_attention_over_encoder = sub_attention_over_encoder
+      self._master_attention_at_output = master_attention_at_output
 
-    def _init_sub_state(self, previous_state, master_state=None, sub_attention_over_encoder=False):
-        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder _init_sub_state] sub_attention_over_encoder = {}".format(sub_attention_over_encoder))
+    def _init_sub_state(self, previous_state, master_state=None):
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder _init_sub_state] _sub_attention_over_encoder = {}".format(self._sub_attention_over_encoder))
 
         if previous_state is None or master_state is None:
             return self._initial_zero_state
@@ -177,25 +182,74 @@ class BasicSubDecoder(BasicDecoder):
 
         return self._bridge(encoder_state=master_state,
                             decoder_zero_state=previous_state,
-                            sub_attention_over_encoder=sub_attention_over_encoder)
+                            sub_attention_over_encoder=self._sub_attention_over_encoder)
 
-    def initialize(self, master_state=None, previous_state=None, master_time=None, sub_attention_over_encoder=False, name=None):
+    def initialize(self, master_state=None, previous_state=None, master_time=None, name=None):
         """
             initial_state=next_state (master)
             previous_state=sub_state (sub)
         """
-        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] sub_attention_over_encoder = {}".format(sub_attention_over_encoder))
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] master_time = {}".format(master_time))
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] self._helper = {}".format(self._helper))
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] previous_state = {}".format(previous_state))
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] BEFORE _initial_state = {}".format(self._initial_state))
 
         # previous_state is passed as the zero_state for initializing the initial_state for current master_time
-        self._initial_state = self._init_sub_state(previous_state=previous_state,
-                                                   master_state=master_state,
-                                                   sub_attention_over_encoder=sub_attention_over_encoder)
+        self._initial_state, self._master_context_vector = self._init_sub_state(previous_state=previous_state,
+                                                                                master_state=master_state)
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] AFTER self._initial_state = {}".format(self._initial_state))
 
-        return self._helper.initialize(master_time) + (self._initial_state,)
+        depth = self._master_context_vector.get_shape().as_list()[-1]
+        self._sub_attention_layer = tf.layers.Dense(depth, activation=tf.tanh, use_bias=False, name="sub_decoder_attention_layer_dense")
+        self._sub_attention_layer.build([None, depth*2])
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] master_context_vector = {}".format(self._master_context_vector))
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] _sub_attention_layer = {}".format(self._sub_attention_layer))
+
+        return self._helper.initialize(master_time) + (self._initial_state,) + (self._master_context_vector,)
+
+    def step(self, time, inputs, state, name=None):
+        """Perform a decoding step.
+
+        Args:
+          time: scalar `int32` tensor.
+          inputs: A (structure of) input tensors.
+          state: A (structure of) state tensors and TensorArrays.
+          name: Name scope for any created operations.
+
+        Returns:
+          `(outputs, next_state, next_inputs, finished)`.
+        """
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] inputs = {}".format(inputs))
+        tf.logging.info(">> [basic_decoder.py BasicSubDecoder step]\n state = {}".format(state))
+        with ops.name_scope(name, "BasicDecoderStep", (time, inputs, state)):
+            cell_outputs, cell_state = self._cell(inputs, state)
+            tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] cell_outputs = {}".format(cell_outputs))
+            tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] cell_state = {}".format(cell_state))
+            if self._output_layer is not None:
+                if self._master_attention_at_output:
+                    if self._master_context_vector is None or self._sub_attention_layer is None:
+                        raise ValueError("master_context_vector ({}) or sub_attention_layer ({}) must be available !!!"
+                                         .format(self._master_context_vector, self._sub_attention_layer))
+                    tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] _master_context_vector = {}".format(
+                        self._master_context_vector))
+                    cell_outputs_extended = tf.concat([cell_outputs, self._master_context_vector], axis=-1)
+                    cell_outputs = self._sub_attention_layer(cell_outputs_extended)
+                    tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] cell_outputs = {}".format(cell_outputs))
+                cell_outputs = self._output_layer(cell_outputs)
+                tf.logging.info(
+                    " >> [basic_decoder.py BasicSubDecoder step] after output_layer: cell_outputs = {}".format(
+                        cell_outputs))
+
+            sample_ids = self._helper.sample(
+                time=time, outputs=cell_outputs, state=cell_state)
+            (finished, next_inputs, next_state) = self._helper.next_inputs(
+                time=time,
+                outputs=cell_outputs,
+                state=cell_state,
+                sample_ids=sample_ids)
+        outputs = BasicDecoderOutput(cell_outputs, sample_ids)
+        return outputs, next_state, next_inputs, finished
+
 
     @property
     def sub_time(self):

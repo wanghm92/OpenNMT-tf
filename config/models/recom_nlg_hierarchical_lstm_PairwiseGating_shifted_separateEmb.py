@@ -29,14 +29,14 @@ def model():
           num=9),
       encoder=onmt.encoders.BidirectionalRNNEncoder(
           num_layers=1,
-          num_units=256,
+          num_units=128,
           reducer=onmt.layers.ConcatReducer(),
           cell_class=tf.contrib.rnn.LSTMCell,
           dropout=0.3,
           residual_connections=False),
       decoder=onmt.decoders.HierarchicalAttentionalRNNDecoder(
           num_layers=1,
-          num_units=256,
+          num_units=128,
           bridge=onmt.layers.CopyBridge(),
           sub_bridge=onmt.layers.NestedStatePairwiseGatingBridge(),
           attention_mechanism_class=tf.contrib.seq2seq.LuongAttention,
@@ -44,6 +44,15 @@ def model():
           dropout=0.3,
           residual_connections=False,
           pass_master_state=True,
-          sub_attention_over_encoder=False),
+          sub_attention_over_encoder=False,
+          master_attention_at_output=False),
       share_embeddings=EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT,
       shifted="word")
+
+
+'''
+    defaults:
+    pass_master_state = True
+    sub_attention_over_encoder = False
+    master_attention_at_output = False
+'''
