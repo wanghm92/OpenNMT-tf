@@ -644,7 +644,7 @@ def sub_dynamic_decode(
       # concatenate master input to word embeddings here
       if master_input is not None:
           tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_input = {}".format(master_input))
-          master_emb_weight = tf.constant(0.2, dtype=inputs.dtype)
+          master_emb_weight = tf.constant(0.5, dtype=inputs.dtype)
           tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_emb_weight = {}".format(master_emb_weight))
           master_input_weighted = tf.multiply(master_input, master_emb_weight)
           tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_input_weighted = {}".format(master_input_weighted))
@@ -653,9 +653,6 @@ def sub_dynamic_decode(
           inputs_norm = tf.sqrt(tf.reduce_sum(tf.square(inputs_concat), axis=-1, keepdims=True))
           tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] inputs_norm = {}".format(inputs_norm))
           rnn_inputs = inputs_concat / inputs_norm
-          # rnn_inputs = nest.map_structure(
-          #     lambda x, y: array_ops.concat((x, y), -1),
-          #     inputs, master_input)
       else:
           rnn_inputs = inputs
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] rnn_inputs = {}".format(rnn_inputs))

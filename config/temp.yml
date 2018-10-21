@@ -49,7 +49,7 @@ data:
   words_embedding: ../recom_nlg/temp/emb.vec
 
 train:
-  batch_size: 4
+  batch_size: 16
   save_checkpoints_steps: 1
   save_summary_steps: 1
   train_steps: 4
@@ -58,7 +58,7 @@ train:
 #
 eval:
  # (optional) Evaluate every this many seconds (default: 18000).
-  eval_delay: 10
+  eval_delay: 30
 
 params:
   # whether to turn on printing debug_ops in hooks

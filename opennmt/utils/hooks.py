@@ -5,7 +5,7 @@ from __future__ import print_function
 import tensorflow as tf
 from tensorflow.python.training import training_util
 
-import io, time, six, pprint, sys
+import io, time, six, pprint, sys, os
 
 from opennmt.utils import misc
 
@@ -206,7 +206,9 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
     self._model = model
     self._debug = debug
     self._output_file = output_file
+    self._output_dir = os.path.dirname(output_file)
     self._post_evaluation_fn = post_evaluation_fn
+    self._metrics_accumulator = dict()
 
   def begin(self):
     '''
@@ -227,6 +229,9 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
     if self._debug:
       self._debug_ops = misc.get_dict_from_collection("debug")
 
+    if self._output_dir is not None:
+      self._summary_writer = tf.summary.FileWriterCache.get(self._output_dir)
+
   def before_run(self, run_context):  # pylint: disable=unused-argument
     run_args = [self._predictions, self._global_step, self._metrics]
     if self._debug:
@@ -240,10 +245,15 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
       pp.pprint(debug_ops)
     else:
       self.predictions, self._current_step, metrics = run_values.results
-    tf.logging.info(" [hooks.py class SaveEvaluationPredictionHook after_run] after_run")
-    print(len(metrics))
-    print(metrics.keys())
+
+    tf.logging.info(" >> [hooks.py class SaveEvaluationPredictionHook after_run] adding metrics to summary ...")
+    for k, v in six.iteritems(metrics):
+      if k in self._metrics_accumulator.keys():
+        self._metrics_accumulator[k].append(v)
+      else:
+        self._metrics_accumulator[k] = [v]
     pp.pprint(metrics)
+
     self._output_path = "{}.{}".format(self._output_file, self._current_step)
     with io.open(self._output_path, encoding="utf-8", mode="a") as output_file:
       if "tokens_sub" in six.iterkeys(self.predictions):
@@ -257,6 +267,11 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
 
 
   def end(self, session):
+    for k, v in six.iteritems(self._metrics_accumulator):
+      average_value = sum(v) / len(v)
+      summary = tf.Summary(value=[tf.Summary.Value(tag=k, simple_value=average_value)])
+      self._summary_writer.add_summary(summary, self._current_step)
+
     tf.logging.info("Running _post_evaluation_fn (BLEU); Evaluation predictions saved to %s", self._output_path)
     if self._post_evaluation_fn is not None:
       if "tokens_sub" in six.iterkeys(self.predictions):
