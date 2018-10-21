@@ -246,18 +246,17 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
     else:
       self.predictions, self._current_step, metrics = run_values.results
 
-    tf.logging.info(" >> [hooks.py class SaveEvaluationPredictionHook after_run] adding metrics to summary ...")
     for k, v in six.iteritems(metrics):
       if k in self._metrics_accumulator.keys():
         self._metrics_accumulator[k].append(v)
       else:
         self._metrics_accumulator[k] = [v]
-    pp.pprint(metrics)
+    # pp.pprint(metrics)
 
     self._output_path = "{}.{}".format(self._output_file, self._current_step)
     with io.open(self._output_path, encoding="utf-8", mode="a") as output_file:
       if "tokens_sub" in six.iterkeys(self.predictions):
-        self._output_path_sub = "{}.sub.{}.eosrmd".format(self._output_file, self._current_step)
+        self._output_path_sub = "{}.sub.{}".format(self._output_file, self._current_step)
         with io.open(self._output_path_sub, encoding="utf-8", mode="a") as output_file_sub:
           for prediction in misc.extract_batches(self.predictions):
             self._model.print_prediction(prediction, stream=output_file, sub_stream=output_file_sub)
@@ -275,6 +274,7 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
     tf.logging.info("Running _post_evaluation_fn (BLEU); Evaluation predictions saved to %s", self._output_path)
     if self._post_evaluation_fn is not None:
       if "tokens_sub" in six.iterkeys(self.predictions):
-        self._post_evaluation_fn(self._current_step, self._output_path_sub)
+        output_path_sub = "{}.sub.{}.eosrmd".format(self._output_file, self._current_step)
+        self._post_evaluation_fn(self._current_step, output_path_sub)
       else:
         self._post_evaluation_fn(self._current_step, self._output_path)

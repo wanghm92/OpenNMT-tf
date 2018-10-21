@@ -160,6 +160,7 @@ class BasicSubDecoder(BasicDecoder):
       super(BasicSubDecoder, self).__init__(cell, helper, initial_state, output_layer)
       self._initial_zero_state = initial_state
       self._bridge = bridge
+      self._emb_gate_layer = None
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._bridge = {}".format(self._bridge))
 
     def _init_sub_state(self, previous_state, master_state=None, sub_attention_over_encoder=False):
@@ -193,7 +194,16 @@ class BasicSubDecoder(BasicDecoder):
                                                    sub_attention_over_encoder=sub_attention_over_encoder)
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] AFTER _initial_state = {}".format(self._initial_state))
 
-        return self._helper.initialize(master_time) + (self._initial_state,)
+        initial_finished, initial_inputs = self._helper.initialize(master_time)
+
+        emb_size = initial_inputs.get_shape().as_list()[-1]
+        emb_gate_layer = tf.layers.Dense(emb_size, use_bias=True, dtype=initial_inputs.dtype, name=name)
+        emb_gate_layer.build([None, emb_size])
+        self._emb_gate_layer = emb_gate_layer
+        tf.logging.info(
+            " >> [basic_decoder.py BasicSubDecoder __init__] self._emb_gate_layer = {}".format(self._emb_gate_layer))
+
+        return (initial_finished, initial_inputs, self._initial_state)
 
     @property
     def sub_time(self):

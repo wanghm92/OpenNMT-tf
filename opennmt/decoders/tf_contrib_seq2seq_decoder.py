@@ -644,15 +644,26 @@ def sub_dynamic_decode(
       # concatenate master input to word embeddings here
       if master_input is not None:
           tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_input = {}".format(master_input))
-          master_emb_weight = tf.constant(0.5, dtype=inputs.dtype)
+
+          # master_emb_weight = tf.constant(0.3, dtype=inputs.dtype)
+          # tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_emb_weight = {}".format(master_emb_weight))
+          # master_input_weighted = tf.multiply(master_input, master_emb_weight)
+          # tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_input_weighted = {}".format(master_input_weighted))
+          # rnn_inputs = tf.concat([inputs, master_input_weighted], -1)
+          # tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] rnn_inputs = {}".format(rnn_inputs))
+          # inputs_norm = tf.sqrt(tf.reduce_sum(tf.square(rnn_inputs), axis=-1, keepdims=True))
+          # tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] inputs_norm = {}".format(inputs_norm))
+          # rnn_inputs = rnn_inputs / inputs_norm
+
+          projected_inputs = decoder._emb_gate_layer(inputs)
+          tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] projected_inputs = {}".format(projected_inputs))
+          master_emb_weight = tf.nn.sigmoid(projected_inputs)
           tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_emb_weight = {}".format(master_emb_weight))
           master_input_weighted = tf.multiply(master_input, master_emb_weight)
           tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_input_weighted = {}".format(master_input_weighted))
-          inputs_concat = tf.concat([inputs, master_input_weighted], -1)
-          tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] inputs_concat = {}".format(inputs_concat))
-          inputs_norm = tf.sqrt(tf.reduce_sum(tf.square(inputs_concat), axis=-1, keepdims=True))
-          tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] inputs_norm = {}".format(inputs_norm))
-          rnn_inputs = inputs_concat / inputs_norm
+          rnn_inputs = tf.concat([inputs, master_input_weighted], -1)
+          tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] rnn_inputs = {}".format(rnn_inputs))
+
       else:
           rnn_inputs = inputs
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] rnn_inputs = {}".format(rnn_inputs))
