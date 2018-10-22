@@ -184,11 +184,11 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
             master_embedding,
             sampling_probability)
 
-        sub_helper = ScheduledEmbeddingTrainingHelper(
-            sub_inputs,
-            sub_sequence_length,
-            sub_embedding,
-            sampling_probability)
+        # sub_helper = ScheduledEmbeddingTrainingHelper(
+        #     sub_inputs,
+        #     sub_sequence_length,
+        #     sub_embedding,
+        #     sampling_probability)
         fused_projection = False
     else:
         '''
@@ -196,10 +196,16 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
           Returned sample_ids are the argmax of the RNN output logits.
         '''
         master_helper = TrainingHelper(master_inputs, master_sequence_length)
-
-        sub_helper = HierarchicalTrainingHelper(sub_inputs, sub_sequence_length)
-
         fused_projection = True
+
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] fused_projection = {}".format(fused_projection))
+
+    sub_helper = HierarchicalTrainingHelper(sub_inputs, sub_sequence_length)
+    fused_projection_sub = True
+
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] master_helper = {}".format(master_helper))
+    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] sub_helper = {}".format(sub_helper))
+
 
     '''
     Pass memory and initial_state to _build_cell() when building AttentionalRNNDecoder
@@ -208,7 +214,6 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         LSTMStateTuple(c=<tf.Tensor 'seq2seq/parallel_0/seq2seq/encoder/concat_1:0' shape=(?, 128) dtype=float32>, 
                        h=<tf.Tensor 'seq2seq/parallel_0/seq2seq/encoder/concat_2:0' shape=(?, 128) dtype=float32>)
     '''
-    tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] fused_projection = {}".format(fused_projection))
 
     master_cell, initial_state_master = self._build_cell(
         mode=mode,
@@ -259,7 +264,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         helper=sub_helper,
         initial_state=initial_state_sub,
         bridge=self._sub_bridge,
-        output_layer=sub_output_layer if not fused_projection else None,
+        output_layer=sub_output_layer if not fused_projection_sub else None,
         emb_size=emb_size,
         sub_attention_over_encoder=self._sub_attention_over_encoder,
         master_attention_at_output=self._master_attention_at_output)
@@ -287,11 +292,14 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] length = {}".format(length))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] final_time = {}".format(final_time))
 
-    if fused_projection and master_output_layer is not None and sub_output_layer is not None:
+    if fused_projection and master_output_layer is not None:
         logits = master_output_layer(outputs.rnn_output)
-        logits_sub = sub_output_layer(outputs_sub.rnn_output)
     else:
         logits = outputs.rnn_output
+
+    if fused_projection_sub and sub_output_layer is not None:
+        logits_sub = sub_output_layer(outputs_sub.rnn_output)
+    else:
         logits_sub = outputs_sub.rnn_output
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] BEFORE logits = {}".format(logits))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py decode] BEFORE logits_sub = {}".format(logits_sub))

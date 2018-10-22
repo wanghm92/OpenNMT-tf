@@ -214,6 +214,8 @@ class HierarchicalSequenceToSequence(Model):
                       schedule_type=params.get("scheduled_sampling_type"),
                       k=params.get("scheduled_sampling_k"))
 
+              tf.logging.info(" >> [hierarchical_seq2seq.py _build] sampling_probability = {}".format(sampling_probability))
+
               ##########################################################################
               #-------------------------------- decode --------------------------------#
               ##########################################################################

@@ -97,6 +97,8 @@ def get_sampling_probability(global_step,
      is not set.
     TypeError: if :obj:`schedule_type` is invalid.
   """
+  tf.logging.info(" >> [decoder.py get_sampling_probability] read_probability = {}".format(read_probability))
+
   if read_probability is None and schedule_type is None:
     return None
 

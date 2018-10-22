@@ -432,6 +432,9 @@ class ScheduledEmbeddingTrainingHelper(TrainingHelper):
       select_sample = select_sampler.sample(
           sample_shape=self.batch_size, seed=self._scheduling_seed)
       sample_id_sampler = categorical.Categorical(logits=outputs)
+      tf.logging.info(" >> [helper.py ScheduledEmbeddingTrainingHelper sample()] select_sampler = {}".format(select_sampler))
+      tf.logging.info(" >> [helper.py ScheduledEmbeddingTrainingHelper sample()] select_sample = {}".format(select_sample))
+      tf.logging.info(" >> [helper.py ScheduledEmbeddingTrainingHelper sample()] sample_id_sampler = {}".format(sample_id_sampler))
       return array_ops.where(
           select_sample,
           sample_id_sampler.sample(seed=self._seed),
