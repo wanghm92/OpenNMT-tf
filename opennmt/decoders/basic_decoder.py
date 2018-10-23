@@ -162,13 +162,30 @@ class BasicSubDecoder(BasicDecoder):
       super(BasicSubDecoder, self).__init__(cell, helper, initial_state, output_layer)
       self._initial_zero_state = initial_state
       self._bridge = bridge
-      self._emb_gate_layer = tf.layers.Dense(emb_size, use_bias=True, dtype=tf.float32, name='embedding_gate')
+      self._sub_attention_over_encoder = sub_attention_over_encoder
+      self._master_attention_at_output = master_attention_at_output
+      tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._master_attention_at_output = {}".format(self._master_attention_at_output))
+      tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._output_layer = {}".format(self._output_layer))
+      self._master_context_vector = None
+
+      self._emb_gate_layer = tf.layers.Dense(emb_size, activation=tf.sigmoid, use_bias=False, name='embedding_gate')
       self._emb_gate_layer.build([None, emb_size])
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._emb_gate_layer = {}".format(self._emb_gate_layer))
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._bridge = {}".format(self._bridge))
-      self._master_context_vector = None
-      self._sub_attention_over_encoder = sub_attention_over_encoder
-      self._master_attention_at_output = master_attention_at_output
+
+      if self._master_attention_at_output:
+        if not isinstance(self._initial_zero_state, tf.nn.rnn_cell.LSTMStateTuple) or self._sub_attention_over_encoder:
+          raise ValueError("master_attention_at_output is only applicable when sub_attention_over_encoder is False")
+
+        zero_state_flat = tf.contrib.framework.nest.flatten(self._initial_zero_state)
+        depth = zero_state_flat[0].get_shape().as_list()[-1]
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] depth = {}".format(depth))
+
+        # TODO: may need to use activation=tf.tanh
+        self._sub_attention_layer = tf.layers.Dense(depth, use_bias=False, name="sub_decoder_attention_layer_dense")
+        self._sub_attention_layer.build([None, depth * 2])
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] master_context_vector = {}".format(self._master_context_vector))
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] _sub_attention_layer = {}".format(self._sub_attention_layer))
 
     def _init_sub_state(self, previous_state, master_state=None):
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder _init_sub_state] _sub_attention_over_encoder = {}".format(self._sub_attention_over_encoder))
@@ -199,12 +216,6 @@ class BasicSubDecoder(BasicDecoder):
                                                                                 master_state=master_state)
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] AFTER self._initial_state = {}".format(self._initial_state))
 
-        depth = self._master_context_vector.get_shape().as_list()[-1]
-        self._sub_attention_layer = tf.layers.Dense(depth, activation=tf.tanh, use_bias=False, name="sub_decoder_attention_layer_dense")
-        self._sub_attention_layer.build([None, depth*2])
-        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] master_context_vector = {}".format(self._master_context_vector))
-        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] _sub_attention_layer = {}".format(self._sub_attention_layer))
-
         return self._helper.initialize(master_time) + (self._initial_state,) + (self._master_context_vector,)
 
     def step(self, time, inputs, state, name=None):
@@ -225,20 +236,17 @@ class BasicSubDecoder(BasicDecoder):
             cell_outputs, cell_state = self._cell(inputs, state)
             tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] cell_outputs = {}".format(cell_outputs))
             tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] cell_state = {}".format(cell_state))
+            if self._master_attention_at_output:
+                if self._master_context_vector is None or self._sub_attention_layer is None:
+                    raise ValueError("master_context_vector ({}) or sub_attention_layer ({}) must be available !!!"
+                                     .format(self._master_context_vector, self._sub_attention_layer))
+                tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] _master_context_vector = {}".format(self._master_context_vector))
+                cell_outputs_extended = tf.concat([cell_outputs, self._master_context_vector], axis=-1)
+                cell_outputs = self._sub_attention_layer(cell_outputs_extended)
             if self._output_layer is not None:
-                if self._master_attention_at_output:
-                    if self._master_context_vector is None or self._sub_attention_layer is None:
-                        raise ValueError("master_context_vector ({}) or sub_attention_layer ({}) must be available !!!"
-                                         .format(self._master_context_vector, self._sub_attention_layer))
-                    tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] _master_context_vector = {}".format(
-                        self._master_context_vector))
-                    cell_outputs_extended = tf.concat([cell_outputs, self._master_context_vector], axis=-1)
-                    cell_outputs = self._sub_attention_layer(cell_outputs_extended)
-                    tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] cell_outputs = {}".format(cell_outputs))
                 cell_outputs = self._output_layer(cell_outputs)
-                tf.logging.info(
-                    " >> [basic_decoder.py BasicSubDecoder step] after output_layer: cell_outputs = {}".format(
-                        cell_outputs))
+
+            tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] cell_outputs = {}".format(cell_outputs))
 
             sample_ids = self._helper.sample(
                 time=time, outputs=cell_outputs, state=cell_state)
@@ -250,6 +258,8 @@ class BasicSubDecoder(BasicDecoder):
         outputs = BasicDecoderOutput(cell_outputs, sample_ids)
         return outputs, next_state, next_inputs, finished
 
+    def emb_gate_layer(self, inputs):
+        return self._emb_gate_layer(inputs)
 
     @property
     def sub_time(self):
