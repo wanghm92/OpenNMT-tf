@@ -44,10 +44,11 @@ def model():
           dropout=0.3,
           residual_connections=False,
           pass_master_state=True,
-          pass_master_input=False,
+          pass_master_input=True,
           sub_attention_over_encoder=False,
           master_attention_at_input=True,
-          master_attention_at_output=False),
+          master_attention_at_output=False,
+          force_non_rep=True),
       share_embeddings=EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT,
       shifted="word")
 

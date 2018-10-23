@@ -195,6 +195,7 @@ def hierarchical_dynamic_decode(
         swap_memory=False,
         scope=None,
         dynamic=False,
+        force_non_rep=True,
         shifted=None,
         pass_master_state=False,
         pass_master_input=False,
@@ -413,6 +414,7 @@ def hierarchical_dynamic_decode(
                                                                                                     previous_inputs=previous_inputs,
                                                                                                     maximum_iterations=sub_maximum_iterations,
                                                                                                     dynamic=dynamic,
+                                                                                                    force_non_rep=force_non_rep,
                                                                                                     shifted=shifted,
                                                                                                     master_attention_at_input=master_attention_at_input)
 
@@ -516,6 +518,7 @@ def sub_dynamic_decode(
         swap_memory=False,
         scope=None,
         dynamic=False,
+        force_non_rep=True,
         shifted=None,
         master_attention_at_input=False):
   """Perform dynamic decoding with `decoder`.
@@ -620,7 +623,8 @@ def sub_dynamic_decode(
           dtype=d,
           size=0 if dynamic_size else maximum_iterations,
           dynamic_size=dynamic_size,
-          element_shape=_shape(decoder.batch_size, s))
+          element_shape=_shape(decoder.batch_size, s),
+          clear_after_read=False)
 
     initial_outputs_ta = nest.map_structure(_create_ta, decoder.output_size, decoder.output_dtype)
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] initial_outputs_ta = {}".format(initial_outputs_ta))
@@ -671,7 +675,9 @@ def sub_dynamic_decode(
 
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] rnn_inputs = {}".format(rnn_inputs))
 
-      (next_outputs, decoder_state, next_inputs, decoder_finished) = decoder.step(time, rnn_inputs, state)
+      (next_outputs, decoder_state, next_inputs, decoder_finished) = decoder.step(time, rnn_inputs, state,
+                                                                                  previous_ids=outputs_ta.sample_id.identity() if dynamic and force_non_rep else None,
+                                                                                  zero_ids=zero_outputs.sample_id if dynamic and force_non_rep else None)
       if decoder.tracks_own_finished:
         next_finished = decoder_finished
       else:

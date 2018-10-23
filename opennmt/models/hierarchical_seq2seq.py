@@ -549,8 +549,8 @@ class HierarchicalSequenceToSequence(Model):
     sub_loss = self._compute_loss_impl(sub_logits, sub_labels, sub_length, params, mode, master_mask=master_mask)
     sub_loss_value, sub_loss_normalizer1, sub_loss_normalizer2 = sub_loss
     tf.summary.scalar("sub_loss_value)", sub_loss_value)
-    tf.summary.scalar("sub_loss_normalizer1)", sub_loss_normalizer1)
-    tf.summary.scalar("sub_loss_normalizer2)", sub_loss_normalizer2)
+    tf.summary.scalar("sub_loss_normalizer1", sub_loss_normalizer1)
+    tf.summary.scalar("sub_loss_normalizer2", sub_loss_normalizer2)
 
     add_dict_to_collection("debug", {"master_length": master_length,
                                      "sub_length": sub_length,

@@ -31,6 +31,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                sub_attention_over_encoder=False,
                master_attention_at_input=False,
                master_attention_at_output=False,
+               force_non_rep=True,
                ):
     """Initializes the decoder parameters.
 
@@ -67,6 +68,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     self._sub_attention_over_encoder = sub_attention_over_encoder
     self._master_attention_at_input = master_attention_at_input
     self._master_attention_at_output = master_attention_at_output
+    self._force_non_rep = force_non_rep
 
   def _wrapped_build_cell(self,
                           mode,
@@ -464,6 +466,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                                                                                                 maximum_iterations=maximum_iterations,
                                                                                                 sub_maximum_iterations=sub_maximum_iterations,
                                                                                                 dynamic=True,
+                                                                                                force_non_rep=self._force_non_rep,
                                                                                                 shifted=shifted,
                                                                                                 pass_master_state=self._pass_master_state,
                                                                                                 pass_master_input=self._pass_master_input,

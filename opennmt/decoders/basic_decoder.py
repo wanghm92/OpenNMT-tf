@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import collections,sys
 import tensorflow as tf
+import numpy as np
 
 from opennmt.decoders import helper as helper_py
 from tensorflow.python.framework import ops
@@ -218,7 +219,7 @@ class BasicSubDecoder(BasicDecoder):
 
         return self._helper.initialize(master_time) + (self._initial_state,) + (self._master_context_vector,)
 
-    def step(self, time, inputs, state, name=None):
+    def step(self, time, inputs, state, name=None, previous_ids=None, zero_ids=None):
         """Perform a decoding step.
 
         Args:
@@ -231,11 +232,23 @@ class BasicSubDecoder(BasicDecoder):
           `(outputs, next_state, next_inputs, finished)`.
         """
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] inputs = {}".format(inputs))
-        tf.logging.info(">> [basic_decoder.py BasicSubDecoder step]\n state = {}".format(state))
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step]\n state = {}".format(state))
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] previous_ids = {}".format(previous_ids))
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] zero_ids = {}".format(zero_ids))
+
+        if previous_ids is not None:
+            previous_ids = tf.cond(
+                tf.equal(time, ops.convert_to_tensor(0, dtype=tf.int32)),
+                true_fn=lambda: tf.expand_dims(zero_ids, axis=0),
+                false_fn=lambda: previous_ids.stack())
+            tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] previous_ids = {}".format(previous_ids))
+            previous_ids = tf.transpose(previous_ids, perm=[1, 0])
+
         with ops.name_scope(name, "BasicDecoderStep", (time, inputs, state)):
             cell_outputs, cell_state = self._cell(inputs, state)
             tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] cell_outputs = {}".format(cell_outputs))
             tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] cell_state = {}".format(cell_state))
+
             if self._master_attention_at_output:
                 if self._master_context_vector is None or self._sub_attention_layer is None:
                     raise ValueError("master_context_vector ({}) or sub_attention_layer ({}) must be available !!!"
@@ -243,13 +256,22 @@ class BasicSubDecoder(BasicDecoder):
                 tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] _master_context_vector = {}".format(self._master_context_vector))
                 cell_outputs_extended = tf.concat([cell_outputs, self._master_context_vector], axis=-1)
                 cell_outputs = self._sub_attention_layer(cell_outputs_extended)
+
             if self._output_layer is not None:
                 cell_outputs = self._output_layer(cell_outputs)
+            tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] after output_layer cell_outputs = {}".format(cell_outputs))
 
-            tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] cell_outputs = {}".format(cell_outputs))
-
+            if previous_ids is not None:
+                previous_ids_one_hot = tf.one_hot(previous_ids,
+                                                  depth=cell_outputs.get_shape().as_list()[-1],
+                                                  on_value=ops.convert_to_tensor(-np.Inf, dtype=tf.float32),
+                                                  off_value=ops.convert_to_tensor(0.0, dtype=tf.float32),
+                                                  axis=-1)
+                previous_ids_mask = tf.reduce_sum(previous_ids_one_hot, axis=1)
             sample_ids = self._helper.sample(
-                time=time, outputs=cell_outputs, state=cell_state)
+                time=time, outputs=cell_outputs, state=cell_state, previous_ids_mask=previous_ids_mask if previous_ids is not None else None)
+            tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] sample_ids = {}".format(sample_ids))
+
             (finished, next_inputs, next_state) = self._helper.next_inputs(
                 time=time,
                 outputs=cell_outputs,
