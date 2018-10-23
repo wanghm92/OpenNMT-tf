@@ -48,7 +48,8 @@ def model():
           sub_attention_over_encoder=False,
           master_attention_at_input=True,
           master_attention_at_output=False,
-          force_non_rep=False),
+          force_non_rep=True,
+          disable_unk=True),
       share_embeddings=EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT,
       shifted="word")
 

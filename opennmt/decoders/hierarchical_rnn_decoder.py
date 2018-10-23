@@ -32,6 +32,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
                master_attention_at_input=False,
                master_attention_at_output=False,
                force_non_rep=True,
+               disable_unk=True
                ):
     """Initializes the decoder parameters.
 
@@ -69,6 +70,7 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
     self._master_attention_at_input = master_attention_at_input
     self._master_attention_at_output = master_attention_at_output
     self._force_non_rep = force_non_rep
+    self._disable_unk = disable_unk
 
   def _wrapped_build_cell(self,
                           mode,
@@ -275,7 +277,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         output_layer=sub_output_layer if not fused_projection_sub else None,
         emb_size=emb_size,
         sub_attention_over_encoder=self._sub_attention_over_encoder,
-        master_attention_at_output=self._master_attention_at_output)
+        master_attention_at_output=self._master_attention_at_output,
+        disable_unk=self._disable_unk)
 
     '''
     Perform dynamic decoding with decoder.
@@ -453,7 +456,8 @@ class HierarchicalAttentionalRNNDecoder(AttentionalRNNDecoder):
         output_layer=sub_output_layer,
         emb_size=emb_size,
         sub_attention_over_encoder=self._sub_attention_over_encoder,
-        master_attention_at_output=self._master_attention_at_output)
+        master_attention_at_output=self._master_attention_at_output,
+        disable_unk=self._disable_unk)
 
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] master_decoder = {}".format(master_decoder))
     tf.logging.info(" >> [hierarchical_rnn_decoder.py dynamic_decode] sub_decoder = {}".format(sub_decoder))

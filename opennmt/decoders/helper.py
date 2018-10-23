@@ -688,17 +688,18 @@ class GreedyEmbeddingHelper(Helper):
     return finished, next_inputs, state
 
 class HierarchicalGreedyEmbeddingHelper(GreedyEmbeddingHelper):
+
   def initialize(self, master_time, name=None):
     del master_time
     finished = array_ops.tile([False], [self._batch_size])
     return (finished, self._start_inputs)
-  def sample(self, time, outputs, state, name=None, previous_ids_mask=None):
+
+  def sample(self, time, outputs, state, name=None, previous_ids_mask=None, disable_unk=True):
     """sample for GreedyEmbeddingHelper."""
     del time, state  # unused by sample_fn
     # Outputs are logits, use argmax to get the most probable id
     if not isinstance(outputs, ops.Tensor):
-      raise TypeError("Expected outputs to be a single Tensor, got: %s" %
-                      type(outputs))
+      raise TypeError("Expected outputs to be a single Tensor, got: %s" %type(outputs))
 
     tf.logging.info(" >> [helper.py HierarchicalGreedyEmbeddingHelper sample()] previous_ids_mask = {}".format(previous_ids_mask))
     tf.logging.info(" >> [helper.py HierarchicalGreedyEmbeddingHelper sample()] outputs = {}".format(outputs))
@@ -709,6 +710,9 @@ class HierarchicalGreedyEmbeddingHelper(GreedyEmbeddingHelper):
         outputs_masked = tf.add(outputs, previous_ids_mask)
         tf.logging.info(" >> [helper.py HierarchicalGreedyEmbeddingHelper sample()] outputs_masked = {}".format(outputs_masked))
         outputs = tf.reshape(outputs_masked, [batch_size, depth])  # optional, just to make dimensions right
+
+        if disable_unk:
+            outputs = tf.slice(outputs, [0, 0], [-1, depth-1])
 
     tf.logging.info(
         " >> [helper.py HierarchicalGreedyEmbeddingHelper sample()] outputs = {}".format(outputs))
