@@ -159,6 +159,7 @@ class BasicDecoder(TfContribSeq2seqDecoder):
     raise NotImplementedError
 
 class BasicSubDecoder(BasicDecoder):
+
     def __init__(self, cell, helper, initial_state, bridge=None, output_layer=None, emb_size=None, sub_attention_over_encoder=False, master_attention_at_output=False):
       super(BasicSubDecoder, self).__init__(cell, helper, initial_state, output_layer)
       self._initial_zero_state = initial_state
@@ -169,18 +170,19 @@ class BasicSubDecoder(BasicDecoder):
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._output_layer = {}".format(self._output_layer))
       self._master_context_vector = None
 
+      zero_state_flat = tf.contrib.framework.nest.flatten(self._initial_zero_state)
+      depth = zero_state_flat[1].get_shape().as_list()[-1]
+      tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] depth = {}".format(depth))
+
       self._emb_gate_layer = tf.layers.Dense(emb_size, activation=tf.sigmoid, use_bias=False, name='embedding_gate')
-      self._emb_gate_layer.build([None, emb_size])
+      # self._emb_gate_layer.build([None, emb_size])
+      self._emb_gate_layer.build([None, emb_size+depth])
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._emb_gate_layer = {}".format(self._emb_gate_layer))
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._bridge = {}".format(self._bridge))
 
       if self._master_attention_at_output:
         if not isinstance(self._initial_zero_state, tf.nn.rnn_cell.LSTMStateTuple) or self._sub_attention_over_encoder:
           raise ValueError("master_attention_at_output is only applicable when sub_attention_over_encoder is False")
-
-        zero_state_flat = tf.contrib.framework.nest.flatten(self._initial_zero_state)
-        depth = zero_state_flat[0].get_shape().as_list()[-1]
-        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] depth = {}".format(depth))
 
         # TODO: may need to use activation=tf.tanh
         self._sub_attention_layer = tf.layers.Dense(depth, use_bias=False, name="sub_decoder_attention_layer_dense")
@@ -280,8 +282,10 @@ class BasicSubDecoder(BasicDecoder):
         outputs = BasicDecoderOutput(cell_outputs, sample_ids)
         return outputs, next_state, next_inputs, finished
 
-    def emb_gate_layer(self, inputs):
-        return self._emb_gate_layer(inputs)
+    def emb_gate_layer(self, inputs, state):
+        state_h = tf.contrib.framework.nest.flatten(state)[1]
+        return self._emb_gate_layer(tf.concat([inputs, state_h], axis=-1))
+        # return self._emb_gate_layer(inputs)
 
     @property
     def sub_time(self):
