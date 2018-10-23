@@ -185,8 +185,8 @@ class BasicSubDecoder(BasicDecoder):
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] depth = {}".format(depth))
 
       self._emb_gate_layer = tf.layers.Dense(emb_size, activation=tf.sigmoid, use_bias=False, name='embedding_gate')
-      self._emb_gate_layer.build([None, emb_size])
-      # self._emb_gate_layer.build([None, emb_size+depth])
+      # self._emb_gate_layer.build([None, emb_size])
+      self._emb_gate_layer.build([None, emb_size+depth])
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._emb_gate_layer = {}".format(self._emb_gate_layer))
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._bridge = {}".format(self._bridge))
 
@@ -297,8 +297,8 @@ class BasicSubDecoder(BasicDecoder):
 
     def emb_gate_layer(self, inputs, state):
         state_h = tf.contrib.framework.nest.flatten(state)[1]
-        # return self._emb_gate_layer(tf.concat([inputs, state_h], axis=-1))
-        return self._emb_gate_layer(inputs)
+        return self._emb_gate_layer(tf.concat([inputs, state_h], axis=-1))
+        # return self._emb_gate_layer(inputs)
 
     @property
     def sub_time(self):
