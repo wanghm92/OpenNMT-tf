@@ -9,7 +9,7 @@ from opennmt.layers.bridge import Bridge
 class NestedStateBridge(Bridge):
   """Base class for bridges."""
 
-  def __call__(self, encoder_state, decoder_zero_state, sub_attention_over_encoder):
+  def __call__(self, encoder_state, decoder_zero_state, sub_attention_over_encoder=False):
 
 
     '''
@@ -23,30 +23,85 @@ class NestedStateBridge(Bridge):
       attention_state=<tf.Tensor 'seq2seq/decoder/decoder/while/BasicDecoderStep/decoder/attention_wrapper/Softmax:0' shape=(?, ?) dtype=float32>)
     
     By LuongAttention, attention_state = alignments
+
+
+    "BeamSearchDecoderState": ("cell_state", "log_probs", "finished", "lengths")))
+                              cell_state: LSTMStateTuple/AttentionWrapperState
     '''
 
-    state_tuples = tuple()
+    need_to_tile_master_state = False
     master_context_vector = None
 
-    for state in [encoder_state, decoder_zero_state]:
-      tf.logging.info(" >> [bridge.py class NestedStateAggregatedDenseBridge _build] state = {}".format(state))
-      # Flattened states.
-      state_flat = tf.contrib.framework.nest.flatten(state)
-      tf.logging.info(" >> [bridge.py class NestedStateAggregatedDenseBridge _build] state_flat = \n{}"
-                      .format("\n".join(["{}".format(x) for x in state_flat])))
+    # ---------------------------- processing decoder_zero_state ---------------------------- #
+    tf.logging.info(" >> [bridge.py class NestedStateBridge _build] decoder_zero_state = {}".format(decoder_zero_state))
+    # Flattened states.
+    decoder_zero_state_flat = tf.contrib.framework.nest.flatten(decoder_zero_state)
+    tf.logging.info(" >> [bridge.py class NestedStateBridge _build] decoder_zero_state_flat = \n{}"
+                    .format("\n".join(["{}".format(x) for x in decoder_zero_state_flat])))
 
-      if isinstance(state, tf.contrib.seq2seq.AttentionWrapperState):
-        num = 3
-        master_context_vector = state_flat[2]
-      elif isinstance(state, tf.nn.rnn_cell.LSTMStateTuple):
+    if isinstance(decoder_zero_state, tf.contrib.seq2seq.AttentionWrapperState):
+      decoder_state_num = 3
+    elif isinstance(decoder_zero_state, tf.nn.rnn_cell.LSTMStateTuple):
+      assert sub_attention_over_encoder is False
+      decoder_state_num = 2
+    elif isinstance(decoder_zero_state, tf.contrib.seq2seq.BeamSearchDecoderState):
+      need_to_tile_master_state = True
+      if isinstance(decoder_zero_state.cell_state, tf.nn.rnn_cell.LSTMStateTuple):
         assert sub_attention_over_encoder is False
-        num = 2
+        decoder_state_num = 2
+      elif isinstance(decoder_zero_state.cell_state, tf.nn.rnn_cell.AttentionWrapperState):
+        decoder_state_num = 3
       else:
-        raise ValueError("NestedStateBridge only supports AttentionWrapperState or LSTMStateTuple")
+        raise ValueError("what the _ is this !?! {}".format(type(decoder_zero_state.cell_state)))
+      depth = decoder_zero_state.cell_state.h.get_shape().as_list()[-1]  # get static instead of dynamic shape
+      beam_width = decoder_zero_state.cell_state.h.get_shape().as_list()[-2]
+      tf.logging.info(" >> [bridge.py class NestedStateBridge _build] decoder_state_num = {}".format(decoder_state_num))
+      tf.logging.info(" >> [bridge.py class NestedStateBridge _build] depth = {}".format(depth))
+      tf.logging.info(" >> [bridge.py class NestedStateBridge _build] beam_width = {}".format(beam_width))
 
-      state_tuples += (state, state_flat, num)
+      decoder_zero_state_flat = [tf.reshape(s, [-1, depth]) for s in decoder_zero_state_flat[:decoder_state_num]] + decoder_zero_state_flat[decoder_state_num:]
+    else:
+      raise ValueError("NestedStateBridge only supports AttentionWrapperState, LSTMStateTuple "
+                       "or BeamSearchDecoderState wrapping around these two")
 
-    return self._build(state_tuples), master_context_vector
+    tf.logging.info(" >> [bridge.py class NestedStateBridge _build] decoder_state_num = {}".format(decoder_state_num))
+
+    # ---------------------------- processing encoder_state ---------------------------- #
+    tf.logging.info(" >> [bridge.py class NestedStateBridge _build] encoder_state = {}".format(encoder_state))
+    # Flattened states.
+    encoder_state_flat = tf.contrib.framework.nest.flatten(encoder_state)
+    tf.logging.info(" >> [bridge.py class NestedStateBridge _build] encoder_state_flat = \n{}"
+                    .format("\n".join(["{}".format(x) for x in encoder_state_flat])))
+
+    if isinstance(encoder_state, tf.contrib.seq2seq.AttentionWrapperState):
+      encoder_state_num = 3
+      master_context_vector = encoder_state_flat[2]
+    elif isinstance(encoder_state, tf.nn.rnn_cell.LSTMStateTuple):
+      assert sub_attention_over_encoder is False
+      encoder_state_num = 2
+    else:
+      raise ValueError("NestedStateBridge currently only supports encoder_state: AttentionWrapperState, LSTMStateTuple")
+
+    if need_to_tile_master_state:
+      encoder_state_flat = [tf.contrib.seq2seq.tile_batch(s, multiplier=beam_width)
+                                  for s in encoder_state_flat[:encoder_state_num]]
+
+      tf.logging.info(" >> [bridge.py class NestedStateBridge _build] AFTER encoder_state_flat = \n{}"
+                      .format("\n".join(["{}".format(x) for x in encoder_state_flat])))
+
+    tf.logging.info(" >> [bridge.py class NestedStateBridge _build] encoder_state_num = {}".format(encoder_state_num))
+
+    state_tuples = (encoder_state_flat, encoder_state_num, decoder_zero_state_flat, decoder_state_num)
+
+    bridge_output_flat = self._build(state_tuples)
+    tf.logging.info(" >> [bridge.py class NestedStateBridge _build] bridge_output_flat = {}".format(bridge_output_flat))
+
+    if need_to_tile_master_state:
+      bridge_output_flat = [tf.reshape(s, [-1, beam_width, depth])
+                            for s in bridge_output_flat[:decoder_state_num]] + bridge_output_flat[decoder_state_num:]
+
+    bridge_output = tf.contrib.framework.nest.pack_sequence_as(decoder_zero_state, bridge_output_flat)
+    return bridge_output, master_context_vector
 
 
 class NestedStateAggregatedDenseBridge(NestedStateBridge):
@@ -71,7 +126,7 @@ class NestedStateAggregatedDenseBridge(NestedStateBridge):
     :param decoder_state: original zero_state/previous_state that carries on the information
                                decoder_zero_state = previous_state = sub_state (sub)
     """
-    encoder_state, encoder_state_flat, encoder_state_num, decoder_state, decoder_state_flat, decoder_state_num = state_tuples
+    encoder_state_flat, encoder_state_num, decoder_state_flat, decoder_state_num = state_tuples
 
     tf.logging.info(
       " >> [bridge.py class NestedStateAggregatedDenseBridge _build] encoder_state_num = {}"
@@ -117,8 +172,7 @@ class NestedStateAggregatedDenseBridge(NestedStateBridge):
     tf.logging.info(
       " >> [bridge.py class NestedStateAggregatedDenseBridge _build] combined = {}".format(combined))
 
-    # Pack as the original decoder state.
-    return tf.contrib.framework.nest.pack_sequence_as(decoder_state, combined)
+    return combined
 
 class NestedStatePairwiseDenseBridge(NestedStateBridge):
   """A bridge that applies a parameterized linear transformation from the
@@ -143,7 +197,7 @@ class NestedStatePairwiseDenseBridge(NestedStateBridge):
                                decoder_zero_state = previous_state = sub_state (sub)
     """
 
-    encoder_state, encoder_state_flat, encoder_state_num, decoder_state, decoder_state_flat, decoder_state_num = state_tuples
+    encoder_state_flat, encoder_state_num, decoder_state_flat, decoder_state_num = state_tuples
 
     tf.logging.info(
       " >> [bridge.py class NestedStatePairwiseDenseBridge _build] encoder_state_num = {}"
@@ -182,8 +236,7 @@ class NestedStatePairwiseDenseBridge(NestedStateBridge):
       " >> [bridge.py class NestedStatePairwiseDenseBridge _build] combined = {}".format(combined))
 
     # Pack as the original decoder state.
-    return tf.contrib.framework.nest.pack_sequence_as(decoder_state, combined)
-
+    return combined
 
 class NestedStatePairwiseWeightedSumBridge(NestedStateBridge):
   """A bridge that applies a parameterized linear transformation from the
@@ -208,7 +261,7 @@ class NestedStatePairwiseWeightedSumBridge(NestedStateBridge):
                                decoder_zero_state = previous_state = sub_state (sub)
     """
 
-    encoder_state, encoder_state_flat, encoder_state_num, decoder_state, decoder_state_flat, decoder_state_num = state_tuples
+    encoder_state_flat, encoder_state_num, decoder_state_flat, decoder_state_num = state_tuples
 
     tf.logging.info(
       " >> [bridge.py class NestedStateWeightedSumBridge _build] encoder_state_num = {}"
@@ -256,8 +309,7 @@ class NestedStatePairwiseWeightedSumBridge(NestedStateBridge):
     tf.logging.info(
       " >> [bridge.py class NestedStateWeightedSumBridge _build] combined = {}".format(combined))
 
-    # Pack as the original decoder state.
-    return tf.contrib.framework.nest.pack_sequence_as(decoder_state, combined)
+    return combined
 
 class NestedStateAverageBridge(NestedStateBridge):
   """A bridge that applies a parameterized linear transformation from the
@@ -281,12 +333,10 @@ class NestedStateAverageBridge(NestedStateBridge):
     :param decoder_zero_state: original zero_state/previous_state that carries on the information
                                decoder_zero_state = previous_state = sub_state (sub)
     """
-    encoder_state, encoder_state_flat, encoder_state_num, decoder_state, decoder_state_flat, decoder_state_num = state_tuples
+    encoder_state_flat, encoder_state_num, decoder_state_flat, decoder_state_num = state_tuples
 
     if encoder_state_num != decoder_state_num:
-      message = "NestedStateAverageBridge only supports states of the same type !!! " \
-                "\nencoder_state = {}\ndecoder_state={}".format(encoder_state, decoder_state)
-      raise ValueError(message)
+      raise ValueError("NestedStateAverageBridge only supports states of the same type !!! ")
 
     encoder_state_concat = tf.expand_dims(tf.concat(encoder_state_flat[:encoder_state_num], axis=1), axis=-1)  # (c_m, h_m, a_m)
     decoder_state_concat = tf.expand_dims(tf.concat(decoder_state_flat[:decoder_state_num], axis=1), axis=-1)  # (c_s, h_s, a_s)
@@ -323,8 +373,7 @@ class NestedStateAverageBridge(NestedStateBridge):
     tf.logging.info(
       " >> [bridge.py class NestedStateAverageBridge _build] combined = {}".format(combined))
 
-    # Pack as the original decoder state.
-    return tf.contrib.framework.nest.pack_sequence_as(decoder_state, combined)
+    return combined
 
 class NestedStatePairwiseGatingBridge(NestedStateBridge):
   """A bridge that applies a parameterized linear transformation from the
@@ -348,7 +397,7 @@ class NestedStatePairwiseGatingBridge(NestedStateBridge):
     :param decoder_state: original zero_state/previous_state that carries on the information
                                decoder_zero_state = previous_state = sub_state (sub)
     """
-    encoder_state, encoder_state_flat, encoder_state_num, decoder_state, decoder_state_flat, decoder_state_num = state_tuples
+    encoder_state_flat, encoder_state_num, decoder_state_flat, decoder_state_num = state_tuples
 
     tf.logging.info(
       " >> [bridge.py class NestedStatePairwiseGatingBridge _build] encoder_state_num = {}"
@@ -406,8 +455,7 @@ class NestedStatePairwiseGatingBridge(NestedStateBridge):
       " >> [bridge.py class NestedStatePairwiseGatingBridge _build] combined = {}".format(combined))
 
     # Pack as the original decoder state.
-    return tf.contrib.framework.nest.pack_sequence_as(decoder_state, combined)
-
+    return combined
 
 class NestedStateAggregatedGatingBridge(NestedStateBridge):
   """A bridge that applies a parameterized linear transformation from the
@@ -431,7 +479,7 @@ class NestedStateAggregatedGatingBridge(NestedStateBridge):
     :param decoder_state: original zero_state/previous_state that carries on the information
                                decoder_zero_state = previous_state = sub_state (sub)
     """
-    encoder_state, encoder_state_flat, encoder_state_num, decoder_state, decoder_state_flat, decoder_state_num = state_tuples
+    encoder_state_flat, encoder_state_num, decoder_state_flat, decoder_state_num = state_tuples
 
     tf.logging.info(
       " >> [bridge.py class NestedStateAggregatedGatingBridge _build] encoder_state_num = {}"
@@ -471,22 +519,4 @@ class NestedStateAggregatedGatingBridge(NestedStateBridge):
       " >> [bridge.py class NestedStateAggregatedGatingBridge _build] combined = {}".format(combined))
 
     # Pack as the original decoder state.
-    return tf.contrib.framework.nest.pack_sequence_as(decoder_state, combined)
-
-# TODO: context gates
-class NestedStateContextGatingBridge(NestedStateBridge):
-  """A bridge that applies a parameterized linear transformation from the
-  encoder state to the decoder state size.
-  """
-
-  def __init__(self, activation=None):
-    """Initializes the bridge.
-
-    Args:
-      activation: Activation function (a callable).
-        Set it to ``None`` to maintain a linear activation.
-    """
-    self.activation = activation
-
-  def _build(self, state_tuples):
-    raise NotImplementedError
+    return combined
