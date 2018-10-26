@@ -63,7 +63,8 @@ eval:
 params:
   # whether to turn on printing debug_ops in hooks
   debug: True
-  beam_width: 1
+  beam_width: 5
+  n_best: 5
 #  scheduled_sampling_read_probability: 0.9
 
 

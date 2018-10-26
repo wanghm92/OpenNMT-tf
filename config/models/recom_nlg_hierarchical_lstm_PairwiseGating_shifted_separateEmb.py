@@ -53,7 +53,6 @@ def model():
       share_embeddings=EmbeddingsSharingLevel.SOURCE_CONTROLLER_INPUT,
       shifted="word")
 
-
 '''
     defaults:
     pass_master_state = True

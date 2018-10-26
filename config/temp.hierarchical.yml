@@ -18,7 +18,8 @@ eval:
 
 params:
   # whether to turn on printing debug_ops in hooks
-  beam_width: 1
-#  debug: True
+  beam_width: 5
+  n_best: 1
+  # debug: True
 
 
