@@ -41,7 +41,7 @@ import tensorflow as tf
 
 from opennmt.layers.reducer import align_in_time_transposed_nest
 
-__all__ = ["TfContribSeq2seqDecoder", "hierarchical_dynamic_decode"]
+__all__ = ["TfContribSeq2seqDecoder", "tf_contrib_seq2seq_dynamic_decode", "hierarchical_dynamic_decode"]
 
 _transpose_batch_time = rnn._transpose_batch_time  # pylint: disable=protected-access
 _zero_state_tensors = rnn_cell_impl._zero_state_tensors  # pylint: disable=protected-access
@@ -78,9 +78,9 @@ def _unstack_ta(inp):
       element_shape=inp.get_shape()[1:]).unstack(inp)
 
 
-# ------------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------- Class HierarchicalDynamicDecoder ------------------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------ #
+# --------------------------------------------------------------------------------------------------------------- #
+# ------------------------------------- Class TfContribSeq2seqDecoder ------------------------------------------- #
+# --------------------------------------------------------------------------------------------------------------- #
 
 @six.add_metaclass(abc.ABCMeta)
 class TfContribSeq2seqDecoder(object):
@@ -173,16 +173,272 @@ class TfContribSeq2seqDecoder(object):
     """
     return False
 
-# ------------------------------------------------------------------------------------------------------------------ #
-# --------------------------------------- def hierarchical_dynamic_decode() ---------------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------ #
-
 def _create_zero_outputs(size, dtype, batch_size):
   """Create a zero outputs Tensor structure."""
   def _create(s, d):
     return _zero_state_tensors(s, batch_size, d)
 
   return nest.map_structure(_create, size, dtype)
+
+def tf_contrib_seq2seq_dynamic_decode(
+    decoder,
+    output_time_major=False,
+    impute_finished=False,
+    maximum_iterations=None,
+    parallel_iterations=32,
+    swap_memory=False,
+    scope=None):
+  """Perform dynamic decoding with `decoder`.
+
+  Calls initialize() once and step() repeatedly on the Decoder object.
+
+  Args:
+    decoder: A `Decoder` instance.
+    output_time_major: Python boolean.  Default: `False` (batch major).  If
+      `True`, outputs are returned as time major tensors (this mode is faster).
+      Otherwise, outputs are returned as batch major tensors (this adds extra
+      time to the computation).
+    impute_finished: Python boolean.  If `True`, then states for batch
+      entries which are marked as finished get copied through and the
+      corresponding outputs get zeroed out.  This causes some slowdown at
+      each time step, but ensures that the final state and outputs have
+      the correct values and that backprop ignores time steps that were
+      marked as finished.
+    maximum_iterations: `int32` scalar, maximum allowed number of decoding
+       steps.  Default is `None` (decode until the decoder is fully done).
+    parallel_iterations: Argument passed to `tf.while_loop`.
+    swap_memory: Argument passed to `tf.while_loop`.
+    scope: Optional variable scope to use.
+
+  Returns:
+    `(final_outputs, final_state, final_sequence_lengths)`.
+
+  Raises:
+    TypeError: if `decoder` is not an instance of `Decoder`.
+    ValueError: if `maximum_iterations` is provided but is not a scalar.
+  """
+  if not isinstance(decoder, tf.contrib.seq2seq.Decoder):
+    raise TypeError("Expected decoder to be type Decoder, but saw: %s" %
+                    type(decoder))
+
+  def _is_xla_tensor(tensor):
+    try:
+      op = tensor.op
+    except AttributeError:
+      return False
+    if control_flow_util.IsInXLAContext(op):
+      return True
+    return False
+
+  with variable_scope.variable_scope(scope, "decoder") as varscope:
+    # Properly cache variable values inside the while_loop
+    if varscope.caching_device is None:
+      varscope.set_caching_device(lambda op: op.device)
+
+    if maximum_iterations is not None:
+      maximum_iterations = ops.convert_to_tensor(
+          maximum_iterations, dtype=dtypes.int32, name="maximum_iterations")
+      if maximum_iterations.get_shape().ndims != 0:
+        raise ValueError("maximum_iterations must be a scalar")
+
+    initial_finished, initial_inputs, initial_state = decoder.initialize()
+
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] initial_finished = {}".format(initial_finished))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] initial_inputs = {}".format(initial_inputs))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] initial_state = {}".format(initial_state))
+
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] decoder.output_size = {}".format(decoder.output_size))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] decoder.batch_size = {}".format(decoder.batch_size))
+
+    zero_outputs = _create_zero_outputs(decoder.output_size,
+                                        decoder.output_dtype,
+                                        decoder.batch_size)
+
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] zero_outputs = {}".format(zero_outputs))
+
+    is_xla = False
+    if any([_is_xla_tensor(i) for i in nest.flatten(initial_inputs)]):
+      is_xla = True
+    if is_xla and maximum_iterations is None:
+      raise ValueError("maximum_iterations is required for XLA compilation.")
+    if maximum_iterations is not None:
+      initial_finished = math_ops.logical_or(
+          initial_finished, 0 >= maximum_iterations)
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] initial_finished = {}".format(initial_finished))
+
+    initial_sequence_lengths = array_ops.zeros_like(
+        initial_finished, dtype=dtypes.int32)
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] initial_sequence_lengths = {}".format(initial_sequence_lengths))
+
+    initial_time = constant_op.constant(0, dtype=dtypes.int32)
+
+    def _shape(batch_size, from_shape):
+      if (not isinstance(from_shape, tensor_shape.TensorShape) or
+          from_shape.ndims == 0):
+        return tensor_shape.TensorShape(None)
+      else:
+        batch_size = tensor_util.constant_value(
+            ops.convert_to_tensor(
+                batch_size, name="batch_size"))
+        return tensor_shape.TensorShape([batch_size]).concatenate(from_shape)
+
+    dynamic_size = maximum_iterations is None or not is_xla
+
+    def _create_ta(s, d):
+      return tensor_array_ops.TensorArray(
+          dtype=d,
+          size=0 if dynamic_size else maximum_iterations,
+          dynamic_size=dynamic_size,
+          element_shape=_shape(decoder.batch_size, s))
+
+    initial_outputs_ta = nest.map_structure(_create_ta, decoder.output_size,
+                                            decoder.output_dtype)
+
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] initial_outputs_ta = {}".format(initial_outputs_ta))
+
+    def condition(unused_time, unused_outputs_ta, unused_state, unused_inputs,
+                  finished, unused_sequence_lengths):
+      return math_ops.logical_not(math_ops.reduce_all(finished))
+
+    def body(time, outputs_ta, state, inputs, finished, sequence_lengths):
+      """Internal while_loop body.
+
+      Args:
+        time: scalar int32 tensor.
+        outputs_ta: structure of TensorArray.
+        state: (structure of) state tensors and TensorArrays.
+        inputs: (structure of) input tensors.
+        finished: bool tensor (keeping track of what's finished).
+        sequence_lengths: int32 tensor (keeping track of time of finish).
+
+      Returns:
+        `(time + 1, outputs_ta, next_state, next_inputs, next_finished,
+          next_sequence_lengths)`.
+        ```
+      """
+      tf.logging.info(
+          " >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] inputs = {}".format(
+              inputs))
+      tf.logging.info(
+          " >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] state = {}".format(
+              state))
+
+      (next_outputs, decoder_state, next_inputs,
+       decoder_finished) = decoder.step(time, inputs, state)
+
+      tf.logging.info(
+          " >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] next_outputs = {}".format(
+              next_outputs))
+      tf.logging.info(
+          " >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] next_inputs = {}".format(
+              next_inputs))
+      tf.logging.info(
+          " >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] decoder_finished = {}".format(
+              decoder_finished))
+
+      if decoder.tracks_own_finished:
+        next_finished = decoder_finished
+      else:
+        next_finished = math_ops.logical_or(decoder_finished, finished)
+      tf.logging.info(
+          " >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] next_finished = {}".format(
+              next_finished))
+
+      next_sequence_lengths = array_ops.where(
+          math_ops.logical_not(finished),
+          array_ops.fill(array_ops.shape(sequence_lengths), time + 1),
+          sequence_lengths)
+      tf.logging.info(
+          " >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] next_sequence_lengths = {}".format(
+              next_sequence_lengths))
+
+      nest.assert_same_structure(state, decoder_state)
+      nest.assert_same_structure(outputs_ta, next_outputs)
+      nest.assert_same_structure(inputs, next_inputs)
+
+      # Zero out output values past finish
+      if impute_finished:
+        emit = nest.map_structure(
+            lambda out, zero: array_ops.where(finished, zero, out),
+            next_outputs,
+            zero_outputs)
+      else:
+        emit = next_outputs
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] emit = {}".format(emit))
+
+      # Copy through states past finish
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] finished = {}".format(finished))
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] decoder_state = {}".format(decoder_state))
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] state = {}".format(state))
+
+      def _maybe_copy_state(new, cur):
+        # TensorArrays and scalar states get passed through.
+        if isinstance(cur, tensor_array_ops.TensorArray):
+          pass_through = True
+        else:
+          new.set_shape(cur.shape)
+          pass_through = (new.shape.ndims == 0)
+        return new if pass_through else array_ops.where(finished, cur, new)
+
+      if impute_finished:
+        next_state = nest.map_structure(
+            _maybe_copy_state, decoder_state, state)
+      else:
+        next_state = decoder_state
+
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] next_state = {}".format(next_state))
+
+
+      outputs_ta = nest.map_structure(lambda ta, out: ta.write(time, out),
+                                      outputs_ta, emit)
+      return (time + 1, outputs_ta, next_state, next_inputs, next_finished,
+              next_sequence_lengths)
+
+    res = control_flow_ops.while_loop(
+        condition,
+        body,
+        loop_vars=(
+            initial_time,
+            initial_outputs_ta,
+            initial_state,
+            initial_inputs,
+            initial_finished,
+            initial_sequence_lengths,
+        ),
+        parallel_iterations=parallel_iterations,
+        maximum_iterations=maximum_iterations,
+        swap_memory=swap_memory)
+
+    final_outputs_ta = res[1]
+    final_state = res[2]
+    final_sequence_lengths = res[5]
+
+    final_outputs = nest.map_structure(lambda ta: ta.stack(), final_outputs_ta)
+
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] final_outputs_ta = {}".format(final_outputs_ta))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] BEFORE final_outputs = {}".format(final_outputs))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] BEFORE final_state = {}".format(final_state))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] final_sequence_lengths = {}".format(final_sequence_lengths))
+
+    try:
+      final_outputs, final_state = decoder.finalize(
+          final_outputs, final_state, final_sequence_lengths)
+    except NotImplementedError:
+      pass
+
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] AFTER final_outputs = {}".format(final_outputs))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] AFTER final_state = {}".format(final_state))
+
+    if not output_time_major:
+      final_outputs = nest.map_structure(_transpose_batch_time, final_outputs)
+
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py tf_contrib_seq2seq_dynamic_decode] AFTER_2 final_outputs = {}".format(final_outputs))
+
+  return final_outputs, final_state, final_sequence_lengths
+
+# ------------------------------------------------------------------------------------------------------------------ #
+# --------------------------------------- def hierarchical_dynamic_decode() ---------------------------------------- #
+# ------------------------------------------------------------------------------------------------------------------ #
 
 def hierarchical_dynamic_decode(
         master_decoder,
@@ -199,7 +455,8 @@ def hierarchical_dynamic_decode(
         shifted=None,
         pass_master_state=False,
         pass_master_input=False,
-        master_attention_at_input=False
+        master_attention_at_input=False,
+        htm1_at_emb_gate=False
         ):
   """Perform dynamic decoding with `master_decoder`.
 
@@ -272,6 +529,7 @@ def hierarchical_dynamic_decode(
       raise ValueError("maximum_iterations is required for XLA compilation.")
     if maximum_iterations is not None:
       initial_finished = math_ops.logical_or(initial_finished, 0 >= maximum_iterations)
+
     initial_sequence_lengths = array_ops.zeros_like(initial_finished, dtype=dtypes.int32)
     initial_time = constant_op.constant(0, dtype=dtypes.int32)
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] initial_sequence_lengths = {}".format(initial_sequence_lengths))
@@ -294,10 +552,10 @@ def hierarchical_dynamic_decode(
           dynamic_size=dynamic_size,
           element_shape=_shape(master_decoder.batch_size, s))
 
-    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] master_decoder.output_size = {}".format(master_decoder.output_size))
-    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] master_decoder.batch_size = {}".format(master_decoder.batch_size))
     initial_outputs_ta = nest.map_structure(_create_ta, master_decoder.output_size, master_decoder.output_dtype)
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] initial_outputs_ta = {}".format(initial_outputs_ta))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] master_decoder.output_size = {}".format(master_decoder.output_size))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] master_decoder.batch_size = {}".format(master_decoder.batch_size))
 
     def _create_ta_sub(s, d):
       return tensor_array_ops.TensorArray(
@@ -307,10 +565,10 @@ def hierarchical_dynamic_decode(
           element_shape=tensor_shape.TensorShape(None) if dynamic else _shape(sub_decoder.sub_time, _shape(sub_decoder.batch_size, s)),  # sub_decoder.sub_time is dynamic shape
           infer_shape=False)
 
-    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_decoder.output_size = {}".format(sub_decoder.output_size))
-    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_decoder.batch_size = {}".format(sub_decoder.batch_size))
     initial_outputs_ta_sub = nest.map_structure(_create_ta_sub, sub_decoder.output_size, sub_decoder.output_dtype)
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] initial_outputs_ta_sub = {}".format(initial_outputs_ta_sub))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_decoder.output_size = {}".format(sub_decoder.output_size))
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] sub_decoder.batch_size = {}".format(sub_decoder.batch_size))
 
     def _create_ta_general(d):
       return tensor_array_ops.TensorArray(
@@ -325,7 +583,8 @@ def hierarchical_dynamic_decode(
     tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] initial_sequence_lengths_ta_sub = {}".format(initial_sequence_mask_ta_sub))
 
     sub_maximum_iterations = sub_maximum_iterations if dynamic else sub_decoder.sub_time
-    initial_sub_state = sub_decoder._initial_state
+    initial_sub_state = sub_decoder.get_initial_zero_state()
+    tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] initial_sub_state = {}".format(initial_sub_state))
 
     def condition(unused_time, unused_outputs_ta, unused_outputs_ta_sub, unused_state, unused_inputs,
                   finished, unused_sequence_lengths, unused_sequence_lengths_ta_sub, unused_next_sub_state, unused_previous_sub_inputs):
@@ -394,16 +653,13 @@ def hierarchical_dynamic_decode(
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] next_finished = {}".format(next_finished))
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py hierarchical_dynamic_decode] next_sequence_lengths = {}".format(next_sequence_lengths))
 
-      """
-        Beginning sub-decoding
-      """
-      if shifted == "attr":
-          previous_inputs = next_inputs
-      elif shifted == "word":
-          previous_inputs = previous_sub_inputs
-      else:
-          previous_inputs = None
+      # ---------------------------------------------------------------------------------------------------------- #
+      # --------------------------------------- Begin sub-decoding ----------------------------------------------- #
+      # ---------------------------------------------------------------------------------------------------------- #
 
+      previous_inputs = next_inputs if shifted == "attr" else previous_sub_inputs if shifted == "word" else None
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] previous_sub_inputs = {}".format(previous_sub_inputs))
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] next_inputs = {}".format(next_inputs))
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] previous_inputs = {}".format(previous_inputs))
 
       sub_outputs, next_sub_state, sub_length, sub_final_time, next_sub_inputs = sub_dynamic_decode(sub_decoder,
@@ -416,7 +672,8 @@ def hierarchical_dynamic_decode(
                                                                                                     dynamic=dynamic,
                                                                                                     force_non_rep=force_non_rep,
                                                                                                     shifted=shifted,
-                                                                                                    master_attention_at_input=master_attention_at_input)
+                                                                                                    master_attention_at_input=master_attention_at_input,
+                                                                                                    htm1_at_emb_gate=htm1_at_emb_gate)
 
       if not dynamic:
           sub_outputs = align_in_time_transposed_nest(sub_outputs, sub_decoder.sub_time)
@@ -441,6 +698,10 @@ def hierarchical_dynamic_decode(
 
       outputs_ta_sub = nest.map_structure(lambda ta, out: ta.write(time, out), outputs_ta_sub, sub_outputs)
       sequence_mask_ta_sub = nest.map_structure(lambda ta, out: ta.write(time, out), sequence_mask_ta_sub, sub_sequence_mask)
+
+      # -------------------------------------------------------------------------------------------------------- #
+      # --------------------------------------- End sub-decoding ----------------------------------------------- #
+      # -------------------------------------------------------------------------------------------------------- #
 
       return time + 1, outputs_ta, outputs_ta_sub, next_state, next_inputs, next_finished, next_sequence_lengths, sequence_mask_ta_sub, next_sub_state, next_sub_inputs
 
@@ -520,7 +781,8 @@ def sub_dynamic_decode(
         dynamic=False,
         force_non_rep=True,
         shifted=None,
-        master_attention_at_input=False):
+        master_attention_at_input=False,
+        htm1_at_emb_gate=False):
   """Perform dynamic decoding with `decoder`.
 
   Calls initialize() once and step() repeatedly on the Decoder object.
@@ -653,13 +915,16 @@ def sub_dynamic_decode(
 
       if master_input is not None:
           tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_input = {}".format(master_input))
-          master_emb_weight = decoder.emb_gate_layer(inputs, state)
+          tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] htm1_at_emb_gate = {}".format(htm1_at_emb_gate))
+          master_emb_weight = decoder.emb_gate_layer(inputs, state) if htm1_at_emb_gate else  decoder.emb_gate_layer(inputs)
           tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_emb_weight = {}".format(master_emb_weight))
           master_input_weighted = tf.multiply(master_input, master_emb_weight)
           tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] master_input_weighted = {}".format(master_input_weighted))
           rnn_inputs = tf.concat([rnn_inputs, master_input_weighted], -1)
 
       if master_attention_at_input:
+          if master_context_vector is None:
+              raise ValueError("master_context_vector must be available if master_attention_at_input is {}".format(master_attention_at_input))
           rnn_inputs = tf.concat([rnn_inputs, master_context_vector], -1)
 
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] rnn_inputs = {}".format(rnn_inputs))
@@ -694,6 +959,9 @@ def sub_dynamic_decode(
       tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] emit = {}".format(emit))
 
       # Copy through states past finish
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] decoder_state = {}".format(decoder_state))
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] state = {}".format(state))
+      tf.logging.info(" >> [tf_contrib_seq2seq_decoder.py sub_dynamic_decode] finished = {}".format(finished))
       def _maybe_copy_state(new, cur):
         # TensorArrays and scalar states get passed through.
         if isinstance(cur, tensor_array_ops.TensorArray):

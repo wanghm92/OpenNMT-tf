@@ -169,13 +169,15 @@ class BasicSubDecoder(BasicDecoder):
                  emb_size=None,
                  sub_attention_over_encoder=False,
                  master_attention_at_output=False,
-                 disable_unk=True):
+                 disable_unk=True,
+                 htm1_at_emb_gate=False):
       super(BasicSubDecoder, self).__init__(cell, helper, initial_state, output_layer)
       self._initial_zero_state = initial_state
       self._bridge = bridge
       self._sub_attention_over_encoder = sub_attention_over_encoder
       self._master_attention_at_output = master_attention_at_output
       self._disable_unk = disable_unk
+      self._htm1_at_emb_gate = htm1_at_emb_gate
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._master_attention_at_output = {}".format(self._master_attention_at_output))
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._output_layer = {}".format(self._output_layer))
       self._master_context_vector = None
@@ -185,8 +187,10 @@ class BasicSubDecoder(BasicDecoder):
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder initialize] depth = {}".format(depth))
 
       self._emb_gate_layer = tf.layers.Dense(emb_size, activation=tf.sigmoid, use_bias=False, name='embedding_gate')
-      # self._emb_gate_layer.build([None, emb_size])
-      self._emb_gate_layer.build([None, emb_size+depth])
+      if self._htm1_at_emb_gate:
+        self._emb_gate_layer.build([None, emb_size+depth])
+      else:
+        self._emb_gate_layer.build([None, emb_size])
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._emb_gate_layer = {}".format(self._emb_gate_layer))
       tf.logging.info(" >> [basic_decoder.py BasicSubDecoder __init__] self._bridge = {}".format(self._bridge))
 
@@ -203,16 +207,20 @@ class BasicSubDecoder(BasicDecoder):
     def _init_sub_state(self, previous_state, master_state=None):
         tf.logging.info(" >> [basic_decoder.py BasicSubDecoder _init_sub_state] _sub_attention_over_encoder = {}".format(self._sub_attention_over_encoder))
 
-        if previous_state is None or master_state is None:
-            return self._initial_zero_state
-        elif master_state is None:
-            return previous_state or self._initial_zero_state
-        elif self._bridge is None:
-            raise ValueError("A sub_bridge must be configured when passing encoder state")
+        if previous_state is not None:
+            nest.assert_same_structure(previous_state, self._initial_zero_state)
+            initial_state = previous_state
+        else:
+            initial_state = self._initial_zero_state
 
-        return self._bridge(encoder_state=master_state,
-                            decoder_zero_state=previous_state,
-                            sub_attention_over_encoder=self._sub_attention_over_encoder)
+        if master_state is not None:
+            if self._bridge is None:
+                raise ValueError("A sub_bridge must be configured when passing encoder state")
+            else:
+                initial_state = self._bridge(encoder_state=master_state,
+                                             decoder_zero_state=initial_state,
+                                             sub_attention_over_encoder=self._sub_attention_over_encoder)
+        return initial_state
 
     def initialize(self, master_state=None, previous_state=None, master_time=None, name=None):
         """
@@ -295,10 +303,20 @@ class BasicSubDecoder(BasicDecoder):
         outputs = BasicDecoderOutput(cell_outputs, sample_ids)
         return outputs, next_state, next_inputs, finished
 
-    def emb_gate_layer(self, inputs, state):
-        state_h = tf.contrib.framework.nest.flatten(state)[1]
-        return self._emb_gate_layer(tf.concat([inputs, state_h], axis=-1))
-        # return self._emb_gate_layer(inputs)
+    def emb_gate_layer(self, inputs, state=None):
+        input_shape = tf.shape(inputs)
+        inputs = tf.reshape(inputs, [-1, input_shape[-1]])
+
+        # TODO: state_h shape may not be compatible during beam search
+        tf.logging.info(" >> [basic_decoder.py BasicSubDecoder step] self._htm1_at_emb_gate = {}".format(self._htm1_at_emb_gate))
+        if self._htm1_at_emb_gate:
+            state_h = tf.contrib.framework.nest.flatten(state)[1]
+            inputs = tf.concat([inputs, state_h], axis=-1)
+
+        return tf.reshape(self._emb_gate_layer(inputs), input_shape)
+
+    def get_initial_zero_state(self):
+        return self._initial_zero_state
 
     @property
     def sub_time(self):

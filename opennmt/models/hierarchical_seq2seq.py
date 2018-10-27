@@ -294,14 +294,15 @@ class HierarchicalSequenceToSequence(Model):
                   length_penalty = params.get("length_penalty", 0)
                   sampled_ids, _, sampled_length, log_probs, alignment = (
                       self.decoder.dynamic_decode_and_search(
-                          target_embedding_fn,
-                          start_tokens,
-                          end_token,
-                          vocab_size=master_target_vocab_size,
+                          embedding=(target_embedding_fn, sub_target_embedding_fn),
+                          start_tokens=start_tokens,
+                          end_token=end_token,
+                          vocab_size=(master_target_vocab_size, sub_target_vocab_size),
                           initial_state=encoder_state,
                           beam_width=beam_width,
                           length_penalty=length_penalty,
                           maximum_iterations=maximum_iterations,
+                          sub_maximum_iterations=sub_maximum_iterations,
                           mode=mode,
                           memory=encoder_outputs,
                           memory_sequence_length=encoder_sequence_length,
@@ -354,8 +355,8 @@ class HierarchicalSequenceToSequence(Model):
               def _replace_unk(source_tokens, target_tokens, alignment, name="master"):
                   if alignment is None:
                       return target_tokens
-                  if beam_width > 1:
-                      source_tokens = tf.contrib.seq2seq.tile_batch(source_tokens, multiplier=beam_width)
+                  # if beam_width > 1:
+                  #     source_tokens = tf.contrib.seq2seq.tile_batch(source_tokens, multiplier=beam_width)
 
                   # Merge batch and beam dimensions.
                   original_shape = tf.shape(target_tokens)
