@@ -197,8 +197,12 @@ class Model(object):
             tf.logging.info(" >> [model.py model_fn _extract_loss] sharded (master_loss_tuple, sub_loss_tuple)")
             actual_loss, tboard_loss = _normalize_master_and_sub_losses(loss)
 
-      tf.summary.scalar("actual_loss", actual_loss)
-      tf.summary.scalar("tboard_loss", tboard_loss)
+      tf.logging.info(" >> [model.py model_fn _extract_loss] tboard ...")
+      tf.logging.info(" >> [model.py model_fn _extract_loss] actual_loss = {}".format(actual_loss))
+      tf.logging.info(" >> [model.py model_fn _extract_loss] tboard_loss = {}".format(tboard_loss))
+
+      tf.summary.scalar('loss', actual_loss)
+      tf.summary.scalar("tb_loss", tboard_loss)
       return actual_loss
 
     def _model_fn(features, labels, params, mode, config):

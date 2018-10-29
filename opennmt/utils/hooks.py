@@ -230,6 +230,7 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
       self._debug_ops = misc.get_dict_from_collection("debug")
 
     if self._output_dir is not None:
+      tf.logging.info(" >> [hooks.py class SaveEvaluationPredictionHook after_run] self._output_dir = {}".format(self._output_dir))
       self._summary_writer = tf.summary.FileWriterCache.get(self._output_dir)
 
   def before_run(self, run_context):  # pylint: disable=unused-argument
@@ -266,10 +267,10 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
 
 
   def end(self, session):
-    for k, v in six.iteritems(self._metrics_accumulator):
-      average_value = sum(v) / len(v)
-      summary = tf.Summary(value=[tf.Summary.Value(tag=k, simple_value=average_value)])
-      self._summary_writer.add_summary(summary, self._current_step)
+    # for k, v in six.iteritems(self._metrics_accumulator):
+    #   average_value = sum(v) / len(v)
+    #   summary = tf.Summary(value=[tf.Summary.Value(tag=k, simple_value=average_value)])
+    #   self._summary_writer.add_summary(summary, self._current_step)
 
     tf.logging.info("Running _post_evaluation_fn (BLEU); Evaluation predictions saved to %s", self._output_path)
     if self._post_evaluation_fn is not None:
