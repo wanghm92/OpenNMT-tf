@@ -1,0 +1,59 @@
+# WARNING:
+# Do not use this file as is! It only lists and documents available options
+# without caring about their consistency.
+
+# The directory where models and summaries will be saved. It is created if it does not exist.
+model_dir: ../onmt-tf-output/recom_nlg_furniture_hierarchical_prefix_first_word
+#model_dir: ../onmt-tf-output/temp
+
+data:
+  # (required for train_and_eval and train run types).
+  train_features_file:
+    - ../recom_nlg/onmt/furniture/one_per_sku/seg_new/train/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.words.filter.seg_new.train
+    - ../recom_nlg/onmt/furniture/one_per_sku/seg_new/train/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.tags.filter.seg_new.train
+  train_labels_file:
+  - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.attr_one.train
+  - - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.train.shifted.0
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.train.shifted.1
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.train.shifted.2
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.train.shifted.3
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.train.shifted.4
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.train.shifted.5
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.train.shifted.6
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.train.shifted.7
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.train.shifted.8
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/train/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.train.shifted.9
+
+
+  # (required for train_end_eval and eval run types).
+  eval_features_file:
+    - ../recom_nlg/onmt/furniture/one_per_sku/seg_new/val/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.words.filter.seg_new.val
+    - ../recom_nlg/onmt/furniture/one_per_sku/seg_new/val/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.tags.filter.seg_new.val
+  eval_labels_file:
+  - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.attr_one.val
+  - - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.val.shifted.0
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.val.shifted.1
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.val.shifted.2
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.val.shifted.3
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.val.shifted.4
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.val.shifted.5
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.val.shifted.6
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.val.shifted.7
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.val.shifted.8
+    - /home/hongmin/recom_nlg/onmt/furniture/one_per_sku/seg_new/val/prefix_first_word/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.punctrmd.val.shifted.9
+
+
+  eval_labels_file_full: ../recom_nlg/onmt/furniture/one_per_sku/seg_new/val/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.full.val
+  # (optional) Models may require additional resource files (e.g. vocabularies).
+  source_words_vocabulary: data/recom_nlg/furniture/one_per_sku/words-outs-train.vocab
+  feature_vocabulary: data/recom_nlg/furniture/one_per_sku/tags-train.vocab
+  target_words_vocabulary: data/recom_nlg/furniture/one_per_sku/words-outs-train.vocab
+
+params:
+  # whether to turn on printing debug_ops in hooks
+  debug: False
+  beam_width: 1
+  maximum_iterations: 11
+#eval:
+#  # (optional) Evaluate every this many seconds (default: 18000).
+#  eval_delay: 60

@@ -3,7 +3,7 @@
 # without caring about their consistency.
 
 # The directory where models and summaries will be saved. It is created if it does not exist.
-model_dir: ../onmt-tf-output/recom_nlg_furniture_s2s
+model_dir: ../onmt-tf-output/recom_nlg_furniture_t2t
 
 data:
   # (required for train_and_eval and train run types).
@@ -25,6 +25,7 @@ data:
   target_words_vocabulary: data/recom_nlg/furniture/one_per_sku/words-outs-train.vocab
 
   words_embedding: ../recom_nlg/emb/20180710.expl_std.vec
+
 # Model and optimization parameters.
 params:
   # The optimizer class name in tf.train or tf.contrib.opt.
@@ -64,23 +65,23 @@ params:
   minimum_learning_rate: 0.0001
   # (optional) Type of scheduled sampling (can be "constant", "linear", "exponential",
   # or "inverse_sigmoid", default: "constant").
-  scheduled_sampling_type: constant
+#  scheduled_sampling_type: constant
   # (optional) Probability to read directly from the inputs instead of sampling categorically
   # from the output ids (default: 1).
-  scheduled_sampling_read_probability: 1
+#  scheduled_sampling_read_probability: 1
   # (optional unless scheduled_sampling_type is set) The constant k of the schedule.
-  scheduled_sampling_k: 0
+#  scheduled_sampling_k: 0
   # (optional) The label smoothing value.
   label_smoothing: 0.1
   # (optional) Width of the beam search (default: 1).
-  beam_width: 5
+  beam_width: 4
   # (optional) Length penaly weight to apply on hypotheses (default: 0).
   length_penalty: 0.2
   # (optional) Maximum decoding iterations before stopping (default: 250).
   maximum_iterations: 200
   # (optional) Replace unknown target tokens by the original source token with the
   # highest attention (default: false).
-  replace_unknown_target: true
+  replace_unknown_target: false
   # (optional) share word embedding between the encoder and decoder (default: false).
 #  decoder_share_embedding: true
 
@@ -158,5 +159,3 @@ score:
   num_threads: 1
   # (optional) The number of batches to prefetch asynchronously (default: 1).
   prefetch_buffer_size: 1
-  # (optional) For compatible models, also output the score (default: false).
-  with_scores: false

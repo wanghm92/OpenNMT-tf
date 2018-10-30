@@ -1,6 +1,6 @@
 # Transformer configuration for single GPU training.
 
-model_dir: ../onmt-tf-output/recom_nlg_clothes_t2t/layer4-unit256-head8-ffn1024/
+#model_dir: ../onmt-tf-output/recom_nlg_clothes_t2t/layer4-unit256-head8-ffn1024/
 
 params:
   optimizer: LazyAdamOptimizer
@@ -29,7 +29,7 @@ train:
 
 eval:
   batch_size: 64
-  eval_delay: 1800  # Every 5 hours.
+  eval_delay: 1800
 
 infer:
   batch_size: 32

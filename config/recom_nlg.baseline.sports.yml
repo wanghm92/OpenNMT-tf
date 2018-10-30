@@ -14,8 +14,8 @@ data:
 
   # (required for train_end_eval and eval run types).
   eval_features_file:
-    - ../recom_nlg/onmt/sports/one_per_sku/seg_new/val/recom_text_pos_all.txt.sports.condense.json.int.trim_attr.all.words.filter.base.val
-    - ../recom_nlg/onmt/sports/one_per_sku/seg_new/val/recom_text_pos_all.txt.sports.condense.json.int.trim_attr.all.tags.filter.base.val
+    - ../recom_nlg/onmt/sports/one_per_sku/seg_new/val/recom_text_pos_all.txt.sports.condense.json.int.trim_attr.all.words.filter.seg_new.val
+    - ../recom_nlg/onmt/sports/one_per_sku/seg_new/val/recom_text_pos_all.txt.sports.condense.json.int.trim_attr.all.tags.filter.seg_new.val
   eval_labels_file: ../recom_nlg/onmt/sports/one_per_sku/seg_new/val/recom_text_pos_all.txt.sports.condense.json.int.trim_attr.all.outs.seg_new.full.val
   eval_labels_file_full: ../recom_nlg/onmt/sports/one_per_sku/seg_new/val/recom_text_pos_all.txt.sports.condense.json.int.trim_attr.all.outs.seg_new.full.val
 
@@ -129,7 +129,7 @@ eval:
   # (optional) The number of batches to prefetch asynchronously (default: 1).
   prefetch_buffer_size: 1
   # (optional) Evaluate every this many seconds (default: 18000).
-  eval_delay: 60
+  eval_delay: 1800
   # (optional) Save evaluation predictions in model_dir/eval/.
   save_eval_predictions: false
   # (optional) Evalutator or list of evaluators that are called on the saved evaluation predictions.
