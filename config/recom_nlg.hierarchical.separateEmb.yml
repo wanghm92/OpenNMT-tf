@@ -160,7 +160,7 @@ eval:
   external_evaluators: [BLEU, ROUGE]
   # (optional) Model exporter(s) to use during the training and evaluation loop:
   # last, final, best, or null (default: last).
-  exporters: last
+  exporters: best
 
 # (optional) Inference options.
 infer:

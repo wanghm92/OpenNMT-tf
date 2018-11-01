@@ -45,9 +45,10 @@ data:
 
   eval_labels_file_full: ../recom_nlg/onmt/furniture/one_per_sku/seg_new/val/recom_text_pos_all.txt.furniture.condense.json.int.trim_attr.multi.outs.seg_new.full.val
   # (optional) Models may require additional resource files (e.g. vocabularies).
-  source_words_vocabulary: data/recom_nlg/furniture/one_per_sku/words-outs-train.vocab
+  source_words_vocabulary: data/recom_nlg/furniture/one_per_sku/words-train.vocab
   feature_vocabulary: data/recom_nlg/furniture/one_per_sku/tags-train.vocab
-  target_words_vocabulary: data/recom_nlg/furniture/one_per_sku/words-outs-train.vocab
+  master_target_words_vocabulary: data/recom_nlg/furniture/one_per_sku/words-train.vocab
+  sub_target_words_vocabulary: data/recom_nlg/furniture/one_per_sku/outs-train.vocab
 
 params:
   # whether to turn on printing debug_ops in hooks
