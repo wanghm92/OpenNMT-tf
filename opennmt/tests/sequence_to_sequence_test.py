@@ -45,7 +45,7 @@ class SequenceToSequenceTest(tf.test.TestCase):
     with self.test_session() as sess:
       self.assertListEqual(expected_matrix, sess.run(matrix).tolist())
 
-   def testPharaohAlignments(self):
+  def testPharaohAlignments(self):
     self._testPharaohAlignments("0-0", [1, 1], [[1]])
     self._testPharaohAlignments(
         "0-0 1-1 2-2 3-3", [4, 4], [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])

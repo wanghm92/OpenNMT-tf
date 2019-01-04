@@ -195,7 +195,7 @@ class RNNDecoder(Decoder):
     logits = align_in_time(logits, inputs_len)
 
     if return_alignment_history:
-        return (logits, state, length, None)
+        return (logits, outputs.rnn_output, state, length, None)
     return (logits, outputs.rnn_output, state, length)
 
   def dynamic_decode(self,
