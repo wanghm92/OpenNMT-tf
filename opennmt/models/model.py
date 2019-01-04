@@ -500,6 +500,18 @@ class Model(object):
     tf.logging.info(" >> [model.py _get_labels_builder] process_fn = {}".format(process_fn))
     return dataset, process_fn
 
+  def _augment_parallel_dataset(self, dataset, process_fn, mode=None):
+    """Augments a parallel dataset.
+     Args:
+      dataset: A parallel dataset.
+      process_fn: The current dataset processing function.
+      mode: A ``tf.estimator.ModeKeys`` mode.
+     Returns:
+      A tuple ``(tf.data.Dataset, process_fn)``.
+    """
+    _ = mode
+    return dataset, process_fn
+
   # ----------------------------------------------------------------------------------------- #
   # ------------------------------------ _input_fn_impl ------------------------------------- #
   # ----------------------------------------------------------------------------------------- #
@@ -547,6 +559,7 @@ class Model(object):
       tf.logging.info(" >> [model.py _input_fn_impl] labels_process_fn = {} ".format(labels_process_fn))
 
       process_fn = lambda features, labels: (feat_process_fn(features), labels_process_fn(labels))
+      dataset, process_fn = self._augment_parallel_dataset(dataset, process_fn, mode=mode)
 
       tf.logging.info(" >> [model.py _input_fn_impl] maximum_labels_length = {} ".format(maximum_labels_length))
 
