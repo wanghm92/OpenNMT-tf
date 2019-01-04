@@ -412,7 +412,7 @@ def guided_alignment_cost(attention_probs,
     gold_alignment: The true alignment matrix, a float ``tf.Tensor`` of shape: math:`[B, T_t, T_s]`.
     sequence_length: The length of each sequence.
     guided_alignment_type: The type of guided alignment cost function to compute
-      (can be: ce).
+      (can be: ce, mse).
     guided_alignment_weight: The weight applied to the guided alignment cost.
    Returns:
     The guided alignment cost.
