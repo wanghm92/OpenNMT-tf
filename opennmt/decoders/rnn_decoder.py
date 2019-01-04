@@ -94,7 +94,8 @@ class RNNDecoder(Decoder):
              mode=tf.estimator.ModeKeys.TRAIN,
              memory=None,
              memory_sequence_length=None,
-             shifted=None):
+             shifted=None,
+             return_alignment_history=False):
     """
     Decodes a full input sequence.
     Usually used for training and evaluation where target sequences are known.
@@ -193,6 +194,8 @@ class RNNDecoder(Decoder):
     inputs_len = tf.shape(inputs)[1]
     logits = align_in_time(logits, inputs_len)
 
+    if return_alignment_history:
+        return (logits, state, length, None)
     return (logits, outputs.rnn_output, state, length)
 
   def dynamic_decode(self,
