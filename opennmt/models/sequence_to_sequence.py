@@ -220,10 +220,13 @@ class SequenceToSequence(Model):
                   memory=encoder_outputs,
                   memory_sequence_length=encoder_sequence_length,
                   return_alignment_history=True)
-              outputs = {
-                  "logits": logits,
-                  "attention": attention
-              }
+              if "alignment" in labels:
+                  outputs = {
+                      "logits": logits,
+                      "attention": attention
+                  }
+              else:
+                  outputs = logits
           tf.logging.info(" >> [sequence_to_sequence.py _build] logits = {}".format(logits))
           tf.logging.info(" >> [sequence_to_sequence.py _build] rnn_outputs = {}".format(rnn_outputs))
           tf.logging.info(" >> [sequence_to_sequence.py _build] state = {}".format(state))
