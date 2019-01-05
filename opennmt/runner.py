@@ -191,9 +191,16 @@ class Runner(object):
         steps=None,
         exporters=_make_exporters(
             self._config["eval"].get("exporters", "last"),
-            self._model.serving_input_fn(self._config["data"])),
+            self._model.serving_input_fn(self._config["data"]),
+            assets_extra=self._get_model_assets()),
         throttle_secs=self._config["eval"].get("eval_delay", 18000))
     return eval_spec
+
+  def _get_model_assets(self):
+    generated_assets_path = os.path.join(self._estimator.model_dir, "assets")
+    if not os.path.exists(generated_assets_path):
+      os.makedirs(generated_assets_path)
+    return self._model.get_assets(self._config["data"], asset_dir=generated_assets_path)
 
   def train_and_evaluate(self):
     """Runs the training and evaluation loop."""
@@ -342,6 +349,7 @@ class Runner(object):
     return self._estimator.export_savedmodel(
         export_dir_base,
         self._model.serving_input_fn(self._config["data"]),
+        assets_extra=self._get_model_assets(),
         checkpoint_path=checkpoint_path,
         **kwargs)
 
@@ -414,7 +422,7 @@ class Runner(object):
             print_bytes(tf.compat.as_bytes(fmt))
 
 
-def _make_exporters(exporters_type, serving_input_fn):
+def _make_exporters(exporters_type, serving_input_fn, assets_extra=None):
   if exporters_type is None:
     return None
   if not isinstance(exporters_type, list):
@@ -424,16 +432,16 @@ def _make_exporters(exporters_type, serving_input_fn):
     exporter_type = exporter_type.lower()
     if exporter_type == "last":
       # regularly exports the serving graph and checkpoints
-      exporters.append(tf.estimator.LatestExporter("latest", serving_input_fn))
+      exporters.append(tf.estimator.LatestExporter("latest", serving_input_fn, assets_extra=assets_extra))
     elif exporter_type == "final":
       # exports the serving graph and checkpoints in the end
-      exporters.append(tf.estimator.FinalExporter("final", serving_input_fn))
+      exporters.append(tf.estimator.FinalExporter("final", serving_input_fn, assets_extra=assets_extra))
     elif exporter_type == "best":
         # performs a model export everytime when the new model is better than any exsiting model
       if not hasattr(tf.estimator, "BestExporter"):
         raise ValueError("BestExporter is only available starting from TensorFlow 1.9")
       exporters.append(tf.estimator.BestExporter(
-          name="best", serving_input_receiver_fn=serving_input_fn))
+          name="best", serving_input_receiver_fn=serving_input_fn, assets_extra=assets_extra))
     else:
       raise ValueError("invalid exporter type: %s" % exporter_type)
   if len(exporters) == 1:

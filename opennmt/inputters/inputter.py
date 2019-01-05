@@ -109,7 +109,7 @@ class Inputter(object):
     """
     raise NotImplementedError()
 
-  def initialize(self, metadata):
+  def initialize(self, metadata, asset_dir=None, asset_prefix=""):
     """Initializes the inputter within the current graph.
 
     For example, one can create lookup tables in this method
@@ -119,8 +119,16 @@ class Inputter(object):
     Args:
       metadata: A dictionary containing additional metadata set
         by the user.
+      asset_dir: The directory where assets can be written. If ``None``, no
+        assets are returned.
+      asset_prefix: The prefix to attach to assets filename.
+     Returns:
+      A dictionary containing additional assets used by the inputter.
     """
-    pass
+    _ = metadata
+    _ = asset_dir
+    _ = asset_prefix
+    return {}
 
   def process(self, data):
     """Prepares raw data.
@@ -250,11 +258,13 @@ class MultiInputter(Inputter):
   def get_dataset_size(self, data_file):
     raise NotImplementedError()
 
-  def initialize(self, metadata):
+  def initialize(self, metadata, asset_dir=None, asset_prefix=""):
+    assets = {}
     tf.logging.info(" >>>> [inputter.py Class MultiInputter initialize]")
     for idx, inputter in enumerate(self.inputters):
       tf.logging.info(" >>>> [inputter.py Class MultiInputter initialize] initializing inputter ---- {} ---- ({}) ".format(idx, inputter))
-      inputter.initialize(metadata)
+      assets.update(inputter.initialize(metadata), asset_dir=asset_dir, asset_prefix="%s%d_" % (asset_prefix, i))
+    return assets
 
   def visualize(self, log_dir):
     tf.logging.info(" >>>> [inputter.py Class MultiInputter visualize]")

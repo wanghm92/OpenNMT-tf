@@ -413,19 +413,26 @@ class Model(object):
         counters.append(hooks.add_counter("labels", tf.reduce_sum(labels_length)))
     return counters
 
-  def _initialize(self, metadata):
+  def _initialize(self, metadata, asset_dir=None):
     """Runs model specific initialization (e.g. vocabularies loading).
 
     Args:
       metadata: A dictionary containing additional metadata set by the user.
+      asset_dir: The directory where assets can be written. If ``None``, no
+        assets are returned.
+    Returns:
+      A dictionary containing additional assets used by the model.
     """
     tf.logging.info(" >> [model.py _initialize] Initializing with metadata ... ")
+    assets = {}
     if self.features_inputter is not None:
       tf.logging.info(" >> [model.py _initialize] self.features_inputter.initialize(metadata) --- features_inputter = {}".format(self.features_inputter))
-      self.features_inputter.initialize(metadata)
+      assets.update(self.features_inputter.initialize(metadata, asset_dir=asset_dir, asset_prefix="source_"))
     if self.labels_inputter is not None:
       tf.logging.info(" >> [model.py _initialize] self.labels_inputter.initialize(metadata) --- labels_inputter = {}".format(self.labels_inputter))
-      self.labels_inputter.initialize(metadata)
+      assets.update(self.labels_inputter.initialize(metadata, asset_dir=asset_dir, asset_prefix="target_"))
+
+    return assets
 
   def _get_serving_input_receiver(self):
     """Returns an input receiver for serving this model.
@@ -709,6 +716,19 @@ class Model(object):
       A callable that returns a ``tf.estimator.export.ServingInputReceiver``.
     """
     return lambda: self._serving_input_fn_impl(metadata)
+
+  def get_assets(self, metadata, asset_dir):
+    """Returns additional assets used by this model.
+     Args:
+      metadata: A dictionary containing additional metadata set
+        by the user.
+      asset_dir: The directory where assets can be written.
+     Returns:
+      A dictionary of additional assets.
+    """
+    assets = self._initialize(metadata, asset_dir=asset_dir)
+    tf.reset_default_graph()
+    return assets
 
   def print_prediction(self, prediction, params=None, stream=None):
     """Prints the model prediction.

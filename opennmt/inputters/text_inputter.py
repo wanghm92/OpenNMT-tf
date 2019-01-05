@@ -242,9 +242,9 @@ class TextInputter(Inputter):
   def get_dataset_size(self, data_file):
     return count_lines(data_file)
 
-  def initialize(self, metadata):
+  def initialize(self, metadata, asset_dir=None, asset_prefix=""):
     tf.logging.info(" >>>> [text_inputter.py Class TextInputter initialize] self.tokenizer.initialize(metadata)")
-    self.tokenizer.initialize(metadata)
+    return self.tokenizer.initialize(metadata, asset_dir=asset_dir, asset_prefix=asset_prefix)
 
   def _process(self, data):
     """Tokenizes raw text."""
@@ -329,9 +329,9 @@ class WordEmbedder(TextInputter):
     if embedding_size is None and embedding_file_key is None:
       raise ValueError("Must either provide embedding_size or embedding_file_key")
 
-  def initialize(self, metadata):
+  def initialize(self, metadata, asset_dir=None, asset_prefix=""):
     tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder initialize] initialize tokenizer")
-    super(WordEmbedder, self).initialize(metadata)
+    assets = super(WordEmbedder, self).initialize(metadata, asset_dir=asset_dir, asset_prefix=asset_prefix)
     tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder initialize] assigning vocab and emb files")
     self.vocabulary_file = metadata[self.vocabulary_file_key]
     self.embedding_file = metadata[self.embedding_file_key] if self.embedding_file_key else None
@@ -348,6 +348,7 @@ class WordEmbedder(TextInputter):
         self.vocabulary_file,
         vocab_size=self.vocabulary_size - self.num_oov_buckets,
         num_oov_buckets=self.num_oov_buckets)
+    return assets
 
   def _get_serving_input(self):
     receiver_tensors = {
@@ -459,14 +460,15 @@ class CharEmbedder(TextInputter):
     self.dropout = dropout
     self.num_oov_buckets = 1
 
-  def initialize(self, metadata):
-    super(CharEmbedder, self).initialize(metadata)
+  def initialize(self, metadata, asset_dir=None, asset_prefix=""):
+    assets = super(CharEmbedder, self).initialize(metadata, asset_dir=asset_dir, asset_prefix=asset_prefix)
     self.vocabulary_file = metadata[self.vocabulary_file_key]
     self.vocabulary_size = count_lines(self.vocabulary_file) + self.num_oov_buckets
     self.vocabulary = tf.contrib.lookup.index_table_from_file(
         self.vocabulary_file,
         vocab_size=self.vocabulary_size - self.num_oov_buckets,
         num_oov_buckets=self.num_oov_buckets)
+    return assets
 
   def _get_serving_input(self):
     receiver_tensors = {
