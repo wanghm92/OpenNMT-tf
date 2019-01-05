@@ -141,12 +141,7 @@ class Runner(object):
     """
     tf.logging.info(" >> [runner.py _build_train_spec] Building train_spec ...")
 
-    train_hooks = [
-        hooks.LogParametersCountHook(),
-        hooks.CountersHook(
-            every_n_steps=self._estimator.config.save_summary_steps,
-            output_dir=self._estimator.model_dir,
-            debug=self._config["params"].get("debug"))]
+    train_hooks = [hooks.LogParametersCountHook()]
 
     if profile_hook:
         train_hooks.append(
