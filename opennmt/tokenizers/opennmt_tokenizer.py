@@ -1,7 +1,6 @@
 """Define the OpenNMT tokenizer."""
 
-import copy
-
+import copy, six
 import tensorflow as tf
 
 import pyonmttok
@@ -36,6 +35,9 @@ class OpenNMTTokenizer(Tokenizer):
   def initialize(self, metadata):
     super(OpenNMTTokenizer, self).initialize(metadata)
     self._tokenizer = create_tokenizer(self._config)
+    for key, value in six.iteritems(self._config):
+      if key.endswith("path"):
+        tf.add_to_collection(tf.GraphKeys.ASSET_FILEPATHS, tf.constant(value))
 
   def _tokenize_string(self, text):
     text = tf.compat.as_bytes(text)
