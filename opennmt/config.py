@@ -82,8 +82,16 @@ def load_model(model_dir, model_file=None, model_name=None, serialize_model=True
       model = load_model_from_catalog(model_name)
 
     if serialize_model:
-      with tf.gfile.Open(serial_model_file, mode="wb") as serial_model:
-        pickle.dump(model, serial_model)
+      try:
+        with tf.gfile.Open(serial_model_file, mode="wb") as serial_model:
+          pickle.dump(model, serial_model)
+      except RuntimeError:
+        '''
+          Ignore failure to serialize the model (e.g. the model contains an non
+          serializable Boost Python module). Serialized model configuration
+          is currently an undocumented feature that is planned for removal.
+        '''
+        pass
   elif not tf.gfile.Exists(serial_model_file):
     raise RuntimeError("A model configuration is required.")
   else:
