@@ -252,7 +252,7 @@ class Model(object):
         loss = _extract_loss(losses_shards)
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <TRAIN> Creating train_op (optimizer) ...")
-        train_op = optimize(loss, params)
+        train_op = optimize(loss, params, mixed_precision=(self.dtype == tf.float16))
 
         '''
         Ops and objects returned from a model_fn and passed to an Estimator.
