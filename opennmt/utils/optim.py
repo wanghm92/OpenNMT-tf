@@ -95,7 +95,7 @@ def optimize(loss, params, mixed_precision=False):
     params: A dictionary of hyperparameters.
     mixed_precision: If ``True``, wraps the optimizer to maintain a float32 copy
       of the weights.
-      
+
   Returns:
     The loss minimization op.
   """

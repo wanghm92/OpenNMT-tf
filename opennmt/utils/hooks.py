@@ -193,7 +193,7 @@ class LogPredictionTimeHook(tf.train.SessionRunHook):
 class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
   """Hook that saves the evaluation predictions."""
 
-  def __init__(self, model, output_file, post_evaluation_fn=None, debug=False):
+  def __init__(self, model, output_file, post_evaluation_fn=None, debug=False, predictions=None):
     """Initializes this hook.
 
     Args:
@@ -202,12 +202,14 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
         training step.
       post_evaluation_fn: (optional) A callable that takes as argument the
         current step and the file with the saved predictions.
+      predictions: The predictions to save.
     """
     self._model = model
     self._debug = debug
     self._output_file = output_file
     self._output_dir = os.path.dirname(output_file)
     self._post_evaluation_fn = post_evaluation_fn
+    self._predictions = predictions
     self._metrics_accumulator = dict()
 
   def begin(self):
@@ -220,7 +222,8 @@ class SaveEvaluationPredictionHook(tf.train.SessionRunHook):
       Second call of begin() on the same graph, should not change the graph.
     '''
     self._metrics = misc.get_dict_from_collection("metrics")
-    self._predictions = misc.get_dict_from_collection("predictions")
+    if self._predictions is None:
+      self._predictions = misc.get_dict_from_collection("predictions")
     if not self._predictions:
       raise RuntimeError("The model did not define any predictions.")
     self._global_step = tf.train.get_global_step()

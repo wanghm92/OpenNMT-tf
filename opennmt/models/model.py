@@ -53,11 +53,14 @@ class Model(object):
   # ----------------------------------------------------------------------------------------- #
   # --------------------------------------- model_fn ---------------------------------------- #
   # ----------------------------------------------------------------------------------------- #
-  def model_fn(self, num_devices=1):
+  def model_fn(self, num_devices=1, eval_prediction_hooks_fn=None):
     """Returns the model function.
 
     Args:
       num_devices: The number of devices used for training.
+      eval_prediction_hooks_fn: A callable that takes the model predictions
+        during evaluation and return an iterable of evaluation hooks (e.g. for
+        saving predictions on disk, running external evaluators, etc.).
 
     See Also:
       ``tf.estimator.Estimator`` 's ``model_fn`` argument for more details about
@@ -280,23 +283,26 @@ class Model(object):
         loss = _extract_loss(loss)
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> loss = {}".format(loss))
 
+        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing Metrics ...")
+        eval_metric_ops = self._compute_metrics(features, labels, predictions)
+        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> eval_metric_ops = {}".format(eval_metric_ops))
+
+        evaluation_hooks = []
+        if predictions is not None and eval_prediction_hooks_fn is not None:
+          # Register predictions in a collection so that hooks can easily fetch them.
+          evaluation_hooks.extend(eval_prediction_hooks_fn(predictions))
+
+        # TODO: check if this is still compatible
         """ compute perplexity """
         ppl = tf.exp(tf.minimum(loss, 100))
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> ppl = {}".format(ppl))
         add_dict_to_collection("metrics", {"perplexity": ppl})
 
-        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing Metrics ...")
-        eval_metric_ops = self._compute_metrics(features, labels, predictions)
-        tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> eval_metric_ops = {}".format(eval_metric_ops))
-
-        if predictions is not None:
-          # Register predictions in a collection so that hooks can easily fetch them.
-          add_dict_to_collection("predictions", predictions)
-
         return tf.estimator.EstimatorSpec(
             mode,
             loss=loss,
-            eval_metric_ops=eval_metric_ops)
+            eval_metric_ops=eval_metric_ops,
+            evaluation_hooks=evaluation_hooks)
 
       # ********************************************************************** #
       # ******************************** Pred ******************************** #
