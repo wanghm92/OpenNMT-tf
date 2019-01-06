@@ -16,6 +16,54 @@ OpenNMT-tf follows [semantic versioning 2.0.0](https://semver.org/). The API cov
 
 ### Fixes and improvements
 
+* Fix possible error when loading checkpoints without `--model_type` or `--model` after updating to a newer OpenNMT-tf version. The saved model description is now more future-proof regarding model class updates.
+
+## [1.10.0](https://github.com/OpenNMT/OpenNMT-tf/releases/tag/v1.10.0) (2018-10-11)
+
+### New features
+
+* `--auto_config` flag to use automatic training configuration values (e.g. optimizer, learning rate, batch size). For compatible models, the automatic values aim to deliver solid performance out of the box.
+* Include all tokenization assets in exported models
+
+### Fixes and improvements
+
+* Fix type error during evaluation and inference of FP16 Transformer models
+* Update the [model serving example](https://github.com/OpenNMT/OpenNMT-tf/tree/master/examples/serving) to use a real pretrained model with the TensorFlow Serving 1.11 GPU Docker image
+* Small training speed improvement when the optimizer implements sparse updates
+* Revise some default configuration values:
+  * change `bucket_width` default value to 1 (from 5)
+  * change inference `batch_size` default value to 16 (from 1)
+
+## [1.9.0](https://github.com/OpenNMT/OpenNMT-tf/releases/tag/v1.9.0) (2018-10-05)
+
+### New features
+
+* Mixed precision training of Transformer models
+* Command line option `--export_dir_base` to configure the destination directory of manually exported models
+
+### Fixes and improvements
+
+* Fix error when loading model configuration containing the `OpenNMTTokenizer` tokenizer
+* Include `OpenNMTTokenizer` subword models in the graph assets
+
+## [1.8.1](https://github.com/OpenNMT/OpenNMT-tf/releases/tag/v1.8.1) (2018-09-28)
+
+### Fixes and improvements
+
+* Fix backward incompatible change made to `Model.__call__` output types
+
+## [1.8.0](https://github.com/OpenNMT/OpenNMT-tf/releases/tag/v1.8.0) (2018-09-25)
+
+### New features
+
+* Guided alignment for models using `SelfAttentionDecoder` and `AttentionalRNNDecoder`
+* `with_scores` inference option to also output the prediction score
+* `with_alignments` inference option to also output the source-target alignments
+
+### Fixes and improvements
+
+* `SelfAttentionDecoder` defines the first attention head of the last layer as its source-target attention vector
+
 ## [1.7.0](https://github.com/OpenNMT/OpenNMT-tf/releases/tag/v1.7.0) (2018-08-07)
 
 ### New features
