@@ -44,7 +44,10 @@ def main():
                         help="Run type.")
     parser.add_argument("--config", required=True, nargs="+",
                         help="List of configuration files.")
-    parser.add_argument("--model_type", default="", choices=list(classes_in_module(catalog)),
+    parser.add_argument("--auto_config", default=False, action="store_true",
+                        help="Enable automatic configuration values.")
+    parser.add_argument("--model_type", default="",
+                        choices=list(classes_in_module(catalog, public_only=True)),
                         help="Model type from the catalog.")
     parser.add_argument("--model", default="",
                         help="Custom model configuration file.")
@@ -161,7 +164,8 @@ def main():
         seed=args.seed,
         num_devices=args.num_gpus,
         gpu_allow_growth=args.gpu_allow_growth,
-        session_config=session_config)
+        session_config=session_config,
+        auto_config=args.auto_config)
     tf.logging.info(" >> runner = %s"%runner)
     tf.logging.info(" >> features_inputter = %s" % model.features_inputter)
     tf.logging.info(" >> labels_inputter = %s" % model.labels_inputter)

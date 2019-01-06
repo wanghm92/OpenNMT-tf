@@ -1,6 +1,7 @@
 """Defines functions related to configuration files."""
 
 from importlib import import_module
+from opennmt.utils.misc import merge_dict
 
 import io
 import os
@@ -119,13 +120,6 @@ def load_config(config_paths, config=None):
       subconfig = yaml.load(config_file.read())
 
       # Add or update section in main configuration.
-      for section in subconfig:
-        if section in config:
-          if isinstance(config[section], dict):
-            config[section].update(subconfig[section])
-          else:
-            config[section] = subconfig[section]
-        else:
-          config[section] = subconfig[section]
+      merge_dict(config, subconfig)
 
   return config
