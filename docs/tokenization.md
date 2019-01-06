@@ -6,7 +6,16 @@ OpenNMT-tf ships the OpenNMT [Tokenizer](https://github.com/OpenNMT/Tokenizer) a
 
 ## Configuration files
 
-YAML files are used to set the tokenizer options to ensure consistency during data preparation and training. See the sample file `config/tokenization/sample.yml`.
+YAML files are used to set the tokenizer options to ensure consistency during data preparation and training. For example:
+
+```yaml
+mode: aggressive
+joiner_annotate: true
+segment_numbers: true
+segment_alphabet_change: true
+```
+
+*For a complete list of available options, see the [Tokenizer documentation](https://github.com/OpenNMT/Tokenizer/blob/master/docs/options.md).*
 
 ## Offline usage
 
@@ -61,5 +70,5 @@ data:
 
 ## Notes
 
-* As of now, tokenizers are not part of the exported graph.
+* As of now, tokenizers are not part of the exported graph. However, all tokenization resources (configuration, subword models, etc.) are registered as additional assets in the `SavedModel` bundle in the `assets.extra` directory.
 * Predictions saved during inference or evaluation are detokenized. Consider using the "BLEU-detok" external evaluator that calls `multi-bleu-detok.perl` instead of `multi-bleu.perl`.
