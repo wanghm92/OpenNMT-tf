@@ -252,12 +252,10 @@ class TextInputter(Inputter):
     tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] BEFORE: data = {}".format(data))
     tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] Tokenizes raw text (default: split by space) set_data_field(\"tokens\", \"length\")")
     if "tokens" not in data:
-      text = data["raw"]
-      tokens = self.tokenizer.tokenize(text)
-      length = tf.shape(tokens)[0]
+        tokens = self.tokenizer.tokenize(data["raw"])
+        data["length"] = tf.shape(tokens)[0]
+        data["tokens"] = tokens
 
-      data = self.set_data_field(data, "tokens", tokens)
-      data = self.set_data_field(data, "length", length)
     tf.logging.info(" >>>> [text_inputter.py Class TextInputter _process] AFTER: data = {}".format(data))
     return data
 
@@ -371,7 +369,7 @@ class WordEmbedder(TextInputter):
       tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] self.vocabulary = {}".format(self.vocabulary))
       ids = self.vocabulary.lookup(tokens)
       tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] ids = {}".format(ids))
-      data = self.set_data_field(data, "ids", ids)
+      data["ids"] = ids
     tf.logging.info(" >>>> [text_inputter.py Class WordEmbedder _process] data = {}".format(data))
     return data
 
@@ -486,11 +484,8 @@ class CharEmbedder(TextInputter):
     data = super(CharEmbedder, self)._process(data)
 
     if "char_ids" not in data:
-      tokens = data["tokens"]
-      chars, _ = tokens_to_chars(tokens)
-      ids = self.vocabulary.lookup(chars)
-
-      data = self.set_data_field(data, "char_ids", ids)
+      chars, _ = tokens_to_chars(data["tokens"])
+      data["char_ids"] = self.vocabulary.lookup(chars)
 
     return data
 
