@@ -24,9 +24,43 @@ The user can either:
 
 ## Parameters
 
-Parameters are described in separate YAML files. They define data files, optimization settings, dynamic model parameters, and options related to training and inference.
+Parameters are described in separate YAML files. They define data files, optimization settings, dynamic model parameters, and options related to training and inference. It uses the following layout:
 
-*See the example configuration `config/sample.yml` to learn about available parameters.*
+```yaml
+model_dir: path_to_the_model_directory
+
+data:
+  # Data configuration (training and evaluation files, vocabularies, alignments, etc.)
+params:
+  # Training and inference hyperparameters (learning rate, optimizer, beam size, etc.)
+train:
+  # Training specific configuration (checkpoint frequency, number of training step, etc.)
+eval:
+  # Evaluation specific configuration (evaluation frequency, external evaluators.)
+infer:
+  # Inference specific configuration (output scores, alignments, etc.)
+score:
+  # Scoring specific configuration
+```
+
+For a complete list of available options, see [Reference: Configuration](configuration_reference.html).
+
+### Automatic configuration
+
+Predefined models declare default parameters that should give solid performance out of the box. To enable automatic configuration, use the `--auto_config` flag:
+
+```bash
+onmt-main train_and_eval --model_type Transformer --config my_data.yml --auto_config
+```
+
+The user provided `my_data.yml` file will minimaly require the data configuration. You might want to also configure checkpoint related settings, the logging frequency, and the number of training steps.
+
+At the start of the training, the configuration values actually used will be logged. If you want to change some of them, simply add the parameter in your configuration file to override the default value.
+
+**Note:** default training values usually assume GPUs with at least 8GB of memory and a large system memory:
+
+* If you encounter GPU out of memory issues, try overriding `batch_size` to a lower value.
+* If you encounter CPU out of memory issues, try overriding `sample_buffer_size` to a fix value.
 
 ### Multiple configuration files
 
