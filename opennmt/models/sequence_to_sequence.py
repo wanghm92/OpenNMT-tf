@@ -3,8 +3,8 @@
 import tensorflow as tf
 import numpy as np
 import sys
-import opennmt.constants as constants
-import opennmt.inputters as inputters
+from opennmt import constants
+from opennmt import inputters
 
 from opennmt.models.model import Model
 from opennmt.utils.losses import cross_entropy_sequence_loss

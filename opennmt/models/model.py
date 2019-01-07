@@ -301,7 +301,7 @@ class Model(object):
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> loss = {}".format(loss))
 
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> Computing Metrics ...")
-        eval_metric_ops = self._compute_metrics(features, labels, predictions)
+        eval_metric_ops = self._compute_metrics(features, labels, predictions)  # pylint: disable=assignment-from-none
         tf.logging.info(" >> [model.py model_fn _model_fn] <EVAL> eval_metric_ops = {}".format(eval_metric_ops))
 
         evaluation_hooks = []
