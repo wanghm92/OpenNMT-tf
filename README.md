@@ -32,9 +32,11 @@ OpenNMT-tf is also compatible with some of the best TensorFlow features:
 * monitoring with [TensorBoard](https://www.tensorflow.org/get_started/summaries_and_tensorboard)
 * inference with [TensorFlow Serving](https://github.com/OpenNMT/OpenNMT-tf/tree/master/examples/serving) and the [TensorFlow C++ API](https://github.com/OpenNMT/OpenNMT-tf/tree/master/examples/cpp)
 
-## Overview
+## Using as a command line tool
 
-A minimal OpenNMT-tf run consists of 3 elements:
+OpenNMT-tf comes with several command line utilities to prepare data, train, and evaluate models.
+
+For all tasks involving a model execution, OpenNMT-tf uses a unique entrypoint: `onmt-main`. A typical OpenNMT-tf run consists of 3 elements:
 
 * the **run** type: `train_and_eval`, `train`, `eval`, `infer`, `export`, or `score`
 * the **model** type
@@ -46,10 +48,7 @@ that are passed to the main script:
 onmt-main <run_type> --model_type <model> --auto_config --config <config_file.yml>
 ```
 
-Additional experimental models are available in the `config/models/` directory and can be used with the option `--model <model_file.py>`.
-
-* For more information about configuration files, see the [documentation](http://opennmt.net/OpenNMT-tf/configuration.html).
-* For more information about command line options, see the help flag `onmt-main -h`.
+*For more information and examples on how to use OpenNMT-tf, please visit [our documentation](http://opennmt.net/OpenNMT-tf).*
 
 ## Using as a library
 
@@ -59,13 +58,11 @@ OpenNMT-tf also exposes well-defined and stable APIs. Here is an example using t
 import tensorflow as tf
 import opennmt as onmt
 
+tf.enable_eager_execution()
+
 # Build a random batch of input sequences.
+inputs = tf.random_uniform((3, 6, 256))
 sequence_length = [4, 6, 5]
-input_depth = 512
-inputs = tf.placeholder_with_default(
-    np.random.randn(
-        len(sequence_length), max(sequence_length), input_depth).astype(np.float32),
-    shape=(None, None, input_depth))
 
 # Encode with a self-attentional encoder.
 encoder = onmt.encoders.SelfAttentionEncoder(num_layers=4)
@@ -73,6 +70,8 @@ outputs, state, outputs_length = encoder.encode(
     inputs,
     sequence_length=sequence_length,
     mode=tf.estimator.ModeKeys.TRAIN)
+
+print(outputs)
 ```
 
 For more advanced examples, some online resources are using OpenNMT-tf as a library:
