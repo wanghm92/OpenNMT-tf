@@ -349,7 +349,7 @@ def inference_pipeline(dataset,
   tf.logging.info(" >>>> [utils/data.py inference_pipeline] ")
   if process_fn is not None:
     tf.logging.info(" >>>> [utils/data.py inference_pipeline] Applying process_fn ...")
-    dataset = dataset.map(process_fn, num_parallel_calls=num_threads or 1)
+    dataset = dataset.map(process_fn, num_parallel_calls=num_threads)
   tf.logging.info(" >>>> [utils/data.py inference_pipeline] batch_parallel_dataset ...")
   dataset = dataset.apply(batch_parallel_dataset(batch_size))
   tf.logging.info(" >>>> [utils/data.py inference_pipeline] prefetch_element ...")
