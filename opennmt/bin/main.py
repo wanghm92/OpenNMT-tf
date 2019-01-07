@@ -177,10 +177,10 @@ def main():
     # Start Training/Evaluation
     if args.run == "train_and_eval":
         tf.logging.info(" >> Start Training and Evaluation ...")
-        runner.train_and_evaluate()
+        runner.train_and_evaluate(checkpoint_path=args.checkpoint_path)
     elif args.run == "train":
         tf.logging.info(" >> Start Training ...")
-        runner.train()
+        runner.train(checkpoint_path=args.checkpoint_path)
     elif args.run == "eval":
         tf.logging.info(" >> Start Evaluation ...")
         runner.evaluate(checkpoint_path=args.checkpoint_path)

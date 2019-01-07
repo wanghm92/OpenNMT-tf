@@ -167,7 +167,7 @@ class Runner(object):
             predictions=predictions)]
 
 
-  def _build_train_spec(self, profile_hook=False):
+  def _build_train_spec(self, checkpoint_path, profile_hook=False):
     """
     :return: Configuration for the "train" part for the train_and_evaluate call
                 tf.estimator.TrainSpec: input data for the training, as well as the duration
@@ -175,6 +175,9 @@ class Runner(object):
     tf.logging.info(" >> [runner.py _build_train_spec] Building train_spec ...")
 
     train_hooks = [hooks.LogParametersCountHook()]
+
+    if checkpoint_path is not None:
+      train_hooks.append(hooks.LoadWeightsFromCheckpointHook(checkpoint_path))
 
     if profile_hook:
         train_hooks.append(
@@ -235,8 +238,12 @@ class Runner(object):
       tf.gfile.MakeDirs(generated_assets_path)
     return self._model.get_assets(self._config["data"], asset_dir=generated_assets_path)
 
-  def train_and_evaluate(self):
-    """Runs the training and evaluation loop."""
+  def train_and_evaluate(self, checkpoint_path=None):
+    """Runs the training and evaluation loop.
+
+    Args:
+      checkpoint_path: The checkpoint path to load the model weights from it.
+    """
     '''
     https://www.tensorflow.org/api_docs/python/tf/estimator/train_and_evaluate
     This utility function trains, evaluates, and (optionally) exports the model by using the given estimator. 
@@ -246,16 +253,24 @@ class Runner(object):
         In order to avoid overfitting, it is recommended to set up the training input_fn to shuffle the training data properly
         The training input_fn is configured to throw OutOfRangeError after going through one epoch, which stops the Estimator.train
     '''
-    train_spec = self._build_train_spec(profile_hook=self._config["train"]["profile_hook"])
+    if checkpoint_path is not None and tf.gfile.IsDirectory(checkpoint_path):
+      checkpoint_path = tf.train.latest_checkpoint(checkpoint_path)
+    train_spec = self._build_train_spec(checkpoint_path, profile_hook=self._config["train"]["profile_hook"])
     eval_spec = self._build_eval_spec()
     tf.logging.info(" >> Start train_and_evaluate...")
     tf.estimator.train_and_evaluate(self._estimator, train_spec, eval_spec)
     self._maybe_average_checkpoints()
 
-  def train(self):
-    """Runs the training loop. Trains a model given training data from input_fn"""
+  def train(self, checkpoint_path=None):
+    """Runs the training loop. Trains a model given training data from input_fn
+
+    Args:
+      checkpoint_path: The checkpoint path to load the model weights from it.
+    """
     tf.logging.info(">> [runner.py train] Runs the training loop. Trains a model given training data input_fn")
-    train_spec = self._build_train_spec(profile_hook=self._config["train"]["profile_hook"])
+    if checkpoint_path is not None and tf.gfile.IsDirectory(checkpoint_path):
+      checkpoint_path = tf.train.latest_checkpoint(checkpoint_path)
+    train_spec = self._build_train_spec(checkpoint_path, profile_hook=self._config["train"]["profile_hook"])
     self._estimator.train(train_spec.input_fn, hooks=train_spec.hooks, max_steps=train_spec.max_steps)
     self._maybe_average_checkpoints()
     tf.logging.info(">> [runner.py train] Parameters : ")

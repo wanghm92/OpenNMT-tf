@@ -31,18 +31,13 @@ def shift_target_sequence(inputter, data):
     to reflect the added token on both sequences.
   """
   tf.logging.info(" >> [sequence_to_sequence.py] shift_target_sequence")
-  bos = tf.cast(tf.constant([constants.START_OF_SENTENCE_ID]), tf.int64)
-  eos = tf.cast(tf.constant([constants.END_OF_SENTENCE_ID]), tf.int64)
-
+  _ = inputter
   ids = data["ids"]
-  length = data["length"]
-
-  data = inputter.set_data_field(data, "ids_out", tf.concat([ids, eos], axis=0))
-  data = inputter.set_data_field(data, "ids", tf.concat([bos, ids], axis=0))
-
-  # Increment length accordingly.
-  inputter.set_data_field(data, "length", length + 1)
-
+  bos = tf.constant([constants.START_OF_SENTENCE_ID], dtype=ids.dtype)
+  eos = tf.constant([constants.END_OF_SENTENCE_ID], dtype=ids.dtype)
+  data["ids_out"] = tf.concat([ids, eos], axis=0)
+  data["ids"] = tf.concat([bos, ids], axis=0)
+  data["length"] += 1  # Increment length accordingly.
   return data
 
 def _maybe_reuse_embedding_fn(embedding_fn, scope=None):
