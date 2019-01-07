@@ -13,21 +13,16 @@ import tensorflow as tf
 def print_bytes(str_as_bytes, stream=None):
   """Prints a string viewed as bytes.
 
-  This function calls ``decode()`` depending on the output stream encoding.
-
   Args:
     str_as_bytes: The bytes to print.
     stream: The stream to print to (``sys.stdout`` if not set).
   """
-  encoding = None
-  if stream is not None:
-    encoding = stream.encoding
-  if encoding is None:
-    encoding = sys.getdefaultencoding()
-  text = str_as_bytes.decode(encoding) if encoding != "ascii" else str_as_bytes
-  print(text, file=stream)
-  if stream is not None:
-    stream.flush()
+  if stream is None:
+    stream = sys.stdout
+  write_buffer = stream.buffer if hasattr(stream, "buffer") else stream
+  write_buffer.write(str_as_bytes)
+  write_buffer.write(b"\n")
+  stream.flush()
 
 def item_or_tuple(x):
   """Returns :obj:`x` as a tuple or its single element."""
@@ -64,16 +59,13 @@ def count_lines(filename):
 def count_parameters():
   """Returns the total number of trainable parameters."""
   total = 0
-  param_sizes = {}
   for variable in tf.trainable_variables():
-    variable_name = variable.name
     shape = variable.get_shape()
     count = 1
     for dim in shape:
       count *= dim.value
-    param_sizes[variable_name] = (shape, count)
     total += count
-  return total, param_sizes
+  return total
 
 def extract_prefixed_keys(dictionary, prefix):
   """Returns a dictionary with all keys from :obj:`dictionary` that are prefixed
@@ -101,20 +93,22 @@ def extract_batches(tensors):
           key: value[b] for key, value in six.iteritems(tensors)
       }
 
-    def merge_dict(dict1, dict2):
-      """Merges :obj:`dict2` into :obj:`dict1`.
-       Args:
-        dict1: The base dictionary.
-        dict2: The dictionary to merge.
-       Returns:
-        The merged dictionary :obj:`dict1`.
-      """
-      for key, value in six.iteritems(dict2):
-        if isinstance(value, dict):
-          dict1[key] = merge_dict(dict1.get(key, {}), value)
-        else:
-          dict1[key] = value
-      return dict1
+def merge_dict(dict1, dict2):
+  """Merges :obj:`dict2` into :obj:`dict1`.
+
+  Args:
+    dict1: The base dictionary.
+    dict2: The dictionary to merge.
+
+  Returns:
+    The merged dictionary :obj:`dict1`.
+  """
+  for key, value in six.iteritems(dict2):
+    if isinstance(value, dict):
+      dict1[key] = merge_dict(dict1.get(key, {}), value)
+    else:
+      dict1[key] = value
+  return dict1
 
 # The next 2 functions come with the following license and copyright:
 
