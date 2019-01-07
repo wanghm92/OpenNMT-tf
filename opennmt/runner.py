@@ -163,7 +163,7 @@ class Runner(object):
             post_evaluation_fn=external_evaluation_fn(
                 self._config["eval"].get("external_evaluators"),
                 self._config["data"]["eval_labels_file"],
-                output_dir=self._config["model_dir"]),
+                output_dir=save_path),
             predictions=predictions)]
 
 
